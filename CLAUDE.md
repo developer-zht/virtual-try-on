@@ -18,3 +18,8 @@ Claude Code 的项目记忆，记录协作约定与关键背景。
 ## 文档索引
 - `docs/SRS.md` — 软件需求规格说明书
 - `docs/Requirements-Analysis.md` — 需求分析
+- `docs/cross-app-ai-sharing.md` — 跨项目 AI 共享层约定（AIKit 的"宪法"，与 CFD 教学 App 共享）
+
+## AIKit（跨 App AI 共享层）
+- 代码在 `AIKit/`（Swift Package）；`AIKitCore` **零 SwiftUI、零穿搭业务**，**MIT 许可、不沾 GPL**。
+- 接口契约与复用节奏以 `docs/cross-app-ai-sharing.md` 为准；§5 的 D-A..D-F 为待拍板实现决策。
