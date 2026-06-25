@@ -1,0 +1,16 @@
+# 克隆的教学代码，不纳入自己的仓库
+virtual-try-on/
+
+# macOS
+.DS_Store
+
+# Xcode
+*.xcuserdatad/
+DerivedData/
+*.xcuserstate
+
+# OpenFOAM 编译/运行产物（按需保留）
+*.o
+*.so
+linux*Opt/
+processor*/
