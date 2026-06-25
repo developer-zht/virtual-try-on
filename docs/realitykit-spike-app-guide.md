@@ -4,6 +4,47 @@
 > 所以本文**不解释图形学基础**，只讲「RealityKit 与你已知世界的差异」+ 最小可跑代码 + Metal 入口。
 > 目标：Spike Day4——加载 USDZ，一个 Slider 同时驱动人体与衣服的 blendshape。
 
+## 0. 从零建 Xcode 工程（没有工程就无从谈"卡住"）
+
+> 前提：Mac 上装了 **Xcode 16+**（App Store 装）。第一次要登一个 Apple ID 用于签名（免费账号即可真机跑，证书 7 天有效，够 Spike）。
+
+**Step 1 — 新建工程**
+`Xcode ▸ File ▸ New ▸ Project… ▸ iOS 标签 ▸ App ▸ Next`
+- ⚠ **选最普通的「App」，不要选「Augmented Reality App」**——后者默认塞 ARKit/ARView，我们要的是非 AR 静态查看器。
+- Product Name：`TryOn3DSpike`
+- Team：选你的 Apple ID（没有就 Add Account）
+- Organization Identifier：`com.yourname`（于是 Bundle ID = `com.yourname.TryOn3DSpike`）
+- Interface：**SwiftUI**；Language：**Swift**；Storage：**None**（测试可勾可不勾）
+
+**Step 2 — 把最低系统设成 iOS 18**
+选中左侧蓝色工程图标 ▸ TARGETS ▸ `TryOn3DSpike` ▸ General ▸ **Minimum Deployments ▸ iOS 18.0**。
+（`BlendShapeWeightsComponent` 需要 iOS 18；你的 iOS 26.5 真机满足，17.7.1 那台不行。）
+
+**Step 3 — 认识生成出来的文件**
+```
+TryOn3DSpike/
+├── TryOn3DSpikeApp.swift   ← @main 程序入口（≈ 你 web 里挂载 root 的 index.ts）
+├── ContentView.swift       ← 第一个 SwiftUI 视图（我们的主战场）
+└── Assets.xcassets/        ← 资源目录（图标、颜色）
+```
+> 现代 Xcode **默认没有可见的 Info.plist**——那些设置进了 target 的 **Info / Build Settings** 标签页。本 App 非 AR、不用相机，所以**不需要加任何隐私权限键**（NSCameraUsageDescription 等都免）。这点比网上老教程简单。
+
+**Step 4 — 放入 .usdz**
+把 Blender 导出的 `scene.usdz` 直接拖进 Xcode 左侧项目导航器 ▸ 弹窗里**勾「Copy items if needed」**、**勾下面的 target 复选框** ▸ Finish。这样它才会被打进 app bundle，`Bundle.main.url(forResource:"scene", withExtension:"usdz")` 才找得到。
+> 资产还没产出也没关系——下面的代码带一个**兜底立方体**，没有 usdz 也能编译、能跑、能验证相机/光照通了。
+
+**Step 5 — 签名**
+TARGETS ▸ `TryOn3DSpike` ▸ Signing & Capabilities ▸ 勾 **Automatically manage signing** ▸ Team 选你的 Apple ID。
+
+**Step 6 — 跑起来**
+顶部设备下拉选你的 **iOS 26.5 真机**（用线连上）▸ 按 **⌘R**。
+第一次真机会让你在手机上信任证书：`设置 ▸ 通用 ▸ VPN与设备管理 ▸ 信任你的开发者 App`。
+跑通后你应看到一个**白色立方体**——说明工程、相机、光照、RealityView 全 OK，此时再去等 usdz。
+
+**这两个文件的完整内容见 §3。** 把 Xcode 生成的同名文件整体替换即可。
+
+---
+
 ## 1. 分层心智模型（先对齐坐标系）
 
 | 你的世界 | Apple 世界 | 说明 |
@@ -32,10 +73,23 @@
 3. **名字来自 USD prim**。`root.findEntity(named: "Body")` 里的 "Body" 就是你在 **Blender 里给网格起的名字**。→ 所以 Blender 阶段要给人体、衣服**起可识别的名字**。
 4. **资源是引用计数的 `Resource`**（`MeshResource`/`TextureResource`/`MaterialParameters`），异步 `try await` 加载，和 three.js 的 loader 回调心智类似，但用 Swift `async`。
 
-## 3. 最小可跑代码（iOS 18+，SwiftUI + RealityView）
+## 3. 最小可跑代码（共两个文件，整体替换同名文件）
 
-> 把你 Blender 导出的 `scene.usdz`（含 Body + Shirt 两网格、各带同名 blendshape `k_weight`）拖进 Xcode 工程的 bundle。
+> 这两个文件**没有 `scene.usdz` 也能编译、能跑**——会显示一个兜底白立方体，证明渲染管线通了。等 usdz 拖进来后自动改走真实模型分支。
 
+### 文件 A：`TryOn3DSpikeApp.swift`（Xcode 已生成同名，整体替换）
+```swift
+import SwiftUI
+
+@main
+struct TryOn3DSpikeApp: App {           // @main = 程序入口（≈ web 的 bootstrap）
+    var body: some Scene {
+        WindowGroup { ContentView() }   // 一个窗口，挂载根视图
+    }
+}
+```
+
+### 文件 B：`ContentView.swift`（整体替换）
 ```swift
 import SwiftUI
 import RealityKit
@@ -49,51 +103,52 @@ struct ContentView: View {
         VStack {
             RealityView { content in
                 // —— 构建阶段（≈ three.js 初始化场景）——
-                guard let url = Bundle.main.url(forResource: "scene", withExtension: "usdz"),
-                      let root = try? await Entity(contentsOf: url) else { return }
-                content.add(root)
-
-                // 按 Blender 里的命名抓到两个网格实体
-                bodyEntity    = root.findEntity(named: "Body")
-                garmentEntity = root.findEntity(named: "Shirt")
 
                 // 非 AR：必须自己加相机 + 光，否则黑屏
                 let cam = PerspectiveCamera()
-                cam.look(at: .zero, from: [0, 1.2, 2.5], relativeTo: nil)
+                cam.look(at: .zero, from: [0, 1.0, 2.5], relativeTo: nil)
                 content.add(cam)
 
                 let light = DirectionalLight()
                 light.light.intensity = 2000
                 light.look(at: .zero, from: [1, 2, 1.5], relativeTo: nil)
                 content.add(light)
-                // 想要 PBR 好看：用 ImageBasedLightComponent 挂一张 HDR 环境贴图（你熟 IBL）
+
+                // 有 usdz 走真实模型，没有就放一个兜底立方体（先验证管线）
+                if let url = Bundle.main.url(forResource: "scene", withExtension: "usdz"),
+                   let root = try? await Entity(contentsOf: url) {
+                    content.add(root)
+                    bodyEntity    = root.findEntity(named: "Body")   // 名字=Blender里起的
+                    garmentEntity = root.findEntity(named: "Shirt")
+                } else {
+                    let box = ModelEntity(mesh: .generateBox(size: 0.4),
+                                          materials: [SimpleMaterial(color: .white, isMetallic: false)])
+                    content.add(box)   // 看到白方块 = 工程/相机/光/RealityView 全 OK
+                }
 
             } update: { content in
-                // —— 每当 @State 变化（拖滑块）重跑：把同一权重写进两个实体 ——
+                // —— @State 变化（拖滑块）时重跑 ≈ onBeforeRender ——
                 setBlendWeight(bodyEntity,    to: weight)
                 setBlendWeight(garmentEntity, to: weight)
             }
 
-            Slider(value: $weight, in: 0...1)
-                .padding()
+            Slider(value: $weight, in: 0...1).padding()
         }
     }
 
-    /// 把单通道 blendshape 权重写进一个实体（注意值类型 → 必须写回）
+    /// 把单通道 blendshape 权重写进一个实体（值类型 → 必须写回）
     func setBlendWeight(_ entity: Entity?, to value: Float) {
         guard let entity,
-              var comp = entity.components[BlendShapeWeightsComponent.self]
-        else { return }
-
-        // weightSet：该实体上每个「含 blendshape 的网格」一组权重
-        // 单通道场景：直接把这一通道设为 value
+              var comp = entity.components[BlendShapeWeightsComponent.self] else { return }
         for i in comp.weightSet.indices {
-            comp.weightSet[i].weights = [value]
+            comp.weightSet[i].weights = [value]    // 单通道直接设 value
         }
-        entity.components.set(comp)        // ★ 值类型，必须写回才生效
+        entity.components.set(comp)                // ★ 值类型，不写回 = 白改
     }
 }
 ```
+
+> 编译顺序建议：先**不放 usdz**，⌘R 看到白方块——确认环境/签名/真机链路通；再把 `scene.usdz` 拖进来，自动走真实模型 + blendshape 分支。这样把「工程问题」和「资产问题」彻底分开排查。
 
 ### 健壮版：按通道名定位（多通道时用，别硬编 index）
 真实有 8~10 个通道时，用 `BlendShapeWeightsMapping`（名字→索引）按 `"k_weight"` 定位对应位置再写，避免依赖通道顺序。Spike 单通道用上面的 `[value]` 即可。
