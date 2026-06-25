@@ -92,6 +92,65 @@
 
 ---
 
+## 5b. 关键概念澄清 + 全流程图（写 SRS 前必须吃透）
+
+### 概念①：免费 App ≠ 自动「非商用」，各家许可影响不同
+本 App 在 App Store **完全免费、不商用**，但「免费」对各资产许可的影响**不一致**：
+
+| 资产 | 免费 App 是否更宽松 | 关键 |
+|---|---|---|
+| **MakeHuman** | ✅ 本就 **CC0**，免费/付费都零顾虑 | 无任何条件 |
+| **Reallusion CC4** | 🟡 「非商用应用只需 Standard」，但**向用户暴露捏身材滑块=character creation system，仍可能触发 Enterprise，与收费无关** | 仍需书面确认 |
+| **Daz Genesis** | ❌ **不放宽**：Interactive License 触发点是「把 3D 网格分发进交互式 App」，**与是否收费无关**（模型离开你电脑给别人用即需授权） | 免费也要买 |
+| **SMPL / SMPL-X** | ❌ 不放宽：免费公开 App 属「面向公众分发的产品」，不在其「非商用科研/教育/艺术」范围 | 仍需 Meshcapade 商业授权 |
+
+> 结论强化：**MakeHuman 是唯一免费/商用都无条件的来源**，免费身份进一步扩大其优势。
+
+### 概念②：MakeHuman 衣服「原生 conforming」，但贴合发生在软件内、不是运行时
+- 图里 Shirt / Tight Top / Tight Pants / Boots / Gloves 等**贴身衣物**是为 MakeHuman 基础人体设计、CC0、随身材自动贴合。机制是 `.mhclo` **绑定**（每个衣服顶点挂在人体某三角面上），拖身材滑块时 **MakeHuman 软件内部**自动重算。
+- ⚠️ 同一列表里的 helmet / claws / gun / wings / hammer 是**挂骨头的硬质道具**，不随身材形变，**不是**你要的 conforming 衣物。
+- ⚠️ iPhone 上没有 MakeHuman。自动贴合**只发生在离线阶段**；运行时要靠导出时**烘焙进 USDZ 的 blendshape**。MakeHuman 帮你省的，正是「生成与人体配套的衣服 blendshape」这一最难步骤。
+
+### 概念③：不是「烘焙很多版本」，而是「一件衣服 = 一组 morph 通道」
+- ❌ 错误想象：胖版.usdz + 瘦版.usdz + 高版.usdz……（数量爆炸）
+- ✅ 实际：**一件衣服 = 1 个文件**，内含 ≈8~10 个 morph 通道（与人体同名）。
+  - 一个 morph 通道只存「往该方向怎么动」一份数据，滑块 0→1 连续插值出无穷中间态；
+  - 通道可任意叠加（胖0.7 + 高0.3 + 肩宽0.5 同时生效）；
+  - 总量 = **衣服件数(5) × 一套固定通道 = 5 个文件**，随件数线性增长，**不随身材组合爆炸**。
+- 克制项：通道越多 → 文件越大、iPhone 实时计算越重 → 通道集控制在最小必备集（见 §4-B 思路）。
+
+### 全流程图：资产 → 导出 → iPhone（标注工具 / 产出 / 失败点）
+
+```
+[1] 选基础人体 + 贴身衣物
+    工具：MakeHuman（人体 macro/detail targets + CC0 conforming 衣服）
+    产出：带身材形变 + 自动贴合衣服的工程
+    ⚠失败点：误选道具类(helmet/gun/wings)当衣物；衣物件数贪多
+        │  导出 OBJ/FBX/MHX2
+        ▼
+[2] 整备 + 烘焙 morph
+    工具：Blender（统一 UV 到 0–1、清拓扑、把人体形变"转写"为人体&衣服同名 blendshape）
+    产出：人体 + 每件衣服各带 ≈8~10 个同名 blendshape 通道
+    ⚠失败点★★★：人体与衣服 blendshape 命名不一致 → 运行时无法用同一权重驱动 → 穿模
+        │  Blender 原生 USD 导出（shape key→USD blendshape，骨架→USD skeleton）
+        ▼
+[3] 转 USDZ + 验收
+    工具：Blender USD 导出 → .usdc/.usdz；在 Reality Composer Pro 打开核对
+    产出：人体.usdz、衣服×5.usdz（均带 blendshape + UV + PBR base color 槽）
+    ⚠失败点★★★：blendshape/骨架在转换链中丢失（Reality Converter 保真更弱，优先 Blender USD）
+        │
+        ▼
+[4] iPhone 运行时（RealityKit, iOS 18+）
+    捏身材：用户拖滑块 → 同一权重同时写入【人体】与【衣服】的 BlendShapeWeightsComponent
+    换装：AI 生成 base color 贴图 → TextureResource → 替换 ModelComponent 上 PhysicallyBasedMaterial
+    展示：静态可旋转
+    ⚠失败点：blendshape 运行时驱动需 iOS 18 公共 API；UV 不干净则 AI 贴图错位
+```
+
+> **第一周必做的验证 spike**：走通 [1]→[4] 的**最小一条线**（1 人体 + 1 件衣服 + 1 个身材滑块），重点确认 **[2]/[3] 的 blendshape 没在转换链里丢、且在 RealityKit 里真能被滑块驱动**。这是整条路线最易翻车处，越早证伪越省。
+
+---
+
 ## 6. 一页结论（写 SRS 的输入）
 
 - **GO / NO-GO**：**有条件 GO**。技术路线在 iOS 18 基线上各环节均被官方 API / 成熟管线覆盖，无致命阻断。两个「中高」风险（衣服 morph 对齐、AI 纹理对齐 UV）可通过「款式交给预制、AI 只管颜色/图案」的边界设计关进可控范围。
