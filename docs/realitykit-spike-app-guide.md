@@ -45,6 +45,43 @@ TARGETS ▸ `TryOn3DSpike` ▸ Signing & Capabilities ▸ 勾 **Automatically ma
 
 ---
 
+## 0.5 多工程共存 + 用 VSCode 而非 Xcode
+
+### Q：能在一个根目录下放多个 App（spike/demo/test/正式版）吗？
+**能。** 每个 App 是一个独立 `.xcodeproj`，互不干扰，可共存于同一父目录：
+```
+Project_Virtual-Try-On/                 (你已有的根)
+├── TryOn3DSpike/   TryOn3DSpike.xcodeproj     ← 学习用 spike
+├── Demo/           Demo.xcodeproj
+├── Test/           Test.xcodeproj
+├── FullApp/        FullApp.xcodeproj           ← 正式 app
+└── (可选) Project_Virtual-Try-On.xcworkspace   ← 把以上聚到一个窗口
+```
+- 建工程时（§0 Step1）保存对话框里**导航到这个根目录**，Xcode 会自动建一个 `TryOn3DSpike/` 子文件夹。
+- ⚠ 若根目录已是 git 仓库，新建时**别再勾「Create Git repository」**，避免嵌套仓库。
+- 各 App 各自独立 scheme/签名；删掉某个子文件夹即删掉该 App，零牵连。`.xcworkspace` 可选——用 VSCode 时通常不需要，VSCode 打开根目录后能直接识别各 `.xcodeproj`。
+
+### Q：能用 VSCode 写代码、不碰 Xcode 吗？
+**编辑/构建/运行/真机调试都能在 VSCode 完成，但 Xcode 必须装着**（提供 SDK、模拟器、签名工具链——这部分绕不开）。方案是 **SweetPad** 扩展。
+
+设置一次：
+1. 装 **Xcode**（仍需，但之后日常不打开它）。
+2. 终端：`brew install xcode-build-server xcbeautify`。
+3. VSCode 装扩展：**SweetPad** + 官方 **Swift**（后者给 SourceKit-LSP 补全/诊断）。
+4. VSCode 打开 App 目录 → 命令面板运行 **「SweetPad: Generate Build Server Config」**（生成 `buildServer.json`，补全才生效，约 1 分钟）。
+5. SweetPad 侧栏选 scheme + 设备（你的 iOS 26.5 真机）→ Build & Run；调试走 CodeLLDB。
+
+**诚实的边界（这些仍需 Xcode，但都不影响本 Spike）**：
+- **首次签名/真机信任**：建议**第一次 Build&Run 在 Xcode 里做一遍**（设 Team、注册设备、过证书信任），之后再切回 VSCode——新手卡死多在这一步，Xcode 的引导更友好。
+- **SwiftUI Preview**：仅 Xcode。但 RealityKit Spike 是**真机运行**验证，基本不用 Preview，损失可忽略。
+- **Reality Composer Pro**（Spike Day3 查 USDZ 里 blendshape 是否存活）：独立 Mac 应用，和你用什么编辑器无关，照样要开。
+
+> 推荐路径：**先在 Xcode 把①空工程②白方块跑通一次**（过掉签名/真机信任这道坎）→ 之后日常编辑/编译/运行全搬到 VSCode + SweetPad。两全其美：避开 Xcode 编辑器的难用，又不在签名这种新手深坑里和 CLI 死磕。
+
+来源：[SweetPad](https://github.com/sweetpad-dev/sweetpad) · [SweetPad Build&Run 文档](https://sweetpad.hyzyla.dev/docs/build/)
+
+---
+
 ## 1. 分层心智模型（先对齐坐标系）
 
 | 你的世界 | Apple 世界 | 说明 |
