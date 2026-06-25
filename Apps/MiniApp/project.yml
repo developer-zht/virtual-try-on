@@ -1,0 +1,42 @@
+# XcodeGen 配置：从这份文本生成 MiniApp.xcodeproj。
+# 改工程 = 改这里 + 跑 `xcodegen generate`，再也不用在 Xcode 里手点。
+#
+# 生成命令（在本目录下）：
+#   xcodegen generate
+name: MiniApp
+options:
+  bundleIdPrefix: app.styletwin
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+# 引用仓库里的本地 Swift Package（相对路径指到包目录）。
+packages:
+  StyleTwinKit:
+    path: ../../StyleTwinKit
+
+targets:
+  MiniApp:
+    type: application
+    platform: iOS
+    # app 壳里的源码（极少：只有入口）。绝大多数代码在 StyleTwinKit 里。
+    sources:
+      - Sources
+    # 直接用 project.yml 生成 Info.plist，省得手维护一个 plist 文件。
+    info:
+      path: Generated/Info.plist
+      properties:
+        CFBundleDisplayName: StyleTwin Mini
+        UILaunchScreen: {}
+        # 拍照必需，否则一点「拍照」就崩。
+        NSCameraUsageDescription: 用于拍摄你的穿搭照片
+        NSPhotoLibraryUsageDescription: 用于从相册选择穿搭照片
+    dependencies:
+      - package: StyleTwinKit
+        product: ImageUploadFeature
+    settings:
+      base:
+        # 1 = 只支持 iPhone
+        TARGETED_DEVICE_FAMILY: 1
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"

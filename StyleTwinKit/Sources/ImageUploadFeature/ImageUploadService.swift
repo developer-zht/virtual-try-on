@@ -3,18 +3,24 @@ import Foundation
 // 「把一张图片上传给后端，拿回一张结果图」这件事的数据契约 + 服务抽象。
 // 思路对齐 AIKit 的 Provider：UI 只认协议，不关心背后是真 HTTP 还是假数据，
 // 这样后端接口没就绪也能先把页面完整跑起来。
+//
+// 这些类型是 public 的：因为它们在 package 里，要被 app target（MiniApp 等）引用。
 
 // MARK: - 数据契约
 
 /// 后端处理完返回的结果。
 /// 现在只关心「结果图地址」；以后后端多回字段（如耗时、任务 id），往这里加即可，UI 不必大改。
-struct UploadResult: Sendable, Equatable {
+public struct UploadResult: Sendable, Equatable {
     /// 后端处理后返回的图片 URL（要回显到页面上的那张）。
-    var resultImageURL: URL
+    public var resultImageURL: URL
+
+    public init(resultImageURL: URL) {
+        self.resultImageURL = resultImageURL
+    }
 }
 
 /// 上传过程可能出现的错误。分类清楚，UI 才好给出人话提示。
-enum UploadError: Error, Equatable {
+public enum UploadError: Error, Equatable {
     case invalidResponse        // 不是 HTTPURLResponse
     case http(status: Int)      // 非 2xx
     case decoding(String)       // 返回 JSON 解析失败
@@ -23,7 +29,7 @@ enum UploadError: Error, Equatable {
 // MARK: - 服务抽象（统一插座）
 
 /// 上传服务协议。换实现（假→真）时，注入这里换一个类型即可，UI 一行不用动。
-protocol ImageUploadService: Sendable {
+public protocol ImageUploadService: Sendable {
     /// 上传图片二进制，返回结果。
     /// - Parameters:
     ///   - imageData: 图片字节（JPEG/PNG 都行）。
@@ -35,8 +41,10 @@ protocol ImageUploadService: Sendable {
 
 /// 占位实现：模拟 1.5s 网络延迟，然后回一张随机图。
 /// 后端就绪后，把注入处换成 `HTTPImageUploadService` 即可。
-struct MockImageUploadService: ImageUploadService {
-    func upload(imageData: Data, mime: String) async throws -> UploadResult {
+public struct MockImageUploadService: ImageUploadService {
+    public init() {}
+
+    public func upload(imageData: Data, mime: String) async throws -> UploadResult {
         try await Task.sleep(nanoseconds: 1_500_000_000) // 假装在传输
 
         // 用图片大小当随机种子，保证每次选不同图片，回显也不同，便于肉眼确认链路通了。
@@ -51,20 +59,20 @@ struct MockImageUploadService: ImageUploadService {
 // MARK: - 真·HTTP 实现（multipart/form-data）
 
 /// 真后端实现。后端给到「端点 / 字段名 / 返回结构」后，核对下面 3 处 TODO 即可启用。
-struct HTTPImageUploadService: ImageUploadService {
+public struct HTTPImageUploadService: ImageUploadService {
     /// 上传端点，例如 https://api.styletwin.app/v1/tryon
-    let endpoint: URL
+    public let endpoint: URL
     /// 表单里图片字段名，跟后端约定（常见是 "file" 或 "image"）。
-    let fieldName: String
+    public let fieldName: String
     private let session: URLSession
 
-    init(endpoint: URL, fieldName: String = "file", session: URLSession = .shared) {
+    public init(endpoint: URL, fieldName: String = "file", session: URLSession = .shared) {
         self.endpoint = endpoint
         self.fieldName = fieldName
         self.session = session
     }
 
-    func upload(imageData: Data, mime: String) async throws -> UploadResult {
+    public func upload(imageData: Data, mime: String) async throws -> UploadResult {
         let boundary = "Boundary-\(UUID().uuidString)"
 
         var request = URLRequest(url: endpoint)

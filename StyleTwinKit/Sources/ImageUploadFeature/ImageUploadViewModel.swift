@@ -5,6 +5,7 @@ import Observation
 ///
 /// 把选图/上传/回显的状态从 View 抽出来，View 只管画 UI。
 /// 用 iOS 17 的 `@Observable`（和 AIKit 的 ChatSession 一致），属性一变 UI 自动刷新。
+/// 只在模块内部用，保持 internal 即可（不对外暴露）。
 @Observable
 @MainActor
 final class ImageUploadViewModel {

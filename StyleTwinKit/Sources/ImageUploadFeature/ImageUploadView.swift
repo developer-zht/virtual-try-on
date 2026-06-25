@@ -2,14 +2,27 @@ import SwiftUI
 import PhotosUI
 
 /// 上传图片页：相册上传 + 拍照上传 → 传给后端 → 把后端返回的图片回显在本页。
-struct ImageUploadView: View {
-    @State private var viewModel = ImageUploadViewModel()
+///
+/// 这是模块对外的唯一入口（public）。app 端这样用：
+/// ```swift
+/// import ImageUploadFeature
+/// ImageUploadView()                                  // 默认假接口
+/// ImageUploadView(service: HTTPImageUploadService(   // 真后端
+///     endpoint: URL(string: "https://...")!))
+/// ```
+public struct ImageUploadView: View {
+    @State private var viewModel: ImageUploadViewModel
     /// 相册选择器选中的条目（PhotosPicker 用）。
     @State private var photoItem: PhotosPickerItem?
     /// 是否弹出相机。
     @State private var showCamera = false
 
-    var body: some View {
+    /// - Parameter service: 上传服务，默认假接口；后端就绪后传 `HTTPImageUploadService`。
+    public init(service: ImageUploadService = MockImageUploadService()) {
+        _viewModel = State(initialValue: ImageUploadViewModel(service: service))
+    }
+
+    public var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {

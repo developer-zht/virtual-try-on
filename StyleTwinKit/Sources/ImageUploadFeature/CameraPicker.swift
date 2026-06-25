@@ -5,7 +5,7 @@ import UIKit
 ///
 /// SwiftUI 自己没有原生「打开相机拍照」的视图，要桥接 UIKit 的
 /// `UIImagePickerController`。`UIViewControllerRepresentable` 就是把一个
-/// UIKit 控制器包成 SwiftUI View 的官方桥。
+/// UIKit 控制器包成 SwiftUI View 的官方桥。只在模块内部用，保持 internal。
 struct CameraPicker: UIViewControllerRepresentable {
     /// 拍完回传 UIImage；用户取消则回 nil。
     var onPicked: (UIImage?) -> Void

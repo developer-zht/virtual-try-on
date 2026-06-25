@@ -1,0 +1,18 @@
+# Xcode / 工程产物（由 XcodeGen / Xcode 生成，不入库）
+*.xcodeproj/
+*.xcworkspace/
+Apps/**/Generated/
+DerivedData/
+build/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# VSCode（保留 settings.json，忽略个人化文件）
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json

@@ -1,0 +1,16 @@
+{
+  // Swift 扩展（SourceKit-LSP）：编辑 StyleTwinKit / AIKit 这类 Swift Package 时
+  // 提供补全、跳转、报错。打开仓库根目录即可自动识别各 Package.swift。
+  "swift.autoGenerateLaunchConfigurations": false,
+  "files.exclude": {
+    "**/.build": true,
+    "**/DerivedData": true,
+    "**/*.xcodeproj": true,
+    "**/Generated": true
+  },
+  // 让搜索忽略生成物，结果更干净。
+  "search.exclude": {
+    "**/.build": true,
+    "**/DerivedData": true
+  }
+}

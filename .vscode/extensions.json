@@ -1,0 +1,6 @@
+{
+  // 团队推荐插件，VSCode 打开仓库会提示安装。
+  "recommendations": [
+    "swiftlang.swift-vscode"
+  ]
+}
