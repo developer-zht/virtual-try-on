@@ -1,5 +1,34 @@
-# 克隆的教学代码，不纳入自己的仓库
-virtual-try-on/
+# Editor directories and files
+# 忽略项目中任何位置的.vscode文件夹
+**/.vscode/*
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# AI 相关
+.claude
+claude-*
+codex-*
+
+# Log
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# npm依赖包目录
+node_modules/
 
 # macOS
 .DS_Store
@@ -9,8 +38,5 @@ virtual-try-on/
 DerivedData/
 *.xcuserstate
 
-# OpenFOAM 编译/运行产物（按需保留）
-*.o
-*.so
-linux*Opt/
-processor*/
+# 克隆的教学代码，不纳入自己的仓库
+virtual-try-on/
