@@ -4,7 +4,8 @@
   "private": true,
   "description": "Git commit workflow tooling for the EasyFoam iOS project (not shipped, dev-only).",
   "scripts": {
-    "commit": "cz",
+    "commit": "cz && npm run push:all",
+    "push:all": "sh scripts/push-all.sh",
     "prepare": "husky"
   },
   "config": {
