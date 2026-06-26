@@ -1,0 +1,25 @@
+# 所有 .swift 文件，在 Git 仓库里面统一保存成 LF
+*.swift text eol=lf
+
+# HuggingFace
+*.safetensors filter=lfs diff=lfs merge=lfs -text
+*.bin         filter=lfs diff=lfs merge=lfs -text
+
+# GGUF
+*.gguf        filter=lfs diff=lfs merge=lfs -text
+
+# ONNX
+*.onnx        filter=lfs diff=lfs merge=lfs -text
+
+# TensorRT
+*.engine      filter=lfs diff=lfs merge=lfs -text
+
+# MLX
+*.mlx         filter=lfs diff=lfs merge=lfs -text
+
+# TensorFlow
+*.ckpt        filter=lfs diff=lfs merge=lfs -text
+
+# LoRA
+*.pt          filter=lfs diff=lfs merge=lfs -text
+*.pth         filter=lfs diff=lfs merge=lfs -text
