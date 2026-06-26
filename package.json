@@ -1,0 +1,29 @@
+{
+  "name": "project-easyfoam-tooling",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Git commit workflow tooling for the EasyFoam iOS project (not shipped, dev-only).",
+  "scripts": {
+    "commit": "cz",
+    "prepare": "husky"
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-git"
+    }
+  },
+  "lint-staged": {
+    "*.swift": [
+      "swiftlint lint --fix --quiet",
+      "swiftlint lint --strict --quiet"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "commitizen": "^4.3.1",
+    "cz-git": "^1.12.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10"
+  }
+}
