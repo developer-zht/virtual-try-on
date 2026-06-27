@@ -82,6 +82,31 @@ Project_Virtual-Try-On/                 (你已有的根)
 
 ---
 
+## 0.6 命名 / 「spike」含义 / `scene.usdz` 从哪来（常见疑问）
+
+- **「spike」是什么**：敏捷/XP 术语——**一次性、限时、用完即弃的技术探针**，唯一目的是回答「这条路走不走得通」以消除风险，不追求质量。验证完使命就结束，正式版另起炉灶。所以它该用**独立 Target** 装、与正式代码隔离。
+- **Target/入口命名**：若已有 Project（如 `VirtualTryOn`）走**多 Target**模式，新增 Target 不必再叫 `TryOn3DSpike`（重复）。建议描述性的 **`BlendShapeSpike`**（一眼知道在验证 blendshape），其 `@main` 结构体即 `BlendShapeSpikeApp`。结构体名只需**每 Target 唯一**，习惯 = `<Target名>App`。
+  - 加 Target：`File ▸ New ▸ Target ▸ iOS ▸ App`，名 `BlendShapeSpike`；Xcode 生成 `BlendShapeSpike/` 含 `BlendShapeSpikeApp.swift` + `ContentView.swift`，用 §3 代码替换。
+- **`scene.usdz` 从哪来**：**不是现成的**，是你按 `docs/asset-pipeline-makehuman-to-usdz.md` 自己产出的——MakeHuman 选人体+衣服 → Blender 做差生成 blendshape → 导出 `.usdz`。文件名随意，只要与代码 `forResource: "scene"` 一致。**现在还没有它没关系**，§3 代码带兜底立方体先验工程。
+
+## 0.7 白方块阶段常见报错 + 解法（⌘R 撞墙急救）
+
+> 这些都发生在「真机跑出白方块」之前，纯属 Xcode 工具链/签名/真机，**与图形学无关**。
+
+| 报错 / 现象 | 原因 | 解 |
+|---|---|---|
+| `Signing for "…" requires a development team` | 没选签名团队 | TARGETS ▸ Signing & Capabilities ▸ 勾 Automatically manage signing ▸ Team 选你的 Apple ID（没账号先 Xcode ▸ Settings ▸ Accounts 加） |
+| 设备列表里**找不到 iPhone** | ① 没插线/没信任电脑 ② **Developer Mode 没开** | ① 手机弹「信任此电脑」点信任 ② **iOS 16+ 必须开**：手机 `设置 ▸ 隐私与安全性 ▸ 开发者模式 ▸ 打开` → 重启手机 |
+| 手机上 App 图标点开闪退 + `Untrusted Developer` | 开发者证书未信任 | 手机 `设置 ▸ 通用 ▸ VPN与设备管理 ▸ 信任你的开发者` |
+| 编译报 `…only available in iOS 18.0 or newer` | 部署目标低于 18 | General ▸ Minimum Deployments ▸ iOS 18.0；且跑 iOS 26.5 那台真机（17.7.1 那台不行） |
+| 一堆 `ARKit`/相机权限相关报错或启动崩 | 误用了「Augmented Reality App」模板 | 删掉重建，选普通「App」模板 |
+| 真机跑出来是**黑屏**不是白方块 | 漏了相机/光，或相机朝向错 | 用 §3 代码（已含 PerspectiveCamera + DirectionalLight） |
+| `No such module 'RealityKit'` | 在模拟器/非 iOS 目标，或未 import | 跑**真机**；确认 `import RealityKit`；部署目标 iOS 18 |
+| 免费 Apple ID：7 天后 App 打不开 / 限 3 个 App | 免费证书有效期短、数量受限 | 重新 Build 一次即可续期；spike 阶段可接受 |
+| （放 usdz 后）`Bundle.main.url(...)` 返回 nil | 拖文件时没勾 Target Membership | 选中 `scene.usdz` ▸ 右侧 File Inspector ▸ Target Membership 勾上 `BlendShapeSpike` |
+
+---
+
 ## 1. 分层心智模型（先对齐坐标系）
 
 | 你的世界 | Apple 世界 | 说明 |
