@@ -16,6 +16,13 @@
 
 **结论：可行性 GO 的最大技术不确定性（运行时 blendshape）已被消除。** 下一步 Phase 1b（加一件 conforming 衣服验证不穿模）。
 
+### ✅ Phase 1b（身体 + 衣服，合并法）也已真机验证通过
+- MakeHuman 穿 casualsuit01（T恤+牛仔裤），导两态 → Blender 合并为单对象做 `k_weight` → `scene2.usdz` → 真机。
+- 真机拖滑块:**身体变胖时 T恤/牛仔裤一起撑大、肉眼无穿模**。验收 **C（衣服不穿模）✅**。
+- 额外发现:Blender Solid 模式不显示纹理（灰模），但贴图随材质打包进 usdz，RealityKit 默认渲染 → 真机上正常显示衣服贴图。印证"预制衣服自带 UV+贴图，AI 只换 base color"路线可行。
+- 注:合并法仅用于本次验证（1 个一次性模型）；产品用"分开法"(1 身体 + N 衣服，线性可换装)，clipping 行为与合并法一致。
+- **至此 A/B/C/D 全部通过，仅剩 E（运行时换 base color 纹理）为可选验证。整条核心技术链路已打通。**
+
 ---
 
 ## 验收标准（Spike 的 go / no-go）
