@@ -21,7 +21,24 @@
 - 真机拖滑块:**身体变胖时 T恤/牛仔裤一起撑大、肉眼无穿模**。验收 **C（衣服不穿模）✅**。
 - 额外发现:Blender Solid 模式不显示纹理（灰模），但贴图随材质打包进 usdz，RealityKit 默认渲染 → 真机上正常显示衣服贴图。印证"预制衣服自带 UV+贴图，AI 只换 base color"路线可行。
 - 注:合并法仅用于本次验证（1 个一次性模型）；产品用"分开法"(1 身体 + N 衣服，线性可换装)，clipping 行为与合并法一致。
-- **至此 A/B/C/D 全部通过，仅剩 E（运行时换 base color 纹理）为可选验证。整条核心技术链路已打通。**
+### ✅ Phase E（运行时换 base color）也已真机验证通过
+- 代码在运行时把衣服材质（合并模型材质槽 2 = female_casualsuit）的 `baseColor.tint` 改为红色，真机上**衣服实时变红**。
+- 机制：`material.baseColor.tint` 改色后写回 `ModelComponent.materials`；产品里 AI 换装即把 `baseColor` 的**纹理**替换为 AI 生成图（同机制，换 texture 而非 tint）。
+- 验证了"AI 生成 texture → 上身"那条腿的 **RealityKit 侧可行**。
+
+---
+
+## 🏁 Spike 总结：A–E 全部通过，核心技术 100% 验证
+| 项 | 内容 | 结果 |
+|---|---|---|
+| A | usdz 含 blendshape | ✅ |
+| B | 真机滑块驱动身体形变 | ✅ |
+| C | 身体+衣服一起变形、不穿模 | ✅ |
+| D | 真机帧率可用 | ✅ |
+| E | 运行时替换衣服 base color | ✅ |
+
+**可行性结论中的全部中高技术风险已被真机实测消除。GO 成立。下一步：写 SRS。**
+（产品 UI——折叠面板、360°旋转——属正式开发阶段，spike 不含。）
 
 ---
 
