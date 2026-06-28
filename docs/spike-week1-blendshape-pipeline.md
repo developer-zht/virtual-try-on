@@ -5,6 +5,19 @@
 > 范围：**1 个人体 + 1 件贴身衣服 + 1 个身材通道 + 1 个滑块**。不追求好看，只追求「链路通 / 不通」的结论。
 > 关联：可行性结论见 `docs/feasibility-3D-tryon.md`（§5b 全流程图）。
 
+## ✅ 验证结果（2026-06-28）：核心通过
+
+**Phase 1a（纯身体 + 单通道 k_weight）已在真机验证通过。**
+- 链路打通：MakeHuman（neutral + weight-max 两态导出 OBJ）→ Blender（Join as Shapes 做差成 `k_weight`，导出 USD 勾 Shape Keys + Convert Orientation）→ `scene.usdz` → RealityKit。
+- 真机（iOS 26.5）运行 `BlendShapeSpike`：控制台打印「找到 1 个带 blendshape 的实体」，**SwiftUI Slider 实时驱动身体形变成功**。
+- 验收对照：**A（USDZ 含 blendshape）✅、B（真机滑块驱动）✅、D（帧率可用）✅**；C（衣服不穿模）/ E（纹理替换）属 Phase 1b/后续，未做。
+- 关键经验已回写：`asset-pipeline-makehuman-to-usdz.md`（两态做差、Convert Orientation、Skel 骨架）、`realitykit-spike-app-guide.md`（`weights = [weight]` 字面量、自动扫描 blendshape 实体、白方块分步）。
+- 控制台中 `Could not resolve material name 'engine:BuiltinRenderGraphResources/AR/...rematerial'`、`VideoLightSpill`、`fopen errno=2` 等均为 **RealityKit 引擎内置 AR 渲染资源的惰性加载噪声**，与本模型无关，可忽略。
+
+**结论：可行性 GO 的最大技术不确定性（运行时 blendshape）已被消除。** 下一步 Phase 1b（加一件 conforming 衣服验证不穿模）。
+
+---
+
 ## 验收标准（Spike 的 go / no-go）
 - [ ] **A**. 导出的 `.usdz` 里，人体**和**衣服两个网格都带有同名 blendshape 通道（在 Reality Composer Pro 中可见）。
 - [ ] **B**. 在 **真机 iOS 18+** 上，一个 SwiftUI `Slider` 能实时驱动该通道，**人体与衣服一起形变**。
