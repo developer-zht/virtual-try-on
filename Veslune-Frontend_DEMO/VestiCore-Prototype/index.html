@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VestiCore · 完整产品原型 Demo</title>
+    <!-- React & ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- 设计 Token & 全局样式 -->
+    <link rel="stylesheet" href="src/styles/theme.css">
+    <!-- 把 React Hooks 暴露为全局变量，供各 TagX_*.js 组件函数体内直接使用 -->
+    <script>
+        window.useState = React.useState;
+        window.useEffect = React.useEffect;
+        window.useRef = React.useRef;
+        window.useCallback = React.useCallback;
+        window.createContext = React.createContext;
+        window.useContext = React.useContext;
+    </script>
+</head>
+<body>
+    <div id="root" class="phone-frame"></div>
+
+    <!-- 各 Tag 页面组件（顺序加载，每个组件挂载到 window 上） -->
+    <script type="text/babel" src="src/components/Tag1_Welcome.js"></script>
+    <script type="text/babel" src="src/components/Tag2_Scan.js"></script>
+    <script type="text/babel" src="src/components/Tag3_Profile.js"></script>
+    <script type="text/babel" src="src/components/Tag4_Settings.js"></script>
+    <script type="text/babel" src="src/components/Tag5_Result.js"></script>
+    <script type="text/babel" src="src/components/Tag6_Explore.js"></script>
+    <script type="text/babel" src="src/components/Tag7_Workshop.js"></script>
+
+    <!-- 路由 & 状态管理 + 渲染入口（必须最后加载） -->
+    <script type="text/babel" src="src/App.js"></script>
+</body>
+</html>
