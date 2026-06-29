@@ -272,9 +272,23 @@ RealityKit（ECS：Entity/ModelComponent/Material，Metal 渲染）
 - 合并法（身体+衣服合一）**仅 spike 用**，产品不用。
 
 ### 5.2 身材通道定义（终态 8~10 个）
-`k_weight` · `k_muscle` · `k_height` · `k_shoulder` · `k_hip` · `k_chest` · `k_waist` · `k_legLength` · `k_armLength`（`k_faceWidth` 可选）。
-- 身体与**每件衣服**都带这套**同名**通道。
-- ARKit 自动量身（FR-2）只 seed 其中**比例类**（height/shoulder/legLength/armLength）；围度类手动。
+身体与**每件衣服**都带这套**同名**通道（命名 = `k_` 前缀 + 小驼峰）。通道分两类：**比例类**（ARKit 可 seed）与**围度类**（仅手动）。
+
+| 通道 id | 含义 | 类别 | ARKit 可 seed | 默认 | 范围 | 标定度量（B-2） |
+|---|---|---|---|---|---|---|
+| `k_height` | 整体身高 | 比例 | ✅ | 0 | 0..1 | 站立身高(m) |
+| `k_legLength` | 腿长 | 比例 | ✅ | 0 | 0..1 | 髋→踝(m) |
+| `k_armLength` | 臂长 | 比例 | ✅ | 0 | 0..1 | 肩→腕(m) |
+| `k_shoulder` | 肩宽 | 比例 | ✅ | 0 | 0..1 | 左右肩峰距(m) |
+| `k_weight` | 胖瘦 | 围度 | ❌ | 0 | 0..1 | （手动）|
+| `k_muscle` | 肌肉量 | 围度 | ❌ | 0 | 0..1 | （手动）|
+| `k_chest` | 胸围 | 围度 | ❌ | 0 | 0..1 | （手动）|
+| `k_waist` | 腰围 | 围度 | ❌ | 0 | 0..1 | （手动）|
+| `k_hip` | 臀围 | 围度 | ❌ | 0 | 0..1 | （手动）|
+| `k_faceWidth` | 脸宽（可选） | 比例 | 🟡 | 0 | 0..1 | 颧骨宽(m) |
+
+- 权重 0..1 为内部值；UI 可映射到直观区间（如身高 1.45–2.00m）。
+- **标定度量**列即 FR-2 的 B-2 标定表项，同时供 FR-1 正交测量态实时读数。
 - 克制原则：通道越多文件越大、实时计算越重 → 控制在最小必备集。
 
 ### 5.3 制作流程 MakeHuman → Blender → USDZ
@@ -283,15 +297,39 @@ RealityKit（ECS：Entity/ModelComponent/Material，Metal 渲染）
 3. **导出 USD**：勾 **Shape Keys**（导成 USD blend shape）、勾 **Convert Orientation**（Z-up→Y-up）；得 `body.usdz` + 各 `garment_*.usdz`（均带 blendshape + UV + base color 槽）。USD blendshape 会自带占位 `Skel` 骨架，属正常。
 - ⚠ 优先 **Blender 原生 USD 导出**；Reality Converter 对 blendshape/骨架保真更弱。
 
-### 5.4 命名与对齐契约
-- **prim 名契约**：身体/各衣服的 USD prim 名 = 运行时 `findEntity(named:)` 的查找名，须稳定且与代码约定一致。
-- **通道同名契约**：身体与每件衣服的 morph 通道**必须逐一同名**——这是「单一权重源广播、不穿模」的根（最易翻车处，★★★）。
+### 5.4 命名与对齐契约（运行时按名取用，必须稳定）
+| 契约项 | 约定 | 用途 |
+|---|---|---|
+| **身体 prim 名** | `Body` | `findEntity(named:"Body")` |
+| **衣服 prim 名** | `Garment_<assetId>`（assetId 全局唯一、小写+下划线） | 运行时定位某件衣服实体 |
+| **morph 通道名** | §5.2 的 `k_*`，身体与每件衣服**逐一同名** | 单一权重源广播（不穿模的根，★★★）|
+| **UV set** | 单一 UV set `st`，全在 0–1、不重叠 | AI 纹理 / 语义区域对齐 |
+| **base color 槽** | 每件衣服一个可替换 `PhysicallyBasedMaterial`，槽名 `mat_basecolor` | 运行时换纹理（FR-3/FR-7）|
+| **单位 / 朝向** | 米制；Y-up（导出勾 Convert Orientation） | 与 RealityKit 一致、标尺/量身准确 |
+- **通道同名契约**是「单一权重源广播、不穿模」的根（最易翻车处，★★★）。
+- 每件资产另带一份 **manifest**（§5.9）声明其通道/UV/区域/槽位/遮挡；运行时与资产索引据此装配。
 
 ### 5.5 衣服品类清单（taxonomy）—— 横切契约
-- 定义资源库支持的**有限品类集合**（如 上衣/T恤、衬衫、外套、裤子、裙子、连衣裙、鞋…），**= 库内可用 conforming Mesh 集合**。
-- 该清单是 **FR-4 分类器的标签空间**：分类只在此闭集内取最近项；超出则回退/提示。
-- 每个品类登记：对应 Mesh 引用、UV 模板、语义区域定义、可选子属性变体。
-- 新增品类 = 新增一件 conforming 衣服资产 + 在清单登记，分类器标签随之扩展。
+- 定义资源库支持的**有限品类集合**，**= 库内可用 conforming Mesh 集合** = **FR-4 分类器的标签空间**（闭集；超出则回退/提示）。
+- 以 **AssetIndex（资产索引）** 落库，结构（契约级）：
+```json
+{
+  "categories": [
+    {
+      "category": "dress",                 // 枚举，= 分类标签
+      "slot": "fullbody",                  // 部位/槽位（§5.10）
+      "meshRef": "Garment_dress_a",        // → prim 名 / usdz
+      "uvTemplateRef": "uv/dress_a.png",
+      "segmentationMapRef": "seg/dress_a.png",
+      "semanticRegions": ["FrontChest","Back","SkirtFront","SkirtBack"],
+      "variants": [{ "attr": "length", "values": ["mini","midi","maxi"] }],
+      "bodyHiding": "hide/dress_a.png",    // body-hiding 遮挡掩膜
+      "pushOut": 0.004                     // push-out 外扩(m)
+    }
+  ]
+}
+```
+- 新增品类 = 新增一件 conforming 衣服资产 + 在 AssetIndex 登记，分类标签随之扩展。
 
 ### 5.6 许可合规
 | 资产 | 许可结论 | 免费 App 是否放宽 |
@@ -314,38 +352,100 @@ RealityKit（ECS：Entity/ModelComponent/Material，Metal 渲染）
 - spike 用 MakeHuman 仅作「一次性测试资产来源」，**不等于锁定为唯一生产工具**；Blender→USD→RealityKit 这半条链与「用什么工具捏人体」无关。
 - 正式生产工具的取舍是另一决策，核心约束是**许可**（CC4 捏人大概率触发 Enterprise，MakeHuman CC0 最干净）。
 
+### 5.9 资产清单（manifest）契约
+每件衣服/身体资产随 usdz 附一份 manifest（结构化，入 AssetIndex 或并存），声明运行时装配所需信息：
+```json
+{
+  "assetId": "dress_a",
+  "kind": "garment",                   // body | garment
+  "primName": "Garment_dress_a",
+  "category": "dress",
+  "slot": "fullbody",
+  "channels": ["k_height","k_legLength","k_shoulder","k_weight","k_chest","k_waist","k_hip"],
+  "uvSet": "st",
+  "materialSlot": "mat_basecolor",
+  "semanticRegions": ["FrontChest","Back","SkirtFront","SkirtBack"],
+  "bodyHiding": "hide/dress_a.png",
+  "pushOut": 0.004,
+  "license": "CC0",
+  "source": "MakeHuman"
+}
+```
+- `channels` 是该资产**实际带的通道子集**（可少于全集，但凡带的必须与 §5.2 **同名**）。
+- `license`/`source` 入档便于合规审计（§5.6）。
+
+### 5.10 部位/槽位模型与互斥替换
+- 槽位枚举：`top`（上装）· `bottom`（下装）· `outerwear`（外套）· `fullbody`（连体/连衣裙）· `shoes` · `accessory`。
+- **互斥规则**（FR-5 换装）：同一槽位**互斥**（换上装替换原上装）；`fullbody` 与 `top`+`bottom` 互斥（穿连衣裙时清空上/下装）。
+- **叠放顺序**：`outerwear > top`；`shoes`/`accessory` 独立——用于渲染遮挡与 body-hiding 叠加。
+- 每件衣服在 manifest 声明所属 `slot`；换装引擎据此判定可否同穿。
+
 ---
 
 ## 6. AI 纹理管线与 Provider 抽象
 
-### 6.1 设计文档 JSON = 真相，PNG = 渲染结果
-- 一套纹理/搭配的**真相是结构化设计文档 JSON**（语义区域 + 参数 + 资产引用 + 品类/属性）；**PNG 纹理是它的渲染产物**。
-- 好处：可版本化、可确定性重建、绝大多数编辑无需重新调 AI。
+### 6.1 设计文档（Design Doc）= 真相，PNG = 渲染结果
+- 一套纹理的**真相是结构化设计文档**；**PNG 是其确定性渲染产物**：`render(DesignDoc) → baseColor.png`，同一文档恒得同一图（`renderHash` 校验）。
+- 结构（契约级）：
+```json
+{
+  "id": "doc_123",
+  "version": 3,
+  "garmentCategory": "dress",
+  "garmentAssetRef": "dress_a",
+  "regions": {
+    "FrontChest": { "fill": "generated", "genRef": "gen_88", "tint": "#3366CC" },
+    "Back":       { "fill": "color",     "color": "#3366CC" },
+    "SkirtFront": { "fill": "pattern",   "pattern": "stripe", "params": {"angle":45,"scale":0.1}, "colors":["#ffffff","#3366CC"] }
+  },
+  "baseProvenance": { "input": "image", "refImageRef": "ref_7", "providerModel": "..." },
+  "renderHash": "sha256:…"
+}
+```
+- `fill ∈ {color, pattern, generated}`：`color`/`pattern` 由本地渲染器合成（**不调 AI**）；`generated` 引用一次 AI 产物 `genRef`，可再叠 `tint`。
+- 编辑 = 改这份 JSON 的字段（§6.3 决定走重渲染还是重生成）；文档可版本化、回退（FR-7）。
 
-### 6.2 语义区域 → UV mask 映射
-- 每个服装品类的 UV 模板预定义**语义区域**（如 FrontChest/Back/Sleeve）与 segmentation map。
-- 生成/重渲染按区域受约束，控制 AI 输出落到正确 UV 位置，缓解接缝/错位。
+### 6.2 语义区域 → UV mask 契约
+- **区域 id 命名**：大驼峰、语义化、每品类固定集合，登记在 manifest/AssetIndex（如上装 `FrontChest`/`Back`/`SleeveL`/`SleeveR`/`Collar`；裙 `SkirtFront`/`SkirtBack`）。
+- **掩膜格式**：每品类一张 **indexed segmentation map**（与 UV 模板同分辨率、对齐 0–1 UV），**每区域一个固定调色板索引/颜色**；本地渲染器与 AI 约束都按此图取区域。
+- 生成/重渲染均**按区域受约束**：AI 仅在指定区域内作画，本地渲染器按区域填色/铺图案，控制落位、缓解接缝。
 
-### 6.3 生成 vs 重渲染
-- **重渲染（默认、便宜）**：改颜色/区域参数/图案布局 → 直接从 JSON 重新合成 PNG，**不调 AI**。
-- **重新生成（少、计费）**：语义内容确需改变（换一种全新图案/材质）时才调纹理生成 Provider。
-- 该分流是成本与体验的关键（NFR-5）。
+### 6.3 生成 vs 重渲染（决策契约）
+| 编辑类型 | 路径 | 是否调 AI |
+|---|---|---|
+| 改区域颜色 / `tint` | 本地重渲染 | 否 |
+| 改图案类型/角度/密度/配色 | 本地重渲染 | 否 |
+| 区域间复制 / 调换填充 | 本地重渲染 | 否 |
+| 改某区域为「**全新生成**图案/材质」 | 重生成（**仅该区域**） | 是 |
+| 换整体参考图 / 全新风格 | 重生成 | 是 |
+- **本地渲染器管线**：`基底 → 各区域按 fill 合成（color 填充 / pattern 程序化铺贴 / generated 贴 AI 图 + tint）→ 输出目标分辨率 baseColor.png`。确定性、可缓存。
+- 默认走重渲染；仅 `fill=generated` 的**内容变更**才触发纹理生成 Provider（§6.4），把 AI 调用与成本关进最小范围（NFR-5）。
 
-### 6.4 Provider 抽象（两类能力并列）
-| 能力 Provider | 输入 → 输出 | 候选实现 | 共享层归属 |
-|---|---|---|---|
-| **衣服理解/分类** | 文字/图片 → 结构化 JSON（品类+属性） | 多模态 LLM（Claude/GPT-4o/Gemini 视觉） | ✅ 复用 `AIKitCore.AIProvider`（多模态补全） |
-| **纹理生成** | 文字/图片 → base color PNG | img2img + ControlNet(seg/depth)、各家图像 API、自托管 SD | 本 App 专属 provider（不进共享层），复用 AIKit 跨切面件 |
-- 统一经 `BackendProxyProvider` 走后端薄代理（C-6）；接口形状与 AIKit 一致，便于迁仓后 `import AIKit`。
-- **只生成 base color**（C-7）；款式交给预制 Mesh，AI 不还原剪裁（A-3）。
+### 6.4 Provider 抽象（两类能力并列，契约级接口形状）
+**① 衣服理解/分类 Provider** — 复用 `AIKitCore.AIProvider`（app 侧 request builder 拼 `AIRequest` + 对返回文本做 JSON 解码）
+- 输入：`{ text?: String, image?: Data, taxonomy: [Category] }`（taxonomy 注入闭集标签）
+- 输出（解码自模型文本）：
+```json
+{ "category": "dress", "confidence": 0.92,
+  "attributes": { "length": "midi", "sleeve": "none", "fit": "loose" },
+  "appearance": { "dominantColors": ["#3366CC"], "pattern": "solid", "material": "cotton" } }
+```
+- `category` 必属 `taxonomy`；低 `confidence` 或越界 → 回退/提示（FR-4）。
+
+**② 纹理生成 Provider** — 本 App 专属（不进共享层），沿用同一 Provider 模式 + 复用 AIKit 同意/重试/计量
+- 输入：`{ prompt?: String, refImage?: Data, uvTemplate: Ref, segmentationMap: Ref, regions: [RegionId], constraints }`
+- 输出：`baseColor.png`（对齐 UV、限定区域）+ `genRef` 入库
+- 约束：**只产 base color**（C-7）；候选实现 = img2img + ControlNet(seg/depth) / 各家图像 API / 自托管 SD
+
+- 两者统一经 `BackendProxyProvider` 走后端薄代理（C-6）；接口形状与 AIKit 一致，迁仓后 `import AIKit`。
 
 ### 6.5 质量边界
 - 强项：颜色、图案、材质观感。
 - 弱项/已知限制：UV 接缝错位、UV 空间是展开变形、文字/logo/对称图案难精确对齐 → 通过「语义区域约束 + 款式交预制 + 只 base color」把风险关进可控盒子。
 
 ### 6.6 缓存与成本
-- 纹理 PNG、AI 中间图按设计文档键缓存；重渲染优先（6.3）显著降低 AI 调用。
-- `AIUsage` 计量归因，后端薄代理统一限流/计费（NFR-5）。
+- **缓存键**：`renderHash = hash(归一化 DesignDoc)`；命中即复用 PNG、不重渲染。AI 产物按 `genRef` 单独缓存，可被多文档引用。
+- 重渲染优先（§6.3）+ 区域级生成把 AI 调用降到最小；`AIUsage` 计量归因，薄代理统一限流/计费（NFR-5）。
 
 ---
 
