@@ -245,20 +245,88 @@ RealityKit（ECS：Entity/ModelComponent/Material，Metal 渲染）
 - 服装材质用 `PhysicallyBasedMaterial`；换纹理 = 把 AI/重渲染出的图包成 `TextureResource` 写进 `baseColor`，回写 `ModelComponent.materials`（Spike E 已验证机制）。
 - 本期只用 base color 槽；其余 PBR 槽用预制或留默认。
 
-### 4.4 模块划分
-| 模块 | 职责 | 是否联网 |
-|---|---|---|
-| 捏人引擎 | 通道权重/骨骼缩放 → RealityKit | 否 |
-| 换装引擎 | 分开法组合、互斥、兜底 | 否 |
-| 纹理管线 | 设计文档 ↔ UV mask ↔ base color、重渲染 | 重渲染否；首次生成是 |
-| 资产/存储 | SwiftData + 文件系统、资产索引 | 否 |
-| 网络/AI | Provider（理解/分类、纹理生成）→ 薄代理 | 是 |
+### 4.4 模块接口契约（contract-level，非最终签名）
+> 各引擎是「只算」的纯逻辑，UI 只读状态、发意图。下列为接口形状（省略 init/实现）。
+
+```swift
+// 捏人引擎：通道权重 → RealityKit；并按 B-2 标定表反查实时尺寸
+protocol SculptEngine {
+    func apply(weights: [String: Float], skeleton: [String: Float])      // 身体+在穿衣服同权重广播
+    func measurements(for weights: [String: Float]) -> BodyMeasurements   // 正交测量态读数（§5.2 B-2）
+}
+
+// ARKit 量身（可选、本机、仅比例类）
+protocol BodyScanService {
+    var isSupported: Bool { get }
+    func captureProportions() async throws -> [String: Float]            // 只含比例通道；围度不返回
+}
+
+// 换装引擎：按 slot 互斥替换 + body-hiding/push-out
+protocol WardrobeEngine {
+    func equip(_ asset: GarmentAsset, texture: TextureImage?)
+    func remove(slot: String)
+    var equipped: [String: EquippedGarment] { get }                     // slot → 已穿
+}
+
+// 纹理管线：理解分类(AI) / 区域级重生成(AI) / 确定性本地渲染(不调 AI)
+protocol TexturePipeline {
+    func understand(_ input: GarmentInput) async throws -> GarmentUnderstanding
+    func render(_ doc: DesignDoc) -> TextureImage                                       // 本地、确定性、可缓存
+    func generate(region: String, in doc: DesignDoc, prompt: TexturePrompt) async throws -> DesignDoc
+}
+
+// 资产/存储：SwiftData（结构化+路径）+ 文件系统（大文件）
+protocol AssetStore {
+    func assetIndex() -> [GarmentAsset]                                  // = taxonomy（§5.5）
+    func loadEntity(usdzPath: String) async throws -> Entity            // body / garment
+    func fileURL(_ relativePath: String) -> URL                         // 沙盒大文件
+}
+
+// 网络/AI：两类 Provider，统一走薄代理
+protocol AIProvider { /* 复用 AIKitCore：理解/分类 */ }
+protocol TextureGenProvider { /* 本 App 专属：纹理生成 */ }
+```
+- **联网仅发生在 `understand` / `generate`**（经 `BackendProxyProvider` → 薄代理）；捏人/换装/`render`/加载全部离线。
 
 ### 4.5 与 AIKit 共享层的关系边界
 - **目标架构**：本 App 的「**衣服理解/分类**」能力**直接复用 `AIKitCore` 的 `AIProvider` 契约**（多模态补全 + 流式，正是 AIKit 的本职最大公约数）。
 - **纹理生成**：按 `cross-app-ai-sharing.md` §1/§3 的宪法，**图像生成不进共享层** → 它是**本 App 专属 provider**（类比 StyleTwin 的 `ImageGenProvider`），但**沿用同一套 Provider 模式**并**复用 AIKit 的跨切面件**（同意/披露、重试退避、后端代理实现 `BackendProxyProvider`、`AIUsage` 成本计量）。
 - **落地节奏**：AIKit 目前随 StyleTwin 内部实现、尚未抽成独立包；故本 App **当前先自带一层接口形状与 AIKit 一致的本地 Provider 层**，待 AIKit 抽成 Swift Package、本 App 迁出独立仓库后改为 `import AIKit`，零摩擦。MIT、不沾 GPL，迁仓无许可问题。
 - 相关待拍板项见 `cross-app-ai-sharing.md` §5（D-A..D-F：流式实现、图片载荷、注入粒度、重试形状、密钥管理、成本计量）。
+
+### 4.6 关键数据流时序
+
+**流程 A — 捏身材（手动 / ARKit）**
+```
+用户拖滑块   或   点「ARKit 量身」
+   └─(可选) BodyScanService.captureProportions() → 仅比例通道权重（本机）
+   → BodyModel.channelWeights 更新（围度类保持手动）
+   → SculptEngine.apply(weights, skeleton) → 身体+在穿衣服同权重广播 → RealityKit 形变
+   → (测量态) SculptEngine.measurements() → 标尺/数字实时读数（§5.2 B-2）
+```
+
+**流程 B — 描述 → 换装 → 纹理**
+```
+用户输入 文字/图片
+   → TexturePipeline.understand(input, taxonomy)          [AIProvider, 联网]
+        → GarmentUnderstanding{ category, attributes, appearance }
+   → AssetStore.assetIndex() 按 category 取 GarmentAsset（无匹配 → 回退/提示，FR-4）
+   → WardrobeEngine.equip(asset)                          [slot 互斥 + body-hiding/push-out]
+   → 构造 DesignDoc（regions 由 appearance 初始化）
+   → 需 AI 图案? ┬ 是 → TexturePipeline.generate(region, prompt)  [TextureGenProvider, 联网]
+                 └ 否 → TexturePipeline.render(doc)                [本地、不调 AI]
+   → TextureImage → 写入 mat_basecolor 槽（TextureResource）→ 上身
+   → 展示（FR-6）
+```
+
+**流程 C — 编辑纹理（重渲染优先）**
+```
+用户改 DesignDoc 字段
+   → 按 §6.3 决策表分流
+        重渲染：render(doc) → 命中 renderHash 缓存? 是→复用 / 否→合成新 PNG
+        重生成：generate(region,…) → 更新 genRef → render(doc)
+   → 回写材质槽（mat_basecolor）
+```
 
 ---
 
@@ -456,21 +524,113 @@ RealityKit（ECS：Entity/ModelComponent/Material，Metal 渲染）
 - **大文件**（纹理 PNG、`.usdz`、AI 生成图）→ **文件系统**（沙盒 `Documents`/`Caches`）；**数据库只存路径**。
 - SwiftData 与系统 Files app 不冲突。
 
-### 7.2 概念实体
-| 实体 | 关键字段（摘） |
-|---|---|
-| BodyModel（模特状态） | id、通道权重集、骨骼缩放、来源(手动/ARKit)、命名、是否默认 |
-| GarmentAsset（衣服资产） | id、品类、usdz 路径、UV 模板引用、语义区域定义、子属性变体 |
-| TextureDesignDoc（设计文档） | id、garmentCategory、语义区域参数、引用资产、渲染出的 PNG 路径、版本 |
-| Outfit（搭配） | id、bodyModel_id、衣服+纹理集合、命名 |
-| AssetIndex（资产索引） | 品类→Mesh/UV/区域 的登记表（= taxonomy） |
-| UserArchive（用户存档） | 模特/衣橱/纹理/搭配的归属与组织 |
-| ConsentRecord（同意） | id、范围、时间、版本（按 NFR-3） |
+### 7.2 SwiftData 实体定义（结构化数据）
+> 大文件（usdz / 纹理 PNG / AI 图）一律以**相对沙盒路径字符串**存字段（文件落 §7.3），DB 只存路径；枚举以 `String` raw 存便于迁移。下为契约级定义（省略 init/实现）。
 
-### 7.3 沙盒文件布局
-- `Documents/`：需长期保留的纹理 PNG、导出 usdz、设计文档渲染结果。
-- `Caches/`：可重建的 AI 中间图、临时渲染。
-- 路径由 SwiftData 记录；删除存档时一并清理对应文件。
+```swift
+import SwiftData
+import Foundation
+
+// 用户存档：可选根容器，cascade 管理其下数据
+@Model final class UserArchive {
+    @Attribute(.unique) var id: UUID
+    var name: String
+    var createdAt: Date
+    @Relationship(deleteRule: .cascade) var bodyModels: [BodyModel]
+    @Relationship(deleteRule: .cascade) var outfits: [Outfit]
+    @Relationship(deleteRule: .cascade) var designDocs: [TextureDesignDoc]
+}
+
+// 模特状态（捏人结果）
+@Model final class BodyModel {
+    @Attribute(.unique) var id: UUID
+    var name: String
+    var isDefault: Bool
+    var source: String                  // BodySource: manual | arkit | mixed
+    var baseBodyId: String              // 用哪具基础人体（男/女 usdz）
+    var channelWeights: [String: Float] // §5.2 通道 id → 0..1（围度类必手动）
+    var skeletonScale: [String: Float]  // 骨骼缩放
+    var updatedAt: Date
+}
+
+// 衣服资产目录（库内只读元数据；AssetIndex = 对它的查询，§5.5）
+@Model final class GarmentAsset {
+    @Attribute(.unique) var assetId: String   // = manifest.assetId / prim 名后缀
+    var category: String                       // taxonomy 枚举
+    var slot: String                           // §5.10 槽位
+    var usdzPath: String
+    var uvTemplatePath: String
+    var segmentationMapPath: String
+    var bodyHidingPath: String?
+    var pushOut: Float
+    var channels: [String]                     // 实带通道子集（§5.2 同名）
+    var semanticRegions: [String]              // §6.2 区域 id
+    var materialSlot: String                   // "mat_basecolor"
+    var variantsJSON: String?                  // 子属性变体（Codable JSON 串）
+    var license: String                        // "CC0"
+    var source: String                         // "MakeHuman"
+}
+
+// 纹理设计文档（§6.1 真相；PNG 为渲染产物）
+@Model final class TextureDesignDoc {
+    @Attribute(.unique) var id: UUID
+    var version: Int
+    var garmentCategory: String
+    var garmentAssetId: String                 // → GarmentAsset.assetId
+    var regions: [String: RegionFill]          // 区域 id → 填充（Codable，§6.1）
+    var baseProvenance: Provenance?
+    var renderHash: String                     // 缓存键（§6.6）
+    var renderedPNGPath: String?               // 渲染产物路径（可空，可随时重建）
+    var createdAt: Date
+}
+
+// DesignDoc 内嵌值类型（Codable，随 SwiftData 一起存）
+struct RegionFill: Codable {
+    enum Kind: String, Codable { case color, pattern, generated }
+    var fill: Kind
+    var color: String?                          // #RRGGBB
+    var pattern: String?; var params: [String: Double]?; var colors: [String]?
+    var genRef: String?                         // AI 产物引用（generated）
+    var tint: String?
+}
+struct Provenance: Codable { var input: String; var refImageRef: String?; var providerModel: String? }
+
+// 搭配（一套穿好的）
+@Model final class Outfit {
+    @Attribute(.unique) var id: UUID
+    var name: String
+    @Relationship var bodyModel: BodyModel?
+    @Relationship(deleteRule: .cascade) var items: [OutfitItem]
+    var createdAt: Date
+}
+@Model final class OutfitItem {                 // 一件已穿衣服 + 它的纹理
+    @Attribute(.unique) var id: UUID
+    var slot: String                            // §5.10
+    var garmentAssetId: String                  // → GarmentAsset
+    var designDocId: UUID?                       // → TextureDesignDoc
+}
+
+// 同意记录（NFR-3）
+@Model final class ConsentRecord {
+    @Attribute(.unique) var id: UUID
+    var scopeText: String; var providerName: String; var retentionNote: String
+    var grantedAt: Date; var version: String
+}
+```
+
+**设计要点**
+- **通道权重用 `[String: Float]`**（键 = §5.2 通道 id）：加新通道无需改 schema；代价是无编译期键安全 → 用通道 id 常量收口。
+- **大文件存路径不存 `Data`**：DB 轻、文件可在 Files app 浏览（§7.1）。
+- **DesignDoc 与 §6.1 JSON 同构**：`regions`/`baseProvenance` 为 Codable 值类型随 SwiftData 存；`renderedPNGPath` 可空——丢了也能从文档 + `renderHash` 重建。
+- **GarmentAsset = 只读目录**：镜像 manifest/AssetIndex（§5.5/§5.9）；用户数据按 `assetId`/`designDocId` 引用，不复制大文件。
+- **删除语义**：`@Relationship(.cascade)` 级联删子记录；**磁盘文件由 AssetStore 在删除时一并清理**（SwiftData 不管文件）。
+
+### 7.3 沙盒文件布局（相对路径约定）
+- `Documents/bodies/<assetId>.usdz`、`Documents/garments/<assetId>.usdz`：基础人体 / 衣服资产。
+- `Documents/uv/`、`Documents/seg/`、`Documents/hide/`：UV 模板 / segmentation map / body-hiding 掩膜。
+- `Documents/textures/<docId>@<renderHash>.png`：设计文档渲染产物（长期保留）。
+- `Caches/gen/<genRef>.png`：AI 生成中间图（可重建、可清）。
+- DB 仅存上述**相对路径**；删除存档时 AssetStore 一并清理对应文件。
 
 ### 7.4 资产索引与版本
 - AssetIndex 是 taxonomy 的落库形态（§5.5），随衣服资产增减更新。
