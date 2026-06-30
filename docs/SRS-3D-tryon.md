@@ -644,50 +644,85 @@ struct Provenance: Codable { var input: String; var refImageRef: String?; var pr
 - **转发 AI 调用**（理解/分类、纹理生成）；**隐藏密钥**（Key 不进客户端，C-6）；**限流/计费**（NFR-5）。
 - **不承载业务逻辑**：捏人、换装、设计文档全在客户端。
 
-### 8.2 接口（IF）
-- **IF-1 用户界面**：iOS 原生（SwiftUI）——捏人面板、换装、360° 视图、纹理/设计文档编辑、存档、设置/隐私。
-- **IF-2 AI 能力接口（Provider 抽象，经薄代理）**：见 §6.4 两类能力。
-- **IF-3 后端 API**：HTTPS/REST；Token 鉴权；请求形状对齐 `AIProvider`（messages/attachments/options，流式吐 delta），使 `BackendProxyProvider` 仅薄薄一层转发。
+### 8.2 接口契约（IF）
+**IF-1 用户界面**：iOS SwiftUI——捏人面板、换装、360°/正交测量、纹理/设计文档编辑、存档、设置/隐私。
 
-### 8.3 隐私
-- **基本不上传真人照片**：捏人靠参数（ARKit 本机）、换装靠文字/衣服图。隐私负担显著低于 2D 人像点评类产品。
-- 含人像的参考图：优先本机抠图后再上传，并披露（NFR-3）。
+**IF-2 薄代理 REST API**（HTTPS/REST + Bearer Token；客户端 `BackendProxyProvider` 仅薄转发）
+
+| 端点 | 方法 | 请求 | 响应 | 说明 |
+|---|---|---|---|---|
+| `/v1/auth/session` | POST | Sign in with Apple 凭据 / 设备匿名 | `{ token, expiresAt }` | 取会话 token |
+| `/v1/upload` | POST | multipart 图片（参考图） | `{ ref, expiresAt }` | 临时图引用，短 TTL |
+| `/v1/understand` | POST | `{ text?, imageRef?, taxonomy:[String] }` | `GarmentUnderstanding`（§6.4①） | 衣服理解/分类 |
+| `/v1/texture/generate` | POST | `{ prompt?, refImageRef?, uvTemplateRef, segmentationMapRef, regions:[String], constraints }` | `{ genRef, imageUrl, usage }` | 纹理生成（§6.4②，只 base color）|
+
+- **统一信封**：成功 `{ data, usage? }`；错误 `{ error: { code, message, retriable } }`，`code` 对齐 `AIError`（network/http/decoding/cancelled/providerUnavailable）。
+- **幂等键**：客户端带 `Idempotency-Key`（= 请求归一化 hash / `renderHash`）→ 代理去重、**重试不重复计费**（呼应 §6.6 缓存、NFR-2 重试）。
+- **Provider 路由**：代理把「逻辑能力 → 具体模型/厂商」映射放**服务端**，客户端不感知厂商——**厂商热替换在此发生**（NFR-6 / C-5）。
+- **限流**：返回 `X-RateLimit-*`；超限 `429 + retriable=true`。
+
+**IF-3 代理 ↔ 模型厂商**：用服务端密钥（Key Vault）调各 Provider；请求形状对齐 `AIProvider`（messages/attachments/options），需要时 SSE 流式吐 delta。
+
+### 8.3 隐私（数据流约束）
+- **基本不上传真人照片**：捏人靠参数（ARKit 本机算）、换装靠文字/衣服图；隐私负担显著低于 2D 人像点评类产品。
+- **参考图含人像时**：优先**本机抠出衣服区域**再上传；上传后走 `/v1/upload` 短 TTL 临时引用、用后即删（详见 NFR-3 数据分级）。
+- **代理不持久化用户人像**；不记录请求图片内容（仅记元数据/用量，见 NFR-9）。
 
 ### 8.4 鉴权与安全
-- 传输 TLS；Token 鉴权；后端不持久化用户人像；密钥仅存服务端。
+- 传输全程 TLS；Bearer Token 鉴权 + 过期刷新；密钥仅存服务端 Key Vault、绝不下发。
+- 请求体大小上限、超时、限流防滥用；内容审核挂钩在代理侧统一执行（NFR-7）。
 
 ---
 
 ## 9. 非功能需求
 
+> 每条给**可度量目标**（标 `~` 者为草案值，待评审/实测校准）与验证方式。
+
 ### NFR-1 性能与体验
-- 捏人/换装/旋转交互 ≈ 60fps，拖滑块实时形变无明显卡顿（Spike D 已证可用）。
-- 纹理首次生成有显式进度态；重渲染近实时。
+- 捏人/换装/旋转/正交测量交互 **≥ 60fps**（≤ ~16.7ms/帧）；低端目标机不低于 **30fps**（Spike D 已证基本可用）。
+- 纹理生成端到端 **P50 ≤ ~10s、P95 ≤ ~25s**，全程显式进度态。
+- 本地重渲染 **≤ ~300ms**（近实时，§6.3）。
+- 持续交互不触发热降频（thermal state ≤ nominal/fair）；单模特+在穿衣服内存占用受控。
 
 ### NFR-2 可靠性与降级
-- 所有云端调用具超时、重试、退避；单个 AI 步骤失败不致整流程不可用（捏人/换装/旋转离线可用）。
-- ARKit 不可用自动回退手动（FR-2）。
+- 超时：连接 **≤ ~5s**、整体请求 **≤ ~30s**（生成类可更长，带进度）。
+- 重试：仅对 `retriable=true`（network / 5xx / 429）**指数退避**（~0.5→1→2s，≤3 次）；带 `Idempotency-Key` **防重复计费**（§8.2）。
+- 降级路径：AI 失败 → 保留上一个有效纹理 / 纯色占位；**捏人/换装/旋转/重渲染离线可用**；ARKit 不可用 → 回退手动（FR-2）。
 
-### NFR-3 隐私 / 安全 / 合规
-- 满足 PIPL/GDPR 等。**人像最小留存**：ARKit 本机处理、仅留参数；默认不长期留存原始参考图；提供一键删除本地数据。
-- 发数据前**同意/披露**（复用 AIKit 同意流，文案本 App 注入）；优先选承诺不留存、不用于训练的 Provider。
+### NFR-3 隐私 / 安全 / 合规（数据分级与留存）
+| 数据 | 位置 | 留存 | 用途约束 |
+|---|---|---|---|
+| 身材参数（数值） | 本机 SwiftData | 长期、用户可删 | 仅本地驱动模型 |
+| ARKit 扫描原始数据 | 本机内存 | **即用即弃**，不落库不上传 | 仅本机算比例通道 |
+| 参考图（可能含人像） | 优先本机抠衣服区；如上传则代理临时存 | **短 TTL（≤ ~24h）用后即删** | 不用于训练 |
+| 生成纹理 / AI 中间图 | 本机文件系统 | 随存档；可清缓存 | 不含可识别个人信息 |
+- 发送前**同意/披露**（复用 `AIKit.AIConsent`，文案本 App 注入）；优先选承诺**不留存、不训练**的 Provider。
+- 满足 **PIPL / GDPR**；未成年人保护；提供**一键删除全部本地数据**与账户数据。
 
 ### NFR-4 最低 iOS 与兼容性
 - 最低 **iOS 18**（`BlendShapeWeightsComponent` 门槛，C-1）。
-- ARKit 功能按机型能力渐进增强、优雅降级（A-5）。
+- **ARKit 能力矩阵**：人脸量身需 **TrueDepth/较新机型**；身体量身需 **A12+**；不满足 → FR-2 自动回退手动、主流程不阻断。
+- 正交测量/标尺依赖 RealityKit 正交相机（**RISK-10** spike 确认）。
 
 ### NFR-5 成本可控
-- 重渲染优先（§6.3）+ 缓存（§6.6）+ 薄代理限流/计费 + `AIUsage` 归因，控制单位成本。
+- 每次 `understand`/`generate` 计 `AIUsage`、可归因到用户/会话。
+- **缓存命中目标**：编辑场景重渲染占比 **≥ ~80%**（多数编辑不调 AI，§6.3）。
+- 按用户/日配额限流（`429`）；超额降级或提示。
 
 ### NFR-6 可维护 / 可扩展
-- AI 能力以 Provider 抽象封装，模型/厂商热替换；复用 AIKitCore，迁仓后 `import AIKit`（C-5）。
-- 引擎与 UI 分离，便于单测与复用。
+- Provider 抽象，模型/厂商**服务端热替换、客户端零改动**（§8.2 路由）。
+- 引擎/Core **零 UI、可单测**；关键路径（捏人反解、渲染器、换装互斥、AIKitCore）须有单测。
+- 复用 AIKitCore，迁仓后 `import AIKit`（C-5）。
 
 ### NFR-7 内容安全
-- 对用户上传（参考图）与模型生成的图像做内容审核；遵守各 Provider 使用政策。
+- 上传参考图与生成图**均过内容审核**（违法/未成年/明显违规拒绝）；审核在**代理侧统一挂钩**（§8.4）；遵守各 Provider 使用政策。
 
 ### NFR-8 包体与资产体积
-- 控制随包 usdz/纹理体积；MVP 衣服件数 3~5 件（A-4）；通道集最小必备（§5.2）。
+- App 随包体目标 **≤ ~200MB**（基础人体 + MVP 衣服）；单件衣服资产（usdz+UV+seg+hide）设体积预算。
+- 通道集最小必备（§5.2 的 8~10）；MVP 衣服件数 **3~5 件**（A-4）。
+
+### NFR-9 可观测性与运维
+- 代理侧记录调用量 / 时延 / 错误率 / 成本（**不记录人像内容**，仅元数据），供配额看板与告警——支撑 NFR-5 成本与 NFR-2 可靠性运营。
 
 ---
 
