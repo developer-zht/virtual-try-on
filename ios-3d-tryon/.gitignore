@@ -1,0 +1,18 @@
+# XcodeGen 生成的工程（由 project.yml 可随时重建，不入库）
+# 注：若你走「手动在 Xcode 里建工程」并想把 .xcodeproj 入库，删掉下面这行即可。
+*.xcodeproj/
+
+# Xcode / SwiftPM 构建产物
+.build/
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+.swiftpm/
+
+# 资产占位：scene.usdz 由你本机放入，不入库（二进制大文件）
+FitTwin3D/Resources/scene.usdz
+OrthoSpike/Resources/scene.usdz
+
+# macOS
+.DS_Store

@@ -1,0 +1,51 @@
+# XcodeGen 工程描述（文本即工程，可重建、可 review、不入库二进制 pbxproj）。
+# 生成：在本目录执行  xcodegen generate  → 得到 FitTwin3D.xcodeproj，含两个 App target。
+# 没装 XcodeGen 也行，见 README.md 的「手动在 Xcode 里建工程」。
+name: FitTwin3D
+
+options:
+  bundleIdPrefix: com.styletwin
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+
+packages:
+  FitTwinCore:
+    path: Packages/FitTwinCore
+
+# 两个 App target 共用的基础设置（自动合成 Info.plist，省去手写 plist）。
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1"            # iPhone
+    MARKETING_VERSION: "0.1"
+    CURRENT_PROJECT_VERSION: "1"
+    GENERATE_INFOPLIST_FILE: YES
+    INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+    INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
+
+targets:
+
+  # ② 正式工程起点：脚手架 App。
+  FitTwin3D:
+    type: application
+    platform: iOS
+    sources:
+      - path: FitTwin3D
+    dependencies:
+      - package: FitTwinCore
+        product: FitTwinCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.styletwin.fittwin3d
+
+  # ① RISK-10 spike：独立 Target，用完即弃，与正式工程隔离。
+  OrthoSpike:
+    type: application
+    platform: iOS
+    sources:
+      - path: OrthoSpike
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.styletwin.orthospike
