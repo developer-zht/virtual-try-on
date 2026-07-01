@@ -4,14 +4,18 @@
 const { useState, useEffect, useRef, useCallback, createContext, useContext } = React;
 const AppContext = createContext();
 
-// 从 window 取出各 Tag 组件（由 src/components/TagX_*.js 挂载到 window）
+// 从 window 取出各页面组件
 const PageWelcome = window.PageWelcome;
+const PageHome = window.PageHome;
 const PageScan = window.PageScan;
 const PageProfile = window.PageProfile;
 const PageSettings = window.PageSettings;
 const PageResult = window.PageResult;
-const PageExplore = window.PageExplore;
 const PageWorkshop = window.PageWorkshop;
+const PageProfileDetail = window.PageProfileDetail;
+const PageWardrobe = window.PageWardrobe;
+const PagePreference = window.PagePreference;
+const PageNewHome = window.PageNewHome;
 
 // =====================================================
 // 主应用: 管理页面切换
@@ -21,11 +25,13 @@ function App() {
     const [direction, setDirection] = useState(1);
     const [prevStep, setPrevStep] = useState(1);
     const [animating, setAnimating] = useState(false);
-    const [selectedOutfit, setSelectedOutfit] = useState(null);
+    // 用于子页面（9/10/11）返回时的来源追踪
+    const [returnStep, setReturnStep] = useState(8);
 
     const goTo = (target, dir) => {
         if (animating || target === step) return;
-        if (target < 1 || target > 7) return;
+        const validSteps = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12];
+        if (!validSteps.includes(target)) return;
         setAnimating(true);
         setDirection(dir);
         setPrevStep(step);
@@ -34,30 +40,91 @@ function App() {
     };
 
     const next = () => goTo(step + 1, 1);
-    const back = () => goTo(step - 1, -1);
-    const jumpTo = (target) => goTo(target, 1);
+    const back = () => {
+        // 如果当前在子页面（9/10/11），返回来源页面
+        if (step === 9 || step === 10 || step === 11) {
+            goTo(returnStep, -1);
+        } else {
+            goTo(step - 1, -1);
+        }
+    };
+    const jumpTo = (target) => {
+        if (target === 9 || target === 10 || target === 11) {
+            setReturnStep(step);
+        }
+        goTo(target, 1);
+    };
+
+    // Tag 1 的 onNext → 跳转到个人主页 (step 8)
+    const handleWelcomeNext = () => {
+        goTo(8, 1);
+    };
+
+    // Tag 8 (个人主页) 的 onNext → 跳转到 Tag 2 (扫描)
+    const handleHomeNext = () => {
+        goTo(2, 1);
+    };
+
+    // Tag 7 的保存 → 跳转到新首页
+    const handleWorkshopSave = () => {
+        // 模拟保存当前搭配
+        const wsOutfit = {
+            id: 'o_' + Date.now(),
+            name: '自由搭配_' + new Date().toISOString().slice(5, 10).replace('-', ''),
+            date: new Date().toISOString().slice(0, 10),
+            occasion: '通勤',
+            weather: '☀️ 26°C',
+            feel: '舒适',
+            garments: ['🧥 卡其色风衣', '👔 白色衬衫', '👖 深灰西裤'],
+            tags: ['#简约', '#通勤', '#卡其色'],
+            tip: '自由搭配组合，展现独特风格。',
+            source: 'Tag7 自由搭配'
+        };
+        const saved = window.SavedOutfits || [];
+        saved.unshift(wsOutfit);
+        window.SavedOutfits = saved;
+        window.TodayOutfit = {
+            name: wsOutfit.name,
+            garments: ['卡其色风衣', '白色衬衫', '深灰西裤'],
+            tags: ['简约', '通勤', '卡其色'],
+            tip: wsOutfit.tip,
+            weather: '☀️ 26°C',
+            occasion: '通勤'
+        };
+        setTimeout(() => {
+            goTo(12, 1);
+        }, 1500);
+    };
 
     const renderPage = () => {
-        const props = { onNext: next, onBack: back };
         switch (step) {
             case 1:
-                return <PageWelcome {...props} />;
+                return <PageWelcome onNext={handleWelcomeNext} />;
             case 2:
-                return <PageScan {...props} />;
+                return <PageScan onNext={next} onBack={back} />;
             case 3:
-                return <PageProfile {...props} />;
+                return <PageProfile onNext={next} onBack={back} />;
             case 4:
-                return <PageSettings {...props} />;
+                return <PageSettings onNext={next} onBack={back} />;
             case 5:
-                return <PageResult {...props}
-                    onSwitchStyle={() => jumpTo(6)} />;
-            case 6:
-                return <PageExplore {...props}
-                    onSelectOutfit={(outfit) => { setSelectedOutfit(outfit);
-                        jumpTo(7); }} />;
+                return <PageResult onNext={next} onBack={back}
+                    onJumpTo={jumpTo} />;
             case 7:
-                return <PageWorkshop {...props}
-                    onSave={() => { setTimeout(() => { alert('✅ 穿搭已保存！后续将优先推荐该风格。'); }, 300); }} />;
+                return <PageWorkshop onBack={back}
+                    onSave={handleWorkshopSave} />;
+            case 8:
+                return <PageHome onNext={handleHomeNext}
+                    onJumpTo={jumpTo} />;
+            case 9:
+                return <PageProfileDetail onBack={back} />;
+            case 10:
+                return <PageWardrobe onBack={back} />;
+            case 11:
+                return <PagePreference onBack={back}
+                    onJumpTo={jumpTo} />;
+            case 12:
+                return <PageNewHome onBack={back}
+                    onJumpTo={jumpTo} />;
             default:
                 return null;
         }
@@ -65,25 +132,34 @@ function App() {
 
     const renderPrevPage = () => {
         if (step === prevStep) return null;
-        const props = { onNext: next, onBack: back };
         switch (prevStep) {
             case 1:
-                return <PageWelcome {...props} />;
+                return <PageWelcome onNext={handleWelcomeNext} />;
             case 2:
-                return <PageScan {...props} />;
+                return <PageScan onNext={next} onBack={back} />;
             case 3:
-                return <PageProfile {...props} />;
+                return <PageProfile onNext={next} onBack={back} />;
             case 4:
-                return <PageSettings {...props} />;
+                return <PageSettings onNext={next} onBack={back} />;
             case 5:
-                return <PageResult {...props}
-                    onSwitchStyle={() => jumpTo(6)} />;
-            case 6:
-                return <PageExplore {...props}
-                    onSelectOutfit={(outfit) => { setSelectedOutfit(outfit);
-                        jumpTo(7); }} />;
+                return <PageResult onNext={next} onBack={back}
+                    onJumpTo={jumpTo} />;
             case 7:
-                return <PageWorkshop {...props} />;
+                return <PageWorkshop onBack={back}
+                    onSave={handleWorkshopSave} />;
+            case 8:
+                return <PageHome onNext={handleHomeNext}
+                    onJumpTo={jumpTo} />;
+            case 9:
+                return <PageProfileDetail onBack={back} />;
+            case 10:
+                return <PageWardrobe onBack={back} />;
+            case 11:
+                return <PagePreference onBack={back}
+                    onJumpTo={jumpTo} />;
+            case 12:
+                return <PageNewHome onBack={back}
+                    onJumpTo={jumpTo} />;
             default:
                 return null;
         }

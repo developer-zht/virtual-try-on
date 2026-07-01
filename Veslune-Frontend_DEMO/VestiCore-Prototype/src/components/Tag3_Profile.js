@@ -4,6 +4,16 @@
 window.PageProfile = function PageProfile({ onNext, onBack }) {
     const [progress, setProgress] = useState(0);
     const [statusText, setStatusText] = useState('📸 正在读取图片...');
+    const [skipTip, setSkipTip] = useState(false);
+    const isNewUser = window.IsNewUser;
+    const handleSkip = () => {
+        if (isNewUser) {
+            setSkipTip(true);
+            setTimeout(() => setSkipTip(false), 2500);
+            return;
+        }
+        onNext();
+    };
     const [form, setForm] = useState({ height: '170', weight: '65', shoulder: '44', bodyShape: '沙漏形',
         size: 'M', styles: ['简约'], colors: ['黑', '白'], pants: '长裤' });
     useEffect(() => {
@@ -43,8 +53,12 @@ window.PageProfile = function PageProfile({ onNext, onBack }) {
                 </div>
                 <div className="nav-title">完善穿衣档案</div>
                 <div className="nav-right"
-                    onClick={onNext}>跳过</div>
+                    onClick={handleSkip}
+                    style={{ color: isNewUser ? 'var(--text-light)' : 'var(--primary)' }}>
+                    {isNewUser ? '跳过🚫' : '跳过'}
+                </div>
             </div>
+            {skipTip && <div className="skip-tip">🔒 新用户请先完善基础档案，之后即可跳过</div>}
             <div className="steps">
                 <div className="step-dot done"><span className="circle">✓</span><span className="label">拍照</span></div>
                 <div className="step-line done"></div>

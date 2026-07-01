@@ -4,6 +4,16 @@
 window.PageScan = function PageScan({ onNext, onBack }) {
     const [hasImage, setHasImage] = useState(false);
     const [viewAngle, setViewAngle] = useState('flat');
+    const [skipTip, setSkipTip] = useState(false);
+    const isNewUser = window.IsNewUser;
+    const handleSkip = () => {
+        if (isNewUser) {
+            setSkipTip(true);
+            setTimeout(() => setSkipTip(false), 2500);
+            return;
+        }
+        onNext();
+    };
     return (
         <div className="page-slot">
             <div className="nav-bar">
@@ -12,8 +22,13 @@ window.PageScan = function PageScan({ onNext, onBack }) {
                     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg> 返回
                 </div>
                 <div className="nav-title">扫描衣物</div>
-                <div style={{ width: 60 }}></div>
+                <div className="nav-right"
+                    onClick={handleSkip}
+                    style={{ color: isNewUser ? 'var(--text-light)' : 'var(--primary)' }}>
+                    {isNewUser ? '跳过🚫' : '跳过→'}
+                </div>
             </div>
+            {skipTip && <div className="skip-tip">🔒 新用户请先上传衣物完善档案，之后即可跳过</div>}
             <div className="steps">
                 <div className="step-dot active"><span className="circle">1</span><span className="label">拍照</span></div>
                 <div className="step-line"></div>

@@ -1383,6 +1383,958 @@ body {
     line-height: 1.4;
 }
 
+/* ===== Tag5 穿搭结果页按钮组 ===== */
+.skip-tip {
+    font-size: 11px;
+    color: var(--text-light);
+    text-align: center;
+    margin-top: 6px;
+    flex-shrink: 0;
+}
+.result-btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+    flex-shrink: 0;
+}
+.result-btn-save,
+.result-btn-reject {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px 8px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    min-width: 0;
+}
+.result-btn-save {
+    background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+    box-shadow: 0 4px 14px rgba(108, 92, 231, 0.25);
+}
+.result-btn-reject {
+    background: #FAFBFC;
+    border: 1.5px solid #E8EAED;
+}
+.result-btn-save:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 6px rgba(108, 92, 231, 0.15);
+}
+.result-btn-reject:active {
+    transform: scale(0.95);
+    background: #F0F1F3;
+    border-color: #D0D3D7;
+}
+.result-btn-icon {
+    font-size: 22px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.result-btn-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+.result-btn-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+}
+.result-btn-reject .result-btn-title {
+    color: var(--text-dark);
+}
+.result-btn-sub {
+    font-size: 10px;
+    color: rgba(255,255,255,0.65);
+    font-weight: 400;
+}
+.result-btn-reject .result-btn-sub {
+    color: var(--text-light);
+}
+
+/* ===== 头像弹出菜单（个人主页 & 新首页通用） ===== */
+.home-nav {
+    position: relative;
+    z-index: 50;
+}
+.home-avatar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 4px 10px 4px 4px;
+    border-radius: 24px;
+    background: #F8F9FA;
+    transition: all 0.2s;
+}
+.home-avatar-wrap:active {
+    background: #F1F2F6;
+    transform: scale(0.96);
+}
+.home-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(108, 92, 231, 0.25);
+}
+.home-avatar-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+.avatar-menu-backdrop {
+    position: absolute;
+    top: 56px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 55;
+    animation: fadeIn 0.2s ease;
+}
+.avatar-menu {
+    position: absolute;
+    top: 72px;
+    left: 24px;
+    z-index: 60;
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.avatar-menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.avatar-menu-item:active {
+    transform: scale(0.9);
+}
+.avatar-menu-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s;
+}
+.avatar-menu-item:active .avatar-menu-icon {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+.avatar-menu-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dark);
+    white-space: nowrap;
+    background: #fff;
+    padding: 2px 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* ===== 个人主页（Tag 1.5） ===== */
+.home-page .home-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 8px;
+    gap: 12px;
+    overflow-y: auto;
+}
+.home-page .home-body::-webkit-scrollbar {
+    width: 0;
+}
+.home-outfit-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    flex-shrink: 0;
+}
+.home-date-badge {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+.home-weather-tag {
+    background: linear-gradient(135deg, #FDCB6E, #FFEAA7);
+    padding: 4px 14px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #856404;
+}
+.home-outfit-image {
+    width: 100%;
+    flex-shrink: 0;
+}
+.home-outfit-visual {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #F8F6FF, #E8E4FF);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-shadow: 0 4px 16px rgba(108, 92, 231, 0.1);
+}
+.home-outfit-label {
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: 500;
+}
+.home-outfit-info {
+    width: 100%;
+    text-align: center;
+    flex-shrink: 0;
+}
+.home-outfit-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+}
+.home-outfit-tags {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.home-tag-pill {
+    padding: 3px 12px;
+    background: #F1F2F6;
+    border-radius: 12px;
+    font-size: 12px;
+    color: var(--text-gray);
+    font-weight: 500;
+}
+.home-garment-list {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    overflow-x: auto;
+    padding: 4px 0;
+    scrollbar-width: none;
+}
+.home-garment-list::-webkit-scrollbar {
+    display: none;
+}
+.home-garment-item {
+    background: #fff;
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    flex-shrink: 0;
+}
+.home-garment-icon {
+    font-size: 20px;
+}
+.home-garment-name {
+    font-size: 12px;
+    color: var(--text-dark);
+    font-weight: 500;
+    white-space: nowrap;
+}
+.home-tips-card {
+    width: 100%;
+    background: linear-gradient(135deg, #FFF8E1, #FFF3CD);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    flex-shrink: 0;
+}
+.home-tips-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.home-tips-text {
+    font-size: 12px;
+    color: #856404;
+    line-height: 1.5;
+}
+.home-outfit-actions {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    padding-bottom: 4px;
+}
+.home-action-btn {
+    flex: 1;
+    font-size: 14px !important;
+    height: 44px !important;
+}
+
+/* ===== 新首页（Tag 12 - 完成穿搭后） ===== */
+.new-home-page .home-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 8px;
+    overflow-y: auto;
+}
+.new-home-page .home-body::-webkit-scrollbar {
+    width: 0;
+}
+.nh-header-row {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+.nh-date-card, .nh-weather-card {
+    flex: 1;
+    background: #fff;
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.nh-date-icon, .nh-weather-icon {
+    font-size: 28px;
+}
+.nh-date-text, .nh-weather-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+.nh-date-sub, .nh-weather-sub {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 2px;
+}
+.nh-outfit-visual {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.nh-outfit-glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(253, 203, 110, 0.15));
+}
+.nh-outfit-frame {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #F8F6FF, #FFFAF0);
+}
+.nh-outfit-label {
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: 500;
+}
+.nh-outfit-info {
+    text-align: center;
+    flex-shrink: 0;
+}
+.nh-outfit-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+}
+.nh-outfit-tags-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.nh-tag {
+    padding: 3px 12px;
+    background: #F1F2F6;
+    border-radius: 12px;
+    font-size: 12px;
+    color: var(--text-gray);
+}
+.nh-garments-section {
+    flex-shrink: 0;
+}
+.nh-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+.nh-garments-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.nh-garment-card {
+    background: #F8F9FA;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 80px;
+    flex: 1;
+    max-width: calc(33% - 6px);
+}
+.nh-garment-emoji {
+    font-size: 28px;
+}
+.nh-garment-text {
+    font-size: 11px;
+    color: var(--text-dark);
+    text-align: center;
+    word-break: break-all;
+}
+.nh-tips-card {
+    background: linear-gradient(135deg, #FFF8E1, #FFF3CD);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    flex-shrink: 0;
+}
+.nh-tips-emoji {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.nh-tips-text {
+    font-size: 12px;
+    color: #856404;
+    line-height: 1.5;
+}
+.nh-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-top: auto;
+}
+.nh-action-primary {
+    flex: 1.2;
+    font-size: 15px !important;
+    height: 46px !important;
+}
+.nh-action-secondary {
+    flex: 1;
+    height: 46px;
+    background: #fff;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+    border-radius: 28px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.2s;
+}
+.nh-action-secondary:active {
+    background: rgba(108, 92, 231, 0.06);
+    transform: scale(0.97);
+}
+.nh-bottom-hint {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-light);
+    padding: 4px 0;
+    flex-shrink: 0;
+}
+
+/* ===== 电子衣柜页 ===== */
+.wardrobe-page {
+    gap: 8px;
+}
+.wardrobe-stats {
+    display: flex;
+    background: #fff;
+    border-radius: var(--radius-md);
+    padding: 12px 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    gap: 2px;
+    flex-shrink: 0;
+    overflow-x: auto;
+}
+.wardrobe-stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 50px;
+    flex: 1;
+}
+.wardrobe-stat-num {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+.wardrobe-stat-label {
+    font-size: 10px;
+    color: var(--text-light);
+    margin-top: 2px;
+}
+.wardrobe-stat-divider {
+    width: 1px;
+    background: var(--border-light);
+    margin: 0 4px;
+    flex-shrink: 0;
+}
+.wardrobe-main {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+}
+.wardrobe-sidebar {
+    width: 72px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    border-radius: var(--radius-md);
+    background: #fff;
+    padding: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.wardrobe-sidebar::-webkit-scrollbar {
+    width: 0;
+}
+.wardrobe-cat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    gap: 2px;
+}
+.wardrobe-cat-item.active {
+    background: linear-gradient(135deg, #F8F6FF, #EDE8FF);
+}
+.wardrobe-cat-item:active {
+    background: #F1F2F6;
+}
+.wardrobe-cat-icon {
+    font-size: 20px;
+}
+.wardrobe-cat-label {
+    font-size: 11px;
+    color: var(--text-gray);
+    font-weight: 500;
+}
+.wardrobe-cat-item.active .wardrobe-cat-label {
+    color: var(--primary);
+    font-weight: 600;
+}
+.wardrobe-cat-count {
+    font-size: 10px;
+    color: var(--text-light);
+    background: #F1F2F6;
+    border-radius: 8px;
+    padding: 0 6px;
+    min-width: 20px;
+    text-align: center;
+}
+.wardrobe-cat-item.active .wardrobe-cat-count {
+    background: var(--primary);
+    color: #fff;
+}
+.wardrobe-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow-y: auto;
+}
+.wardrobe-content::-webkit-scrollbar {
+    width: 0;
+}
+.wardrobe-content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 2px 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+    flex-shrink: 0;
+}
+.wardrobe-content-count {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: 400;
+}
+.wardrobe-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+.wardrobe-card {
+    background: #fff;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    display: flex;
+    transition: all 0.2s;
+}
+.wardrobe-card:active {
+    transform: scale(0.98);
+}
+.wardrobe-card-img {
+    width: 80px;
+    min-height: 80px;
+    background: #F8F9FA;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+}
+.wardrobe-card-icon {
+    font-size: 32px;
+}
+.wardrobe-card-season {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    font-size: 9px;
+    background: rgba(108,92,231,0.12);
+    color: var(--primary);
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+.wardrobe-card-body {
+    flex: 1;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+}
+.wardrobe-card-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+.wardrobe-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.wardrobe-color-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.wardrobe-card-color {
+    font-size: 12px;
+    color: var(--text-gray);
+}
+.wardrobe-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.wardrobe-tag {
+    font-size: 10px;
+    background: #F1F2F6;
+    color: var(--text-gray);
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+.wardrobe-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: var(--text-light);
+    font-size: 14px;
+    padding: 40px 0;
+}
+
+/* ===== 个人档案页 ===== */
+.profile-detail-page {
+    gap: 8px;
+}
+.profile-header-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    border-radius: var(--radius-md);
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    flex-shrink: 0;
+}
+.profile-avatar-lg {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(108,92,231,0.25);
+}
+.profile-header-info {
+    flex: 1;
+}
+.profile-header-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+.profile-header-desc {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 2px;
+}
+.profile-card {
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.profile-value-tag {
+    padding: 3px 12px;
+    background: #F1F2F6;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+.profile-detail-page .card-item {
+    min-height: 40px;
+}
+.profile-detail-page .tag-group {
+    padding: 4px 16px 10px;
+}
+
+/* ===== 穿搭偏好页 ===== */
+.preference-page {
+    gap: 10px;
+}
+.pref-stats-row {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.pref-stat-card {
+    flex: 1;
+    background: #fff;
+    border-radius: var(--radius-md);
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.pref-stat-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+}
+.pref-stat-num {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+.pref-stat-label {
+    font-size: 10px;
+    color: var(--text-light);
+    margin-top: 2px;
+}
+.pref-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    overflow-y: auto;
+}
+.pref-list::-webkit-scrollbar {
+    width: 0;
+}
+.pref-outfit-card {
+    background: #fff;
+    border-radius: var(--radius-md);
+    padding: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.pref-outfit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+.pref-outfit-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+.pref-outfit-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F8F6FF;
+    border-radius: 10px;
+}
+.pref-outfit-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+.pref-outfit-meta {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.pref-dot {
+    color: var(--text-light);
+}
+.pref-outfit-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.pref-action-btn {
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.pref-action-btn:active {
+    background: #F1F2F6;
+    transform: scale(0.9);
+}
+.pref-garments-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+.pref-garment-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #F8F9FA;
+    border-radius: 14px;
+    padding: 4px 10px;
+}
+.pref-garment-emoji {
+    font-size: 16px;
+}
+.pref-garment-name {
+    font-size: 11px;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+.pref-tags-row {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    align-items: center;
+}
+.pref-tag-pill {
+    padding: 2px 10px;
+    background: #F1F2F6;
+    border-radius: 10px;
+    font-size: 11px;
+    color: var(--text-gray);
+    font-weight: 500;
+}
+.pref-source-badge {
+    font-size: 10px;
+    color: var(--primary);
+    background: rgba(108,92,231,0.08);
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 500;
+    margin-left: auto;
+}
+.pref-tip {
+    display: flex;
+    gap: 6px;
+    background: #FFF8E1;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: #856404;
+    line-height: 1.5;
+}
+.pref-status-row {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--text-gray);
+}
+.pref-status-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.pref-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
 /* 响应式 */
 @media (max-width: 420px) {
     .phone-frame {
@@ -1392,5 +2344,11 @@ body {
     }
     .page-slot {
         padding: 12px 12px 20px;
+    }
+    .wardrobe-sidebar {
+        width: 60px;
+    }
+    .wardrobe-card-img {
+        width: 64px;
     }
 }

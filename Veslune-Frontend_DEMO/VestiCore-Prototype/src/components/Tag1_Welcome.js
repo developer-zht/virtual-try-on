@@ -64,6 +64,7 @@ window.PageWelcome = function PageWelcome({ onNext }) {
                     return;
                 }
                 setToastMsg(`🎉 ${matched.role}登录成功，欢迎回来！`);
+                window.IsNewUser = false;
                 setTimeout(() => {
                     setToastMsg(null);
                     setShowAuth(false);
@@ -78,6 +79,7 @@ window.PageWelcome = function PageWelcome({ onNext }) {
                 return;
             }
         }
+        window.IsNewUser = authMode === 'register';
         setToastMsg(authMode === 'register' ? '🎉 注册成功，欢迎加入！' : '🎉 登录成功');
         setTimeout(() => {
             setToastMsg(null);
@@ -88,6 +90,7 @@ window.PageWelcome = function PageWelcome({ onNext }) {
 
     const socialLogin = (provider) => {
         setToastMsg(`🔗 正在跳转 ${provider} 授权...`);
+        window.IsNewUser = false;
         setTimeout(() => {
             setToastMsg(`🎉 ${provider} 登录成功`);
             setTimeout(() => {
