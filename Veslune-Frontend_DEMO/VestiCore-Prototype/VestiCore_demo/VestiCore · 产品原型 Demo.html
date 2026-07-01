@@ -1,0 +1,2013 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VestiCore · 完整产品原型 Demo</title>
+    <!-- React & ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        /* ===== 全局重置 & 基础样式 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+            background: #E8E8E8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 12px;
+        }
+        :root {
+            --primary: #6C5CE7;
+            --primary-light: #A29BFE;
+            --primary-glow: rgba(108, 92, 231, 0.25);
+            --secondary: #FDCB6E;
+            --bg-main: #F8F9FA;
+            --bg-card: #FFFFFF;
+            --text-dark: #2D3436;
+            --text-gray: #636E72;
+            --text-light: #B2BEC3;
+            --border-light: #F1F2F6;
+            --shadow-btn: 0px 8px 20px rgba(108, 92, 231, 0.30);
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --safe-bottom: 20px;
+        }
+        .phone-frame {
+            width: 100%;
+            max-width: 390px;
+            height: 780px;
+            background: var(--bg-main);
+            border-radius: 36px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .page-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-slot {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-main);
+            transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform, opacity;
+            padding: 16px 16px 24px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .page-slot::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
+        }
+        /* 动画类 */
+        .page-enter-forward {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        .page-enter-forward-active {
+            transform: translateX(0%);
+            opacity: 1;
+        }
+        .page-exit-forward {
+            transform: translateX(0%);
+            opacity: 1;
+        }
+        .page-exit-forward-active {
+            transform: translateX(-30%);
+            opacity: 0;
+        }
+        .page-enter-back {
+            transform: translateX(-30%);
+            opacity: 0;
+        }
+        .page-enter-back-active {
+            transform: translateX(0%);
+            opacity: 1;
+        }
+        .page-exit-back {
+            transform: translateX(0%);
+            opacity: 1;
+        }
+        .page-exit-back-active {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        /* ===== 通用组件 ===== */
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0 12px;
+            flex-shrink: 0;
+            background: transparent;
+            min-height: 44px;
+        }
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-dark);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+        .nav-left:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        .nav-left svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .nav-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--primary);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+        .nav-right:hover {
+            background: rgba(108, 92, 231, 0.06);
+        }
+        .btn-primary {
+            width: 100%;
+            height: 52px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 28px;
+            font-size: 17px;
+            font-weight: 600;
+            box-shadow: var(--shadow-btn);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .btn-primary:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+        .btn-primary.disabled {
+            background: #DFE6E9;
+            box-shadow: none;
+            color: #B2BEC3;
+            pointer-events: none;
+        }
+        .btn-secondary {
+            width: 100%;
+            height: 48px;
+            background: transparent;
+            color: var(--primary);
+            border: 1.5px solid var(--primary);
+            border-radius: 28px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .btn-secondary:active {
+            background: rgba(108, 92, 231, 0.06);
+        }
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 4px 0;
+            margin-bottom: 14px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            flex-shrink: 0;
+        }
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            padding: 8px 16px 4px;
+            letter-spacing: 0.3px;
+        }
+        .card-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            min-height: 44px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .card-item:last-child {
+            border-bottom: none;
+        }
+        .card-item .label {
+            font-size: 15px;
+            color: var(--text-dark);
+            font-weight: 500;
+            flex-shrink: 0;
+            width: 66px;
+        }
+        .card-item .value {
+            font-size: 15px;
+            color: var(--text-dark);
+            text-align: right;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .card-item .value .placeholder {
+            color: var(--text-light);
+            font-weight: 400;
+        }
+        .tag-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 4px 16px 12px;
+        }
+        .tag {
+            padding: 5px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+            background: #F1F2F6;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1.5px solid transparent;
+        }
+        .tag.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2);
+        }
+        .tag:active {
+            transform: scale(0.95);
+        }
+        .color-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 4px 16px 12px;
+        }
+        .color-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .color-dot.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+        }
+        .segment-group {
+            display: flex;
+            background: #F1F2F6;
+            border-radius: 8px;
+            padding: 4px;
+            margin: 0 16px 12px;
+            gap: 4px;
+        }
+        .segment-item {
+            flex: 1;
+            text-align: center;
+            padding: 5px 0;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-light);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.25s;
+            background: transparent;
+            border: none;
+        }
+        .segment-item.active {
+            background: #fff;
+            color: var(--text-dark);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        .steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 0 0 14px;
+            flex-shrink: 0;
+        }
+        .step-dot {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        .step-dot .circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            background: var(--border-light);
+            color: var(--text-light);
+            transition: all 0.3s;
+        }
+        .step-dot.active .circle {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+        }
+        .step-dot.done .circle {
+            background: var(--primary-light);
+            color: #fff;
+        }
+        .step-line {
+            width: 24px;
+            height: 2px;
+            background: var(--border-light);
+            border-radius: 2px;
+        }
+        .step-line.done {
+            background: var(--primary-light);
+        }
+        .ai-progress-wrap {
+            background: #F1F2F6;
+            border-radius: 20px;
+            height: 5px;
+            margin: 0 0 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .ai-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            transition: width 0.5s ease;
+        }
+        .ai-progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-gray);
+            margin-bottom: 4px;
+            flex-shrink: 0;
+        }
+        .api-hint {
+            background: #F8F9FA;
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            margin: 8px 0 4px;
+            font-size: 10px;
+            color: var(--text-gray);
+            border: 1px solid #EEEEEE;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            flex-wrap: wrap;
+        }
+        .api-hint .method {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .status-tip {
+            font-size: 11px;
+            color: #00B894;
+            text-align: center;
+            padding: 4px 0 0;
+            flex-shrink: 0;
+        }
+        .sub-header {
+            font-size: 13px;
+            color: var(--text-gray);
+            text-align: center;
+            padding: 0 0 12px;
+            flex-shrink: 0;
+        }
+        .flex-1 {
+            flex: 1;
+        }
+        .mt-auto {
+            margin-top: auto;
+        }
+        .mb-8 {
+            margin-bottom: 8px;
+        }
+        .text-center {
+            text-align: center;
+        }
+
+        /* Tag 1 */
+        .welcome-illustration {
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, #FDCB6E 0%, #FFEAA7 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            margin: 10px auto 20px;
+            box-shadow: 0 12px 40px rgba(253, 203, 110, 0.35);
+            flex-shrink: 0;
+        }
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+            text-align: center;
+            line-height: 1.3;
+            margin-bottom: 6px;
+        }
+        .welcome-sub {
+            font-size: 15px;
+            color: var(--text-gray);
+            text-align: center;
+            line-height: 1.6;
+            padding: 0 12px;
+            margin-bottom: 24px;
+        }
+
+        /* Tag 2 */
+        .camera-preview {
+            width: 100%;
+            height: 260px;
+            background: #F1F2F6;
+            border: 2px dashed #D0D0D0;
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-size: 42px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+        .camera-preview.has-image {
+            border-color: var(--primary);
+            background: #F8F9FA;
+        }
+        .camera-preview .sub-text {
+            font-size: 13px;
+            margin-top: 6px;
+        }
+        .dual-btn {
+            display: flex;
+            gap: 10px;
+            margin: 8px 0 10px;
+            flex-shrink: 0;
+        }
+        .dual-btn .btn-outline {
+            flex: 1;
+            height: 44px;
+            border: 1.5px solid #DFE6E9;
+            border-radius: var(--radius-md);
+            background: #fff;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .dual-btn .btn-outline:active {
+            background: #F8F9FA;
+            transform: scale(0.97);
+        }
+
+        /* Tag 5 */
+        .context-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 0 0 12px;
+            flex-shrink: 0;
+        }
+        .chip {
+            background: #F1F2F6;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--text-gray);
+            font-weight: 500;
+        }
+        .big-image {
+            width: 100%;
+            height: 340px;
+            background: #F1F2F6;
+            border-radius: var(--radius-lg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            color: var(--text-light);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            flex-shrink: 0;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+        .big-image .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            backdrop-filter: blur(2px);
+        }
+        .big-image .loading-overlay .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #F1F2F6;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .recommend-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0 6px;
+            flex-shrink: 0;
+        }
+        .tips-card {
+            background: #F8F6FF;
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin: 6px 0 10px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            flex-shrink: 0;
+        }
+        .tips-card .icon {
+            font-size: 18px;
+        }
+        .tips-card .content {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-dark);
+        }
+        .garment-strip {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 4px 0 10px;
+            flex-shrink: 0;
+            scrollbar-width: none;
+        }
+        .garment-strip::-webkit-scrollbar {
+            display: none;
+        }
+        .strip-item {
+            min-width: 80px;
+            background: #F8F9FA;
+            border-radius: var(--radius-sm);
+            padding: 8px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .strip-item .thumb {
+            width: 64px;
+            height: 64px;
+            background: #E8E8E8;
+            border-radius: 8px;
+            margin: 0 auto 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        .strip-item .name {
+            font-size: 11px;
+            color: var(--text-gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Tag 6 */
+        .tag-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 0 8px;
+            flex-shrink: 0;
+            scrollbar-width: none;
+        }
+        .tag-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .tag-pill {
+            padding: 8px 20px;
+            border-radius: 24px;
+            background: #F1F2F6;
+            color: var(--text-gray);
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.25s;
+            border: 2px solid transparent;
+            flex-shrink: 0;
+        }
+        .tag-pill.active {
+            background: #fff;
+            color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 16px rgba(108, 92, 231, 0.2);
+        }
+        .reason-expand {
+            background: linear-gradient(135deg, #F8F6FF, #F0ECFF);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin: 0 0 12px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.3s ease, margin 0.3s ease;
+            opacity: 0;
+        }
+        .reason-expand.open {
+            max-height: 140px;
+            padding: 12px 16px;
+            margin: 0 0 12px;
+            opacity: 1;
+        }
+        .reason-expand .tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+        .reason-expand .tags span {
+            background: var(--primary);
+            color: #fff;
+            padding: 2px 12px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .reason-expand .desc {
+            font-size: 13px;
+            color: var(--text-gray);
+            line-height: 1.5;
+        }
+        .explore-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 4px 0 8px;
+        }
+        .explore-item {
+            background: #fff;
+            border-radius: var(--radius-sm);
+            padding: 8px 6px;
+            text-align: center;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .explore-item:active {
+            transform: scale(0.95);
+        }
+        .explore-item .thumb {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #F1F2F6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 4px;
+        }
+        .explore-item .ename {
+            font-size: 11px;
+            color: var(--text-gray);
+        }
+        .explore-item .tryon-btn {
+            margin-top: 4px;
+            font-size: 11px;
+            color: var(--primary);
+            font-weight: 600;
+            background: transparent;
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 2px 10px;
+            cursor: pointer;
+        }
+
+        /* Tag 7 - 核心工坊 */
+        .workshop-layout {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+            min-height: 0;
+        }
+        .workshop-center {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+        }
+        .workshop-center .drop-zone {
+            flex: 1;
+            background: #F8F9FA;
+            border: 2px dashed #D0D0D0;
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: var(--text-light);
+            transition: all 0.3s;
+            min-height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+        .workshop-center .drop-zone.dragover {
+            border-color: var(--primary);
+            background: #F8F6FF;
+            box-shadow: inset 0 0 30px rgba(108, 92, 231, 0.08);
+        }
+        .workshop-center .drop-zone .sub {
+            font-size: 13px;
+            margin-top: 6px;
+        }
+        .workshop-center .drop-zone .loading-mask {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            backdrop-filter: blur(2px);
+        }
+        .workshop-sidebar {
+            flex: 1.2;
+            background: #fff;
+            border-radius: var(--radius-md);
+            padding: 8px 6px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .workshop-sidebar .sidebar-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            padding: 0 0 6px 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .workshop-sidebar .cat-tabs {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+        .workshop-sidebar .cat-tab {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: #F1F2F6;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .workshop-sidebar .cat-tab.active {
+            background: var(--primary);
+            color: #fff;
+        }
+        .workshop-sidebar .items-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 2px;
+        }
+        .workshop-sidebar .items-grid::-webkit-scrollbar {
+            width: 2px;
+            background: transparent;
+        }
+        .workshop-sidebar .items-grid::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 4px;
+        }
+        .wardrobe-item {
+            background: #F8F9FA;
+            border-radius: 8px;
+            padding: 6px;
+            text-align: center;
+            cursor: grab;
+            transition: all 0.2s;
+            border: 1.5px solid transparent;
+        }
+        .wardrobe-item:active {
+            cursor: grabbing;
+        }
+        .wardrobe-item .wthumb {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #E8E8E8;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+        .wardrobe-item .wname {
+            font-size: 10px;
+            color: var(--text-gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .wardrobe-item.dragging {
+            opacity: 0.4;
+            transform: scale(0.9);
+        }
+        .drag-clone {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            width: 80px;
+            height: 80px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            transform: translate(-50%, -50%) scale(1.1);
+            border: 2px solid var(--primary);
+        }
+
+        /* 进度条 + Tips 轮播 (Tag 7) */
+        .progress-section {
+            padding: 8px 0 4px;
+            flex-shrink: 0;
+            display: none;
+        }
+        .progress-section.active {
+            display: block;
+        }
+        .progress-section .pbar {
+            height: 4px;
+            background: #F1F2F6;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 4px 0;
+        }
+        .progress-section .pbar .fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+        .progress-section .ptext {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-gray);
+        }
+        .progress-section .tips-carousel {
+            font-size: 12px;
+            color: var(--text-gray);
+            text-align: center;
+            padding: 4px 0;
+            min-height: 24px;
+            transition: opacity 0.3s;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .modal-sheet {
+            background: #fff;
+            width: 100%;
+            max-height: 70%;
+            border-radius: 24px 24px 0 0;
+            padding: 20px 24px 30px;
+            animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+        .modal-sheet .handle {
+            width: 40px;
+            height: 4px;
+            background: #ddd;
+            border-radius: 4px;
+            margin: 0 auto 16px;
+        }
+        .modal-sheet .m-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .modal-sheet .m-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #DFE6E9;
+            border-radius: 12px;
+            font-size: 15px;
+            margin-bottom: 12px;
+            outline: none;
+        }
+        .modal-sheet .m-input:focus {
+            border-color: var(--primary);
+        }
+        .modal-sheet .m-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .modal-sheet .m-tags .mtag {
+            background: #F1F2F6;
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 13px;
+        }
+        .modal-sheet .m-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-sheet .m-actions button {
+            flex: 1;
+            height: 48px;
+            border-radius: 24px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .modal-sheet .m-actions .cancel {
+            background: #F1F2F6;
+            color: var(--text-gray);
+        }
+        .modal-sheet .m-actions .confirm {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        /* Toast */
+        .toast {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            right: 20px;
+            background: #2D3436;
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+            z-index: 200;
+            animation: slideUp 0.4s ease;
+        }
+
+        /* 响应式 */
+        @media (max-width: 420px) {
+            .phone-frame {
+                height: 100vh;
+                border-radius: 0;
+                padding: 0;
+            }
+            .page-slot {
+                padding: 12px 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root" class="phone-frame"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback, createContext, useContext } = React;
+
+        // =====================================================
+        // 全局状态 Context (简化版)
+        // =====================================================
+        const AppContext = createContext();
+
+        // =====================================================
+        // 页面组件: Tag 1 - 欢迎页
+        // =====================================================
+        function PageWelcome({ onNext }) {
+            return (
+                <div className="page-slot"
+                    style={{ justifyContent: 'center', alignItems: 'center', background: '#fff' }}>
+                    <div style={{ width: '100%', maxWidth: 320, margin: '0 auto', display: 'flex', flexDirection: 'column',
+                            alignItems: 'center', height: '100%', justifyContent: 'center' }}>
+                        <div style={{ position: 'absolute', top: 20, left: 20, right: 20, display: 'flex',
+                                justifyContent: 'space-between', alignItems: 'center', width: 'calc(100% - 40px)' }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#E8E8E8', display: 'flex',
+                                    alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#999' }}>👤</div>
+                            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--primary)', cursor: 'pointer' }}>注册 / 登录</div>
+                        </div>
+                        <div className="welcome-illustration">🧥</div>
+                        <div className="welcome-title">告别 "今天穿什么"<br />的烦恼</div>
+                        <div className="welcome-sub">
+                            VestiCore 读懂你的衣柜。<br />
+                            结合天气与场合，从你已有的衣服里，推荐最合适的那一套。
+                        </div>
+                        <button className="btn-primary"
+                            onClick={onNext}
+                            style={{ maxWidth: 280 }}>
+                            🚀 开始探索我的衣橱
+                        </button>
+                        <div style={{ fontSize: 10, color: '#DFE6E9', marginTop: 14, textAlign: 'center' }}>
+                            登录即代表同意《用户协议》和《隐私政策》
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // =====================================================
+        // 页面组件: Tag 2 - 拍照页
+        // =====================================================
+        function PageScan({ onNext, onBack }) {
+            const [hasImage, setHasImage] = useState(false);
+            const [viewAngle, setViewAngle] = useState('flat');
+            return (
+                <div className="page-slot">
+                    <div className="nav-bar">
+                        <div className="nav-left"
+                            onClick={onBack}>
+                            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg> 返回
+                        </div>
+                        <div className="nav-title">扫描衣物</div>
+                        <div style={{ width: 60 }}></div>
+                    </div>
+                    <div className="steps">
+                        <div className="step-dot active"><span className="circle">1</span><span className="label">拍照</span></div>
+                        <div className="step-line"></div>
+                        <div className="step-dot"><span className="circle">2</span><span className="label">档案</span></div>
+                        <div className="step-line"></div>
+                        <div className="step-dot"><span className="circle">3</span><span className="label">搭配</span></div>
+                    </div>
+                    <div className={`camera-preview ${hasImage ? 'has-image' : ''}`}>
+                        {
+                            hasImage ? <>
+                                <span style={{ fontSize: 56 }}>🧥</span>
+                                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--primary)', marginTop: 2 }}>✅
+                                已上传卡其色风衣</span>
+                                <span className="sub-text"
+                                    style={{ color: 'var(--text-light)' }}>识别中...</span>
+                            </> :
+                            <>
+                                <span>📷</span>
+                                <span className="sub-text">点击下方拍照或上传</span>
+                            </>
+                        }
+                    </div>
+                    <div className="card"
+                        style={{ marginBottom: 8 }}>
+                        <div className="card-title">📐 拍照视角</div>
+                        <div className="tag-group">{
+                            ['平铺图', '悬挂图', '上身图'].map((t, i) => {
+                                const val = ['flat', 'hanging', 'wearing'][i];
+                                return <span key={t}
+                                    className={`tag ${viewAngle === val ? 'active' : ''}`}
+                                    onClick={() => setViewAngle(val)}>{t}</span>
+                            })
+                        }
+                        </div>
+                    </div>
+                    <div className="dual-btn">
+                        <div className="btn-outline"
+                            onClick={() => setHasImage(true)}><span className="icon">📷</span> 拍照
+                        </div>
+                        <div className="btn-outline"
+                            onClick={() => setHasImage(true)}><span className="icon">🖼️</span> 相册上传
+                        </div>
+                    </div>
+                    <div style={{ background: '#FFF3CD', borderRadius: 8, padding: '8px 12px', fontSize: 12,
+                            color: '#856404', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        ⚡️ AI正在后台分析，您可先完善个人信息
+                    </div>
+                    <button className={`btn-primary ${!hasImage ? 'disabled' : ''}`}
+                        onClick={onNext}
+                        style={{ marginTop: 'auto' }}>
+                        {
+                            hasImage ? '下一步：完善个人数据 →' : '请先上传衣物图片'
+                        }
+                    </button>
+                    <div className="status-tip"
+                        style={{ color: 'var(--text-light)', fontSize: 10, marginTop: 4 }}>
+                        已选 {hasImage ? '1' : '0'} 张图片（建议单件平铺拍摄效果最佳）
+                    </div>
+                </div>
+            );
+        }
+
+        // =====================================================
+        // 页面组件: Tag 3 - 档案页
+        // =====================================================
+        function PageProfile({ onNext, onBack }) {
+            const [progress, setProgress] = useState(0);
+            const [statusText, setStatusText] = useState('📸 正在读取图片...');
+            const [form, setForm] = useState({ height: '170', weight: '65', shoulder: '44', bodyShape: '沙漏形',
+                size: 'M', styles: ['简约'], colors: ['黑', '白'], pants: '长裤' });
+            useEffect(() => {
+                const totalDuration = 8000;
+                const startTime = Date.now();
+                const interval = setInterval(() => {
+                    const elapsed = Date.now() - startTime;
+                    const pct = Math.min((elapsed / totalDuration) * 100, 99);
+                    setProgress(pct);
+                    if (pct < 20) setStatusText('📸 正在读取图片...');
+                    else if (pct < 50) setStatusText('🧩 正在分割衣物轮廓...');
+                    else if (pct < 80) setStatusText('🏷️ 正在匹配品类与颜色...');
+                    else if (pct < 99) setStatusText('✨ 二次渲染效果生成中...');
+                    else setStatusText('✅ 识别完成！');
+                    if (pct >= 99) { clearInterval(interval);
+                        setTimeout(() => setProgress(100), 300); }
+                }, 150);
+                return () => clearInterval(interval);
+            }, []);
+            const styleList = ['简约', '通勤', '复古', '街头', '甜美', '运动'];
+            const colorsList = ['红', '橙', '黄', '绿', '蓝', '紫', '黑', '白', '灰', '粉'];
+            const toggleStyle = (s) => {
+                if (form.styles.includes(s)) { setForm({ ...form, styles: form.styles.filter(x => x !== s) }); } else { if (
+                        form.styles.length >= 3) return;
+                    setForm({ ...form, styles: [...form.styles, s] }); }
+            };
+            const toggleColor = (c) => {
+                if (form.colors.includes(c)) { setForm({ ...form, colors: form.colors.filter(x => x !== c) }); } else { setForm(
+                        { ...form, colors: [...form.colors, c] }); }
+            };
+            return (
+                <div className="page-slot">
+                    <div className="nav-bar">
+                        <div className="nav-left"
+                            onClick={onBack}>
+                            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg> 返回
+                        </div>
+                        <div className="nav-title">完善穿衣档案</div>
+                        <div className="nav-right"
+                            onClick={onNext}>跳过</div>
+                    </div>
+                    <div className="steps">
+                        <div className="step-dot done"><span className="circle">✓</span><span className="label">拍照</span></div>
+                        <div className="step-line done"></div>
+                        <div className="step-dot active"><span className="circle">2</span><span className="label">档案</span></div>
+                        <div className="step-line"></div>
+                        <div className="step-dot"><span className="circle">3</span><span className="label">搭配</span></div>
+                    </div>
+                    <div className="ai-progress-text"><span>{statusText}</span>
+                        <span>{Math.round(progress)}%</span>
+                    </div>
+                    <div className="ai-progress-wrap"><div className="ai-progress-bar"
+                        style={{ width: `${progress}%` }}></div></div>
+                    <div className="card">
+                        <div className="card-title">📏 身体数据</div>{
+                            [
+                                { label: '身高', key: 'height', unit: 'cm' },
+                                { label: '体重', key: 'weight', unit: 'kg' },
+                                { label: '肩宽', key: 'shoulder', unit: 'cm' }
+                            ].map(item => <div className="card-item"
+                                key={item.key}>
+                                <span className="label">{item.label}</span>
+                                <div className="value">
+                                    <input type="number"
+                                        value={form[item.key]}
+                                        onChange={e => setForm({ ...form, [item.key]: e.target.value })}
+                                        style={{ width: 55, border: 'none', textAlign: 'right', fontSize: 15, outline: 'none',
+                                            background: 'transparent' }}
+                                    /> {item.unit}
+                                </div>
+                            </div>)
+                        }
+                        <div className="card-item">
+                            <span className="label">体型</span>
+                            <div className="value"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => { const v = prompt('输入体型 (梨形/苹果形/沙漏形/矩形/倒三角)', form.bodyShape); if (v) setForm({ ...
+                                            form, bodyShape: v }); }}>
+                                {form.bodyShape}<span className="arrow">⌵</span>
+                            </div>
+                        </div>
+                        <div className="card-item">
+                            <span className="label">日常尺码</span>
+                            <div className="value"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => { const v = prompt('输入尺码 (XS/S/M/L/XL/XXL)', form.size); if (v) setForm({ ...form,
+                                        size: v }); }}>
+                                {form.size}<span className="arrow">⌵</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="card">
+                        <div className="card-title">🎨 穿搭偏好</div>
+                        <div style={{ padding: '0 16px 2px', fontSize: 12, color: 'var(--text-light)' }}>风格偏好（最多选3个）</div>
+                        <div className="tag-group">{
+                            styleList.map(s => <span key={s}
+                                className={`tag ${form.styles.includes(s) ? 'active' : ''}`}
+                                onClick={() => toggleStyle(s)}>{s}</span>)
+                        }
+                        </div>
+                        <div style={{ padding: '0 16px 2px', fontSize: 12, color: 'var(--text-light)' }}>颜色偏好</div>
+                        <div className="color-group">{
+                            colorsList.map(c => {
+                                const colorMap = { '红': '#FF6B6B', '橙': '#FF9F43', '黄': '#FECA57', '绿': '#00D2D3',
+                                    '蓝': '#54A0FF', '紫': '#A29BFE', '黑': '#2D3436', '白': '#F8F9FA', '灰': '#B2BEC3',
+                                    '粉': '#FD79A8' };
+                                return <span key={c}
+                                    className={`color-dot ${form.colors.includes(c) ? 'active' : ''}`}
+                                    onClick={() => toggleColor(c)}
+                                    style={{ background: colorMap[c], borderColor: c === '白' ? '#ddd' : colorMap[c],
+                                        width: 30, height: 30 }}></span>
+                            })
+                        }
+                        </div>
+                        <div style={{ padding: '0 16px 2px', fontSize: 12, color: 'var(--text-light)' }}>裤长偏好</div>
+                        <div className="segment-group">{
+                            ['九分裤', '长裤', '短裤'].map(p => <button key={p}
+                                className={`segment-item ${form.pants === p ? 'active' : ''}`}
+                                onClick={() => setForm({ ...form, pants: p })}>{p}</button>)
+                        }
+                        </div>
+                    </div>
+                    <button className="btn-primary"
+                        onClick={onNext}
+                        style={{ marginTop: 'auto' }}>
+                        🚀 查看今日穿搭建议
+                    </button>
+                    <div className="status-tip"
+                        style={{ fontSize: 10, marginTop: 4 }}>
+                        以下信息仅用于算法推荐，不会对外展示
+                    </div>
+                </div>
+            );
+        }
+
+        // =====================================================
+        // 页面组件: Tag 4 - 设置页
+        // =====================================================
+        function PageSettings({ onNext, onBack }) {
+            const [settings, setSettings] = useState({ occasion: '通勤', weather: '晴', feel: '舒适', goal: '通勤得体',
+                visual: '日常随拍', colorTone: null, priority: null });
+            const [collapseOpen, setCollapseOpen] = useState(false);
+            const resetAll = () => setSettings({ occasion: '通勤', weather: '晴', feel: '舒适', goal: '通勤得体',
+                visual: '日常随拍', colorTone: null, priority: null });
+            const occasions = ['通勤', '约会', '运动', '居家', '商务', '出游'];
+            const weathers = ['☀️ 晴', '⛅ 多云', '🌧️ 雨', '❄️ 雪'];
+            const goals = ['👔 通勤得体', '✨ 时尚吸睛', '😌 舒适优先', '📈 显高显瘦'];
+            const visuals = ['日常随拍', '杂志大片', '通勤风'];
+            const tones = ['🟤 大地色', '🔵 冷色', '🔴 暖色'];
+            const priorities = ['外套', '上装', '下装', '鞋履'];
+            return (
+                <div className="page-slot">
+                    <div className="nav-bar">
+                        <div className="nav-left"
+                            onClick={onBack}>
+                            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg> 返回
+                        </div>
+                        <div className="nav-title">设置今日搭配</div>
+                        <div className="nav-right"
+                            onClick={resetAll}>🔄 重置</div>
+                    </div>
+                    <div className="steps">
+                        <div className="step-dot done"><span className="circle">✓</span><span className="label">拍照</span></div>
+                        <div className="step-line done"></div>
+                        <div className="step-dot done"><span className="circle">✓</span><span className="label">档案</span></div>
+                        <div className="step-line done"></div>
+                        <div className="step-dot active"><span className="circle">3</span><span className="label">搭配</span></div>
+                    </div>
+                    <div className="sub-header">选择今天的场合与喜好，定制专属穿搭提案 ✨</div>
+                    <div className="card">
+                        <div className="card-title">📅 今日场合</div>
+                        <div className="tag-group">{
+                            occasions.map(o => <span key={o}
+                                className={`tag ${settings.occasion === o ? 'active' : ''}`}
+                                onClick={() => setSettings({ ...settings, occasion: o })}>{o}</span>)
+                        }
+                        </div>
+                    </div>
+                    <div className="card">
+                        <div className="card-title">🌤️ 今日天气</div>
+                        <div className="tag-group">{
+                            weathers.map(w => {
+                                const val = w.split(' ')[1];
+                                return <span key={w}
+                                    className={`tag ${settings.weather === val ? 'active' : ''}`}
+                                    onClick={() => setSettings({ ...settings, weather: val })}>{w}</span>
+                            })
+                        }
+                        </div>
+                        <div style={{ padding: '0 16px 4px', fontSize: 12, color: 'var(--text-light)' }}>体感温度</div>
+                        <div className="segment-group">{
+                            ['凉爽', '舒适', '偏热'].map(f => <button key={f}
+                                className={`segment-item ${settings.feel === f ? 'active' : ''}`}
+                                onClick={() => setSettings({ ...settings, feel: f })}>{f}</button>)
+                        }
+                        </div>
+                    </div>
+                    <div className="card">
+                        <div className="card-title">🎯 推荐策略</div>
+                        <div className="tag-group">{
+                            goals.map(g => {
+                                const val = g.split(' ')[1];
+                                return <span key={g}
+                                    className={`tag ${settings.goal === val ? 'active' : ''}`}
+                                    onClick={() => setSettings({ ...settings, goal: val })}>{g}</span>
+                            })
+                        }
+                        </div>
+                    </div>
+                    <div className="card">
+                        <div className="card-title">🎨 搭配画风</div>
+                        <div className="tag-group">{
+                            visuals.map(v => <span key={v}
+                                className={`tag ${settings.visual === v ? 'active' : ''}`}
+                                onClick={() => setSettings({ ...settings, visual: v })}>{v}</span>)
+                        }
+                        </div>
+                    </div>
+                    <div className="card">
+                        <div className="collapse-toggle"
+                            style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px',
+                                cursor: 'pointer', borderBottom: '1px solid var(--border-light)' }}
+                            onClick={() => setCollapseOpen(!collapseOpen)}>
+                            <span>⚙️ 高级筛选</span>
+                            <span style={{ transform: collapseOpen ? 'rotate(180deg)' : 'none', transition: '0.3s',
+                                color: 'var(--text-light)' }}>⌵</span>
+                        </div>
+                        <div style={{ maxHeight: collapseOpen ? 200 : 0, overflow: 'hidden', transition: 'max-height 0.4s ease',
+                                padding: collapseOpen ? '6px 16px 14px' : '0 16px' }}>
+                            <div style={{ fontSize: 12, color: 'var(--text-light)', marginBottom: 4 }}>色系偏好</div>
+                            <div className="tag-group"
+                                style={{ padding: '0 0 8px' }}>{
+                                tones.map(t => {
+                                    const val = t.split(' ')[1];
+                                    return <span key={t}
+                                        className={`tag ${settings.colorTone === val ? 'active' : ''}`}
+                                        onClick={() => setSettings({ ...settings, colorTone: settings.colorTone === val ? null :
+                                                val })}>{t}</span>
+                                })
+                            }
+                            </div>
+                            <div style={{ fontSize: 12, color: 'var(--text-light)', marginBottom: 4 }}>单品优先级</div>
+                            <div className="tag-group"
+                                style={{ padding: '0' }}>{
+                                priorities.map(p => <span key={p}
+                                    className={`tag ${settings.priority === p ? 'active' : ''}`}
+                                    onClick={() => setSettings({ ...settings, priority: settings.priority === p ? null : p })}>
+                                    {p}</span>)
+                            }
+                            </div>
+                        </div>
+                    </div>
+                    <button className="btn-primary"
+                        onClick={onNext}
+                        style={{ marginTop: 'auto' }}>
+                        ✨ 生成今日穿搭方案
+                    </button>
+                    <div className="api-hint">
+                        <span>📡</span>
+                        <span><span className="method">POST</span>
+                        <span className="path">/v1/outfits/recommend</span></span>
+                        <span style={{ marginLeft: 'auto', color: 'var(--text-light)', fontSize: 10 }}>application/json
+                        </span>
+                    </div>
+                    <div className="status-tip">✅ 已为您扫描 1 件单品 · 档案已完善</div>
+                </div>
+            );
+        }
+
+        // =====================================================
+        // 页面组件: Tag 5 - 结果页
+        // =====================================================
+        function PageResult({ onNext, onBack, onSwitchStyle, outfitData }) {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [loading, setLoading] = useState(false);
+            const outfits = outfitData || [
+                { id: 1, garments: ['🧥 卡其色风衣', '👔 白色衬衫', '👖 深灰九分裤'], tip: '卡其色风衣搭配白色衬衫，通勤得体又不失时尚感。九分裤露出脚踝，视觉上更显高。',
+                    tags: ['☀️ 26°C', '🏢 通勤', '🎨 简约风'] },
+                { id: 2, garments: ['🧥 黑色皮衣', '👕 格纹衬衫', '👖 黑色牛仔裤'], tip: '皮衣搭配格纹衬衫，街头感十足。黑色牛仔裤收紧腿部线条，整体显瘦显高。',
+                    tags: ['☀️ 22°C', '🎸 约会', '🕶️ 街头'] },
+                { id: 3, garments: ['🧥 米色风衣', '👚 针织衫', '👗 半身裙'], tip: '米色风衣搭配同色系针织衫，温柔知性。A字半身裙修饰胯部，适合梨形身材。',
+                    tags: ['☀️ 24°C', '🌸 出游', '✨ 温柔'] }
+            ];
+            const current = outfits[currentIndex];
+            const nextOutfit = () => { if (currentIndex < outfits.length - 1) { setCurrentIndex(currentIndex + 1); } else
+                { setCurrentIndex(0); } };
+
+            const handleSwitchStyle = () => {
+                if (onSwitchStyle) onSwitchStyle();
+            };
+
+            return (
+                <div className="page-slot">
+                    <div className="nav-bar">
+                        <div className="nav-left"
+                            onClick={onBack}>
+                            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg> 返回
+                        </div>
+                        <div className="nav-title">今日穿搭提案</div>
+                        <div className="nav-right">
+                            <span>⭐ 收藏</span>
+                            <span style={{ marginLeft: 6 }}
+                                onClick={handleSwitchStyle}>❌ 换一组</span>
+                        </div>
+                    </div>
+                    <div className="context-chips">{
+                        current.tags.map((t, i) => <span key={i}
+                            className="chip">{t}</span>)
+                    }
+                    </div>
+                    <div className="big-image"
+                        style={{ background: '#F1F2F6', fontSize: 48 }}>
+                        👗 虚拟试穿效果
+                        <span style={{ fontSize: 13, color: 'var(--text-light)' }}>当前第 {currentIndex + 1} / {outfits
+                            .length} 套</span>
+                    </div>
+                    <div className="recommend-meta">
+                        <span style={{ fontSize: 14, fontWeight: 500 }}>当前推荐</span>
+                        <span style={{ fontSize: 13, color: 'var(--primary)', cursor: 'pointer' }}
+                            onClick={nextOutfit}>⟳ 换一套</span>
+                    </div>
+                    <div className="tips-card">
+                        <span className="icon">💡</span>
+                        <div className="content">{current.tip}</div>
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-dark)', margin: '4px 0 6px' }}>
+                        搭配清单
+                    </div>
+                    <div className="garment-strip">{
+                        current.garments.map((g, i) => <div key={i}
+                            className="strip-item">
+                            <div className="thumb">{g.split(' ')[0]}</div>
+                            <div className="name">{g.split(' ').slice(1).join(' ')}</div>
+                        </div>)
+                    }
+                    </div>
+                    <button className="btn-primary"
+                        onClick={onNext}
+                        style={{ marginTop: 'auto' }}>
+                        👗 今日就穿这件
+                    </button>
+                    <div className="api-hint">
+                        <span>📡</span>
+                        <span><span className="method">POST</span>
+                        <span className="path">/v1/tryon (异步)</span></span>
+                        <span style={{ marginLeft: 'auto', color: 'var(--text-light)', fontSize: 10 }}>+POST /v1/tips/generate
+                        </span>
+                    </div>
+                </div>
+            );
+        }
+
+        // =====================================================
+        // 页面组件: Tag 6 - 探索/换风格页
+        // =====================================================
+        function PageExplore({ onNext, onBack, onSelectOutfit }) {
+            const [activeTag, setActiveTag] = useState(0);
+            const [selectedItem, setSelectedItem] = useState(null);
+            const tags = [
+                { name: '简约通勤', icon: '✨', reasons: ['宜通勤', '26°C刚好', '简约不简单'],
+                desc: '卡其色+白色清爽组合，适合办公室环境。' },
+                { name: '复古街头', icon: '🕶️', reasons: ['宜约会', '有态度', '复古回潮'],
+                desc: '皮衣+格纹裤+马丁靴，复古又街头，适合周末出街。' },
+                { name: '甜酷混搭', icon: '💅', reasons: ['宜出游', '个性十足', '甜酷风'],
+                desc: '短外套+工装裤+厚底鞋，甜酷风格，回头率超高。' },
+                { name: '运动休闲', icon: '🏃', reasons: ['宜运动', '舒适自在', '活力满满'],
+                desc: '卫衣+束脚运动裤+运动鞋，舒适自在，活力一整天。' }
+            ];
+            const tagItems = [
+                ['🧥 风衣', '👔 衬衫', '👖 西裤'],
+                ['🧥 皮衣', '👕 格纹衫', '👖 牛仔裤'],
+                ['🧥 短外套', '👚 背心', '👖 工装裤'],
+                ['👕 卫衣', '👖 运动裤', '👟 运动鞋']
+            ];
+            const current = tags[activeTag];
+            const items = tagItems[activeTag] || [];
+
+            const handleTryOn = (item) => {
+                setSelectedItem(item);
+                setTimeout(() => { alert(`✨ 模拟试穿: ${item}\n调用 POST /v1/tryon 生成虚拟试穿效果`); }, 300);
+            };
+
+            return (
+                <div className="page-slot">
+                    <div className="nav-bar">
+                        <div className="nav-left"
+                            onClick={onBack}>
+                            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg> 返回
+                        </div>
+                        <div className="nav-title">换换风格</div>
+                        <div className="nav-right">⚙️ 筛选</div>
+                    </div>
+                    <div className="sub-header">试试这些不同风格的搭配方案 ✨</div>
+                    <div className="context-chips"
+                        style={{ paddingBottom: 8 }}>
+                        <span className="chip">☀️ 26°C</span>
+                        <span className="chip">🏢 通勤</span>
+                        <span className="chip">🎨 简约风</span>
+                    </div>
+                    <div className="tag-scroll">{
+                        tags.map((t, i) => <span key={i}
+                            className={`tag-pill ${activeTag === i ? 'active' : ''}`}
+                            onClick={() => setActiveTag(i)}>
+                            {t.icon} {t.name}
+                        </span>)
+                    }
+                    </div>
+                    <div className={`reason-expand ${activeTag !== null ? 'open' : ''}`}>
+                        <div className="tags">{
+                            current.reasons.map((r, i) => <span key={i}>{r}</span>)
+                        }
+                        </div>
+                        <div className="desc">{current.desc}</div>
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-dark)', margin: '4px 0 6px' }}>
+                        推荐单品
+                    </div>
+                    <div className="explore-grid">{
+                        items.map((item, i) => <div key={i}
+                            className="explore-item"
+                            onClick={() => handleTryOn(item)}>
+                            <div className="thumb">{item.split(' ')[0]}</div>
+                            <div className="ename">{item.split(' ').slice(1).join(' ')}</div>
+                            <button className="tryon-btn"
+                                onClick={(e) => { e.stopPropagation();
+                                    handleTryOn(item); }}>👗 试穿</button>
+                        </div>)
+                    }
+                    </div>
+                    <button className="btn-primary"
+                        onClick={() => { if (onSelectOutfit) onSelectOutfit(current); } }
+                        style={{ marginTop: 'auto' }}>
+                        💡 用这套搭配今天的我
+                    </button>
+                    <div className="api-hint">
+                        <span>📡</span>
+                        <span><span className="method">POST</span>
+                        <span className="path">/v1/outfits/recommend</span></span>
+                        <span style={{ marginLeft: 'auto', color: 'var(--text-light)', fontSize: 10 }}>+POST /v1/tryon
+                        (试穿)</span>
+                    </div>
+                </div>
+            );
+        }
+
+            // =====================================================
+            // 页面组件: Tag 7 - 核心工坊 (拖拽+AI换衣)
+            // =====================================================
+            function PageWorkshop({ onBack, onSave }) {
+                const [activeCat, setActiveCat] = useState('全部');
+                const [dragItem, setDragItem] = useState(null);
+                const [isDragging, setIsDragging] = useState(false);
+                const [isLoading, setIsLoading] = useState(false);
+                const [progressVal, setProgressVal] = useState(0);
+                const [progressText, setProgressText] = useState('🧵 正在分析您的身材数据...');
+                const [tipIndex, setTipIndex] = useState(0);
+                const [showModal, setShowModal] = useState(false);
+                const [toastMsg, setToastMsg] = useState(null);
+                const [dropZoneContent, setDropZoneContent] = useState('👗 拖拽衣物到此处换装');
+                const dropRef = useRef(null);
+
+                const tips = [
+                    '💡 "简约通勤风，衬衫塞进高腰裤更显腿长哦！"',
+                    '💡 "卡其色风衣+白色内搭，经典永不过时。"',
+                    '💡 "乐福鞋搭配九分裤，露出脚踝更显瘦。"',
+                    '💡 "试试把外套披在肩上，瞬间提升时尚感！"'
+                ];
+
+                const wardrobe = {
+                    '全部': [
+                        { id: 1, name: '卡其色风衣', icon: '🧥', cat: '外套' },
+                        { id: 2, name: '白色衬衫', icon: '👔', cat: '上衣' },
+                        { id: 3, name: '深灰西裤', icon: '👖', cat: '下装' },
+                        { id: 4, name: '黑色皮衣', icon: '🧥', cat: '外套' },
+                        { id: 5, name: '格纹衬衫', icon: '👕', cat: '上衣' },
+                        { id: 6, name: '米色长裙', icon: '👗', cat: '裙装' },
+                        { id: 7, name: '棕色乐福鞋', icon: '👟', cat: '鞋履' },
+                        { id: 8, name: '白色运动鞋', icon: '👟', cat: '鞋履' },
+                        { id: 9, name: '牛仔外套', icon: '🧥', cat: '外套' },
+                        { id: 10, name: '针织开衫', icon: '🧥', cat: '外套' },
+                        { id: 11, name: '百褶裙', icon: '👗', cat: '裙装' },
+                        { id: 12, name: '束脚运动裤', icon: '👖', cat: '下装' },
+                    ]
+                };
+                const cats = ['全部', '外套', '上衣', '下装', '裙装', '鞋履'];
+                const items = activeCat === '全部' ? wardrobe['全部'] : wardrobe['全部'].filter(i => i.cat === activeCat);
+
+                // 模拟AI换衣进度
+                const startTryOn = () => {
+                    setIsLoading(true);
+                    setProgressVal(0);
+                    setProgressText('🧵 正在分析您的身材数据...');
+                    setDropZoneContent('⏳ 换装中...');
+                    let p = 0;
+                    const steps = [
+                        { end: 20, text: '🧵 正在分析您的身材数据...' },
+                        { end: 45, text: '👗 匹配衣物版型与垂感...' },
+                        { end: 70, text: '🎨 优化色彩搭配与层次...' },
+                        { end: 90, text: '✨ 渲染上身效果细节...' },
+                        { end: 100, text: '💫 即将呈现完美穿搭！' }
+                    ];
+                    const interval = setInterval(() => {
+                        p += Math.random() * 4 + 1;
+                        if (p > 100) p = 100;
+                        setProgressVal(p);
+                        for (let s of steps) {
+                            if (p >= s.end) setProgressText(s.text);
+                        }
+                        // Tips轮播
+                        setTipIndex(Math.floor(p / 25) % tips.length);
+                        if (p >= 100) {
+                            clearInterval(interval);
+                            setTimeout(() => {
+                                setIsLoading(false);
+                                setDropZoneContent('✅ 换装完成！');
+                                setToastMsg('🎉 换装成功！新造型已呈现');
+                                setTimeout(() => setToastMsg(null), 2500);
+                            }, 400);
+                        }
+                    }, 300);
+                };
+
+                // 拖拽逻辑 (简化)
+                const handleDragStart = (e, item) => {
+                    setIsDragging(true);
+                    setDragItem(item);
+                    e.dataTransfer.setData('text/plain', JSON.stringify(item));
+                    e.dataTransfer.effectAllowed = 'copy';
+                    // 创建自定义拖拽图像
+                    const ghost = document.createElement('div');
+                    ghost.textContent = item.icon;
+                    ghost.style.fontSize = '40px';
+                    ghost.style.background = '#fff';
+                    ghost.style.borderRadius = '12px';
+                    ghost.style.padding = '12px';
+                    ghost.style.boxShadow = '0 12px 40px rgba(0,0,0,0.2)';
+                    ghost.style.border = '2px solid var(--primary)';
+                    document.body.appendChild(ghost);
+                    e.dataTransfer.setDragImage(ghost, 30, 30);
+                    setTimeout(() => document.body.removeChild(ghost), 0);
+                };
+
+                const handleDragEnd = () => {
+                    setIsDragging(false);
+                    setDragItem(null);
+                };
+
+                const handleDragOver = (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'copy';
+                    if (dropRef.current) dropRef.current.style.borderColor = 'var(--primary)';
+                };
+
+                const handleDragLeave = () => {
+                    if (dropRef.current) dropRef.current.style.borderColor = '#D0D0D0';
+                };
+
+                const handleDrop = (e) => {
+                    e.preventDefault();
+                    if (dropRef.current) dropRef.current.style.borderColor = '#D0D0D0';
+                    try {
+                        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                        if (data && data.id) {
+                            setDropZoneContent(`🧥 ${data.icon} ${data.name}`);
+                            startTryOn();
+                        }
+                    } catch (err) { console.log('drop error'); }
+                };
+
+                const handleSave = () => {
+                    setShowModal(true);
+                };
+
+                const confirmSave = () => {
+                    setShowModal(false);
+                    setToastMsg('🎉 穿搭已保存！已生成专属Tag，下次优先推荐该风格。');
+                    setTimeout(() => setToastMsg(null), 2800);
+                    if (onSave) onSave();
+                };
+
+                return (
+                    <div className="page-slot">
+                        <div className="nav-bar">
+                            <div className="nav-left"
+                                onClick={onBack}>
+                                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg> 返回
+                            </div>
+                            <div className="nav-title">✨ 自由搭配工坊</div>
+                            <div className="nav-right">
+                                <span>💡 推荐理由</span>
+                                <span style={{ marginLeft: 6 }}
+                                    onClick={handleSave}>💾 保存穿搭</span>
+                            </div>
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--text-gray)', padding: '0 0 8px', display: 'flex',
+                                gap: 6, alignItems: 'center' }}>
+                            🏷️ 当前风格：简约通勤 · 基于Tag6偏好
+                            <span style={{ color: 'var(--primary)', cursor: 'pointer', fontSize: 11 }}>[点击切换衣橱 ▼]
+                            </span>
+                        </div>
+                        <div className="workshop-layout">
+                            <div className="workshop-center">
+                                <div className="drop-zone"
+                                    ref={dropRef}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                    style={{ borderColor: isDragging ? 'var(--primary)' : '#D0D0D0' }}>
+                                    <div style={{ fontSize: 48 }}>{dropZoneContent.includes('换装完成') ? '✅' :
+                                        dropZoneContent.includes('拖拽') ? '👗' : '🧥'}</div>
+                                    <div className="sub">{dropZoneContent}</div>
+                                    {isLoading &&
+                                        <div className="loading-mask">
+                                            <div className="spinner"></div>
+                                            <div style={{ fontSize: 14, fontWeight: 500 }}>AI 换装中...</div>
+                                            <div style={{ width: '80%', maxWidth: 200 }}>
+                                                <div className="ai-progress-wrap"
+                                                    style={{ height: 4 }}>
+                                                    <div className="ai-progress-bar"
+                                                        style={{ width: `${progressVal}%` }}></div>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11,
+                                                        color: 'var(--text-gray)', marginTop: 2 }}>
+                                                    <span>{progressText}</span>
+                                                    <span>{Math.round(progressVal)}%</span>
+                                                </div>
+                                            </div>
+                                            <div style={{ fontSize: 12, color: 'var(--text-gray)', marginTop: 6,
+                                                    minHeight: 20 }}>{tips[tipIndex % tips.length]}</div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div className="workshop-sidebar">
+                                <div className="sidebar-title">
+                                    <span>👗 我的衣柜</span>
+                                    <span style={{ fontSize: 10, color: 'var(--text-light)' }}>{items.length} 件</span>
+                                </div>
+                                <div className="cat-tabs">{
+                                    cats.map(c => <span key={c}
+                                        className={`cat-tab ${activeCat === c ? 'active' : ''}`}
+                                        onClick={() => setActiveCat(c)}>{c}</span>)
+                                }
+                                </div>
+                                <div className="items-grid">{
+                                    items.map(item => <div key={item.id}
+                                        className="wardrobe-item"
+                                        draggable={true}
+                                        onDragStart={(e) => handleDragStart(e, item)}
+                                        onDragEnd={handleDragEnd}>
+                                        <div className="wthumb">{item.icon}</div>
+                                        <div className="wname">{item.name}</div>
+                                    </div>)
+                                }
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-light)', textAlign: 'center', padding: '6px 0',
+                                flexShrink: 0 }}>
+                            💡 拖拽衣物到左侧大图即可换装
+                        </div>
+                        <button className="btn-primary"
+                            onClick={handleSave}
+                            style={{ marginTop: 4 }}>
+                            ✅ 保存这套穿搭并设为偏好
+                        </button>
+                        <div className="api-hint">
+                            <span>📡</span>
+                            <span><span className="method">POST</span>
+                            <span className="path">/v1/tryon (异步换装)</span></span>
+                            <span style={{ marginLeft: 'auto', color: 'var(--text-light)', fontSize: 10 }}>+POST /v1/user/save_outfit
+                            </span>
+                        </div>
+                        {toastMsg && <div className="toast">{toastMsg}</div>}
+                        {showModal &&
+                            <div className="modal-overlay"
+                                onClick={() => setShowModal(false)}>
+                                <div className="modal-sheet"
+                                    onClick={(e) => e.stopPropagation()}>
+                                    <div className="handle"></div>
+                                    <div className="m-title">📝 给这套穿搭取个名字吧</div>
+                                    <input className="m-input"
+                                        defaultValue="简约通勤风_0629"
+                                        placeholder="输入穿搭名称" />
+                                    <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 6 }}>🏷️ 生成的推荐Tag</div>
+                                    <div className="m-tags">
+                                        <span className="mtag">#简约</span>
+                                        <span className="mtag">#通勤</span>
+                                        <span className="mtag">#卡其色</span>
+                                        <span className="mtag">#风衣</span>
+                                    </div>
+                                    <div className="m-actions">
+                                        <button className="cancel"
+                                            onClick={() => setShowModal(false)}>取消</button>
+                                        <button className="confirm"
+                                            onClick={confirmSave}>✅ 确认保存</button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                );
+            }
+
+                    // =====================================================
+                    // 主应用: 管理页面切换
+                    // =====================================================
+                    function App() {
+                        const [step, setStep] = useState(1);
+                        const [direction, setDirection] = useState(1);
+                        const [prevStep, setPrevStep] = useState(1);
+                        const [animating, setAnimating] = useState(false);
+                        const [selectedOutfit, setSelectedOutfit] = useState(null);
+
+                        const goTo = (target, dir) => {
+                            if (animating || target === step) return;
+                            if (target < 1 || target > 7) return;
+                            setAnimating(true);
+                            setDirection(dir);
+                            setPrevStep(step);
+                            setStep(target);
+                            setTimeout(() => setAnimating(false), 400);
+                        };
+
+                        const next = () => goTo(step + 1, 1);
+                        const back = () => goTo(step - 1, -1);
+                        const jumpTo = (target) => goTo(target, 1);
+
+                        const renderPage = () => {
+                            const props = { onNext: next, onBack: back };
+                            switch (step) {
+                                case 1:
+                                    return <PageWelcome {...props} />;
+                                case 2:
+                                    return <PageScan {...props} />;
+                                case 3:
+                                    return <PageProfile {...props} />;
+                                case 4:
+                                    return <PageSettings {...props} />;
+                                case 5:
+                                    return <PageResult {...props}
+                                        onSwitchStyle={() => jumpTo(6)} />;
+                                case 6:
+                                    return <PageExplore {...props}
+                                        onSelectOutfit={(outfit) => { setSelectedOutfit(outfit);
+                                            jumpTo(7); }} />;
+                                case 7:
+                                    return <PageWorkshop {...props}
+                                        onSave={() => { setTimeout(() => { alert('✅ 穿搭已保存！后续将优先推荐该风格。'); }, 300); }} />;
+                                default:
+                                    return null;
+                            }
+                        };
+
+                        const renderPrevPage = () => {
+                            if (step === prevStep) return null;
+                            const props = { onNext: next, onBack: back };
+                            switch (prevStep) {
+                                case 1:
+                                    return <PageWelcome {...props} />;
+                                case 2:
+                                    return <PageScan {...props} />;
+                                case 3:
+                                    return <PageProfile {...props} />;
+                                case 4:
+                                    return <PageSettings {...props} />;
+                                case 5:
+                                    return <PageResult {...props}
+                                        onSwitchStyle={() => jumpTo(6)} />;
+                                case 6:
+                                    return <PageExplore {...props}
+                                        onSelectOutfit={(outfit) => { setSelectedOutfit(outfit);
+                                            jumpTo(7); }} />;
+                                case 7:
+                                    return <PageWorkshop {...props} />;
+                                default:
+                                    return null;
+                            }
+                        };
+
+                        const isForward = direction === 1;
+                        const enterClass = isForward ? 'page-enter-forward' : 'page-enter-back';
+                        const enterActive = isForward ? 'page-enter-forward-active' : 'page-enter-back-active';
+                        const exitClass = isForward ? 'page-exit-forward' : 'page-exit-back';
+                        const exitActive = isForward ? 'page-exit-forward-active' : 'page-exit-back-active';
+
+                        return (
+                            <div className="page-wrapper">
+                                <div key={`curr-${step}`}
+                                    className={`page-slot ${animating ? enterClass : enterActive}`}
+                                    style={{ zIndex: 10 }}>
+                                    {renderPage()}
+                                </div>
+                                {prevStep !== step &&
+                                    <div key={`prev-${prevStep}`}
+                                        className={`page-slot ${animating ? exitClass : exitActive}`}
+                                        style={{ zIndex: 5, pointerEvents: 'none' }}>
+                                        {renderPrevPage()}
+                                    </div>
+                                }
+                            </div>
+                        );
+                    }
+
+                    const root = ReactDOM.createRoot(document.getElementById('root'));
+                    root.render(<App />);
+    </script>
+</body>
+</html>
