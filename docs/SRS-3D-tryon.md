@@ -36,7 +36,7 @@
 | 设计文档（Design Doc / JSON） | 一套搭配/纹理的**结构化真相**；PNG 纹理是它的**渲染结果**。详见 §6 |
 | 衣服品类（taxonomy） | 资源库支持的有限服装类别集合 = 库内可用 Mesh 集合；分类器的标签空间（见 §5.5、§3.4） |
 | Provider | 被抽象封装的一类 AI 能力（理解/分类、纹理生成），接口固定、实现可换，避免厂商锁定 |
-| 薄代理（Thin Proxy） | 后端的最小职责：转发 AI 调用、隐藏密钥、限流计费；不承载业务逻辑 |
+| DirectProvider | 端上直连大模型的 Provider 实现（方案 A，用户自带 Key）；无后端 |
 | AIKit / AIKitCore | 本作者跨 App 复用的 AI 管道 Swift Package（零业务、MIT、不沾 GPL），见 `docs/cross-app-ai-sharing.md` |
 
 ### 1.4 参考文档
@@ -85,8 +85,8 @@
 
 ### 2.4 运行环境
 - **客户端**：iOS App（SwiftUI + RealityKit），iPhone，**最低 iOS 18**。
-- **服务端**：自有**薄代理**后端（转发 AI、隐藏密钥、限流计费）。
-- **AI 能力**：以 Provider 形式接入第三方或自托管模型（见 §6）。
+- **服务端**：**无后端**（方案 A）。AI 调用由客户端**端上直连**各家模型（用户自带 Key）。
+- **AI 能力**：以 Provider 形式接入第三方模型（见 §6），实现为 `DirectProvider`（端上直连）。
 - **本机能力**：ARKit（可选自动量身，仅静态参数、不取动作）。
 - **网络**：纹理生成与衣服理解依赖云端；捏人、换装、旋转展示**全部本机离线可用**。
 
@@ -96,7 +96,7 @@
 - **C-3** 资产架构 = **分开法**（1 身体 + N 衣服，各带同名 morph 通道，运行时组合）；合并法仅 spike 用，产品不用。
 - **C-4** 资产主线 = **MakeHuman（导出 CC0，无条件商用/免费）**；**排除 Daz**（按件 Interactive License）、**排除 SMPL/SMPL-X**（商用禁止）；**CC4 仅备选**，且「捏人滑块」可能触发 Enterprise License，落地前须书面确认。**注意「免费 App ≠ 自动非商用」**：本 App 免费、不商用，但各家许可对「免费」放宽不一致（详见 §5.6 / `feasibility-3D-tryon.md` §5b）。
 - **C-5** AI 能力须做 **Provider 抽象**，模型/厂商可热替换；并**复用 AIKitCore**（见 §4.5 / §6.4）。
-- **C-6** AI Key **不进客户端**，统一走后端薄代理。
+- **C-6** **无后端**；采用**方案 A：用户自带 API Key，端上直连大模型**。Key 由用户在设置页填写、存 **iOS Keychain**，**不硬编、不随包**；每个用户用自己的 Key 与额度（与 CFD 同路线）。
 - **C-7** 纹理生成**优先只产 base color**；法线/粗糙度本期不做（用预制或留空）。
 - **C-8** **本期不做**：动画、AR、文本/图片→mesh、真实体型精确试穿。
 - **C-9** ARKit 自动量身**仅取人脸/人身静态参数、不取动作**，且**全程本机处理、仅留导出参数**；不支持机型回退手动捏人。
@@ -229,7 +229,7 @@ SwiftUI（视图/交互：捏人面板、换装、旋转、编辑）
    ├── 换装引擎     —— 分开法组合、互斥替换、body-hiding/push-out
    ├── 纹理管线     —— 设计文档 JSON ↔ UV mask ↔ base color（重渲染优先）
    ├── 资产/存储    —— SwiftData(结构化+路径) + 文件系统(大文件)
-   └── 网络/AI      —— Provider 抽象（复用 AIKitCore）→ 后端薄代理
+   └── 网络/AI      —— Provider 抽象（复用 AIKitCore）→ 端上直连 DirectProvider（用户 Key）
    ▼
 RealityKit（ECS：Entity/ModelComponent/Material，Metal 渲染）
 ```
@@ -282,15 +282,15 @@ protocol AssetStore {
     func fileURL(_ relativePath: String) -> URL                         // 沙盒大文件
 }
 
-// 网络/AI：两类 Provider，统一走薄代理
+// 网络/AI：两类 Provider，端上直连（方案 A，用户自带 Key）
 protocol AIProvider { /* 复用 AIKitCore：理解/分类 */ }
 protocol TextureGenProvider { /* 本 App 专属：纹理生成 */ }
 ```
-- **联网仅发生在 `understand` / `generate`**（经 `BackendProxyProvider` → 薄代理）；捏人/换装/`render`/加载全部离线。
+- **联网仅发生在 `understand` / `generate`**（`DirectProvider` 直连各家模型，HTTPS）；捏人/换装/`render`/加载全部离线。
 
 ### 4.5 与 AIKit 共享层的关系边界
 - **目标架构**：本 App 的「**衣服理解/分类**」能力**直接复用 `AIKitCore` 的 `AIProvider` 契约**（多模态补全 + 流式，正是 AIKit 的本职最大公约数）。
-- **纹理生成**：按 `cross-app-ai-sharing.md` §1/§3 的宪法，**图像生成不进共享层** → 它是**本 App 专属 provider**（类比 StyleTwin 的 `ImageGenProvider`），但**沿用同一套 Provider 模式**并**复用 AIKit 的跨切面件**（同意/披露、重试退避、后端代理实现 `BackendProxyProvider`、`AIUsage` 成本计量）。
+- **纹理生成**：按 `cross-app-ai-sharing.md` §1/§3 的宪法，**图像生成不进共享层** → 它是**本 App 专属 provider**（类比 StyleTwin 的 `ImageGenProvider`），但**沿用同一套 Provider 模式**并**复用 AIKit 的跨切面件**（同意/披露、重试退避、`AIUsage` 用量读取）。方案 A 下实现为**端上直连 `DirectProvider`（用户自带 Key）**。
 - **落地节奏**：AIKit 目前随 StyleTwin 内部实现、尚未抽成独立包；故本 App **当前先自带一层接口形状与 AIKit 一致的本地 Provider 层**，待 AIKit 抽成 Swift Package、本 App 迁出独立仓库后改为 `import AIKit`，零摩擦。MIT、不沾 GPL，迁仓无许可问题。
 - 相关待拍板项见 `cross-app-ai-sharing.md` §5（D-A..D-F：流式实现、图片载荷、注入粒度、重试形状、密钥管理、成本计量）。
 
@@ -505,7 +505,7 @@ protocol TextureGenProvider { /* 本 App 专属：纹理生成 */ }
 - 输出：`baseColor.png`（对齐 UV、限定区域）+ `genRef` 入库
 - 约束：**只产 base color**（C-7）；候选实现 = img2img + ControlNet(seg/depth) / 各家图像 API / 自托管 SD
 
-- 两者统一经 `BackendProxyProvider` 走后端薄代理（C-6）；接口形状与 AIKit 一致，迁仓后 `import AIKit`。
+- 两者统一实现为**端上直连 `DirectProvider`**（方案 A，用户自带 Key，C-6）；接口形状与 AIKit 一致，迁仓后 `import AIKit`。
 
 ### 6.5 质量边界
 - 强项：颜色、图案、材质观感。
@@ -513,7 +513,7 @@ protocol TextureGenProvider { /* 本 App 专属：纹理生成 */ }
 
 ### 6.6 缓存与成本
 - **缓存键**：`renderHash = hash(归一化 DesignDoc)`；命中即复用 PNG、不重渲染。AI 产物按 `genRef` 单独缓存，可被多文档引用。
-- 重渲染优先（§6.3）+ 区域级生成把 AI 调用降到最小；`AIUsage` 计量归因，薄代理统一限流/计费（NFR-5）。
+- 重渲染优先（§6.3）+ 区域级生成把 AI 调用降到最小；从响应读 `AIUsage`、App 内展示花费（方案 A：成本走用户自带 Key，NFR-5）。
 
 ---
 
@@ -638,39 +638,38 @@ struct Provenance: Codable { var input: String; var refImageRef: String?; var pr
 
 ---
 
-## 8. 后端薄代理
+## 8. 端上直连与密钥管理（方案 A · 无后端）
 
-### 8.1 职责
-- **转发 AI 调用**（理解/分类、纹理生成）；**隐藏密钥**（Key 不进客户端，C-6）；**限流/计费**（NFR-5）。
-- **不承载业务逻辑**：捏人、换装、设计文档全在客户端。
+### 8.1 架构定调
+- **无后端**：AI 调用（理解/分类、纹理生成）由客户端**端上直连**各家模型（HTTPS，见 §一层协议说明）。
+- **用户自带 Key**：每个用户在设置页填自己的 API Key，用自己的额度付费（与 CFD 同路线）。
+- 捏人、换装、设计文档、渲染全在客户端；仅 `understand`/`generate` 联网。
 
 ### 8.2 接口契约（IF）
-**IF-1 用户界面**：iOS SwiftUI——捏人面板、换装、360°/正交测量、纹理/设计文档编辑、存档、设置/隐私。
+**IF-1 用户界面**：iOS SwiftUI——捏人面板、换装、360°/正交测量、纹理/设计文档编辑、存档、**设置（填 Key）/隐私**。
 
-**IF-2 薄代理 REST API**（HTTPS/REST + Bearer Token；客户端 `BackendProxyProvider` 仅薄转发）
+**IF-2 端上直连各家模型**（`DirectProvider` / `DirectTextureGenProvider`，HTTPS + `Authorization: Bearer <用户 Key>`）
 
-| 端点 | 方法 | 请求 | 响应 | 说明 |
-|---|---|---|---|---|
-| `/v1/auth/session` | POST | Sign in with Apple 凭据 / 设备匿名 | `{ token, expiresAt }` | 取会话 token |
-| `/v1/upload` | POST | multipart 图片（参考图） | `{ ref, expiresAt }` | 临时图引用，短 TTL |
-| `/v1/understand` | POST | `{ text?, imageRef?, taxonomy:[String] }` | `GarmentUnderstanding`（§6.4①） | 衣服理解/分类 |
-| `/v1/texture/generate` | POST | `{ prompt?, refImageRef?, uvTemplateRef, segmentationMapRef, regions:[String], constraints }` | `{ genRef, imageUrl, usage }` | 纹理生成（§6.4②，只 base color）|
+| 能力 | 目标 | 请求（拼成厂商格式） | 响应（解析） |
+|---|---|---|---|
+| 衣服理解/分类 | 多模态 LLM 的 messages 接口 | `{ text?, image?, taxonomy:[String] }` | `GarmentUnderstanding`（§6.4①）+ `usage` |
+| 纹理生成 | 图像生成接口 | `{ prompt?, refImage?, uvTemplate, segmentationMap, regions, constraints }` | `baseColor.png` / 图 URL + `usage`；只 base color |
 
-- **统一信封**：成功 `{ data, usage? }`；错误 `{ error: { code, message, retriable } }`，`code` 对齐 `AIError`（network/http/decoding/cancelled/providerUnavailable）。
-- **幂等键**：客户端带 `Idempotency-Key`（= 请求归一化 hash / `renderHash`）→ 代理去重、**重试不重复计费**（呼应 §6.6 缓存、NFR-2 重试）。
-- **Provider 路由**：代理把「逻辑能力 → 具体模型/厂商」映射放**服务端**，客户端不感知厂商——**厂商热替换在此发生**（NFR-6 / C-5）。
-- **限流**：返回 `X-RateLimit-*`；超限 `429 + retriable=true`。
+- **传输**：一问一答走普通 HTTPS（`complete`）；文字流式可选 SSE（`stream`）；图像生成通常一问一答或「提交→轮询」，非 token 级 SSE。
+- **用量**：从各家响应里读 `usage`（token 或按张）→ 填 `AIUsage`，App 内展示（NFR-5）。
+- **厂商可换**：`DirectProvider` 按厂商各写一份（请求/响应格式各异），上层不变（NFR-6）。
 
-**IF-3 代理 ↔ 模型厂商**：用服务端密钥（Key Vault）调各 Provider；请求形状对齐 `AIProvider`（messages/attachments/options），需要时 SSE 流式吐 delta。
+**IF-3 密钥管理**：Key 存 **iOS Keychain**；不硬编、不随包、不写日志；用户可在设置页更换/删除。
 
 ### 8.3 隐私（数据流约束）
-- **基本不上传真人照片**：捏人靠参数（ARKit 本机算）、换装靠文字/衣服图；隐私负担显著低于 2D 人像点评类产品。
-- **参考图含人像时**：优先**本机抠出衣服区域**再上传；上传后走 `/v1/upload` 短 TTL 临时引用、用后即删（详见 NFR-3 数据分级）。
-- **代理不持久化用户人像**；不记录请求图片内容（仅记元数据/用量，见 NFR-9）。
+- **基本不上传真人照片**：捏人靠参数（ARKit 本机算）、换装靠文字/衣服图。
+- **数据直连到厂商、由用户自己的 Key/账户承载**：发送前**同意/披露**「将发给哪家、其留存/训练策略」（NFR-3）；优先引导用户选承诺不留存/不训练的厂商。
+- **参考图含人像时**：优先**本机抠出衣服区域**再发送（见 NFR-3 数据分级）。
 
-### 8.4 鉴权与安全
-- 传输全程 TLS；Bearer Token 鉴权 + 过期刷新；密钥仅存服务端 Key Vault、绝不下发。
-- 请求体大小上限、超时、限流防滥用；内容审核挂钩在代理侧统一执行（NFR-7）。
+### 8.4 安全
+- 传输全程 TLS（各家 API 只收 HTTPS）；Key 仅存 Keychain。
+- 无后端 = 无自有密钥可泄露；风险转为「用户 Key 的本机安全」——Keychain + 不随包/不日志兜底。
+- 内容审核依赖各厂商自带策略（NFR-7）。
 
 ---
 
@@ -694,7 +693,7 @@ struct Provenance: Codable { var input: String; var refImageRef: String?; var pr
 |---|---|---|---|
 | 身材参数（数值） | 本机 SwiftData | 长期、用户可删 | 仅本地驱动模型 |
 | ARKit 扫描原始数据 | 本机内存 | **即用即弃**，不落库不上传 | 仅本机算比例通道 |
-| 参考图（可能含人像） | 优先本机抠衣服区；如上传则代理临时存 | **短 TTL（≤ ~24h）用后即删** | 不用于训练 |
+| 参考图（可能含人像） | 优先本机抠衣服区；否则**端上直连发给用户所选厂商** | 由**该厂商**策略决定 | 发送前披露；引导选不留存/不训练的厂商 |
 | 生成纹理 / AI 中间图 | 本机文件系统 | 随存档；可清缓存 | 不含可识别个人信息 |
 - 发送前**同意/披露**（复用 `AIKit.AIConsent`，文案本 App 注入）；优先选承诺**不留存、不训练**的 Provider。
 - 满足 **PIPL / GDPR**；未成年人保护；提供**一键删除全部本地数据**与账户数据。
@@ -705,9 +704,9 @@ struct Provenance: Codable { var input: String; var refImageRef: String?; var pr
 - 正交测量/标尺依赖 RealityKit 正交相机（**RISK-10** spike 确认）。
 
 ### NFR-5 成本可控
-- 每次 `understand`/`generate` 计 `AIUsage`、可归因到用户/会话。
-- **缓存命中目标**：编辑场景重渲染占比 **≥ ~80%**（多数编辑不调 AI，§6.3）。
-- 按用户/日配额限流（`429`）；超额降级或提示。
+- **成本由用户自己的 Key/额度承载**（方案 A）；App 责任 = 帮用户少花 + 让其有数。
+- 每次 `understand`/`generate` 从响应读 `AIUsage`，**在 App 内展示**本次/累计花费。
+- **缓存命中目标**：编辑场景重渲染占比 **≥ ~80%**（多数编辑不调 AI，§6.3），显著减少真实 AI 调用。
 
 ### NFR-6 可维护 / 可扩展
 - Provider 抽象，模型/厂商**服务端热替换、客户端零改动**（§8.2 路由）。
@@ -721,8 +720,8 @@ struct Provenance: Codable { var input: String; var refImageRef: String?; var pr
 - App 随包体目标 **≤ ~200MB**（基础人体 + MVP 衣服）；单件衣服资产（usdz+UV+seg+hide）设体积预算。
 - 通道集最小必备（§5.2 的 8~10）；MVP 衣服件数 **3~5 件**（A-4）。
 
-### NFR-9 可观测性与运维
-- 代理侧记录调用量 / 时延 / 错误率 / 成本（**不记录人像内容**，仅元数据），供配额看板与告警——支撑 NFR-5 成本与 NFR-2 可靠性运营。
+### NFR-9 可观测性（客户端）
+- 无后端 → 无服务端遥测；改为**客户端本地**记调用次数/时延/错误/累计 `AIUsage`，供用户在 App 内查看自己的用量与失败情况（不外传）。
 
 ---
 
@@ -734,7 +733,7 @@ struct Provenance: Codable { var input: String; var refImageRef: String?; var pr
 |---|---|---|
 | **M0 资产管线打通** | 1 身体 + 3~5 件 conforming 衣服，分开法、同名通道、USDZ 落地、A–E 复验 | 可用资产集 + 资产验收报告 |
 | **M1 捏人 MVP** | FR-1 手动捏身材（折叠面板、8~10 通道、骨骼缩放）、FR-6 旋转展示 | 可捏可转的模特 |
-| **M2 AI 纹理** | FR-3 文字+图片生成、FR-4 品类识别选件、FR-7 设计文档/重渲染、§6 Provider+薄代理 | 描述即生成纹理 |
+| **M2 AI 纹理** | FR-3 文字+图片生成、FR-4 品类识别选件、FR-7 设计文档/重渲染、§6 Provider（端上直连 DirectProvider） | 描述即生成纹理 |
 | **M3 换装 + 增强** | FR-5 换装（互斥/兜底）、FR-2 ARKit 自动量身（Should）、FR-8 存档 | 完整换装闭环 |
 | **M4 合规与收尾** | NFR-3/7 强化、FR-9（Could）、内容审核、上架准备 | 可上架基线 |
 
@@ -757,7 +756,7 @@ struct Provenance: Codable { var input: String; var refImageRef: String?; var pr
 - [ ] 文字/图片 → `understand` 分类落到 taxonomy（FR-4），无匹配回退/提示。
 - [ ] 纹理生成（**只 base color**）对齐 UV/区域、上身可见（FR-3）。
 - [ ] **设计文档 ↔ 本地重渲染闭环**（§6.3）：颜色/图案编辑不调 AI，重渲染 **≤~300ms**；`renderHash` 缓存命中生效。
-- [ ] 薄代理 4 端点连通、**Key 不在客户端**、`AIUsage` 计量（§8 / NFR-5）。
+- [ ] 端上直连各家模型跑通（`DirectProvider`，用户 Key 存 **Keychain**、不随包）、`AIUsage` 从响应读出并展示（§8 / NFR-5）。
 
 **M3 换装 + 增强**
 - [ ] 分开法多件组合、**slot 互斥替换**正确、body-hiding/push-out 兜底（FR-5 / §5.10）。
@@ -785,6 +784,7 @@ struct Provenance: Codable { var input: String; var refImageRef: String?; var pr
 | **RISK-8** | **Provider 依赖/成本** | 中 | 中 | Provider 抽象热替换；重渲染优先 + 缓存 + 限流计费 |
 | **RISK-9** | 含人像参考图的**隐私** | 低 | 中 | 优先本机抠衣服区域；明示披露；不长期留存 |
 | **RISK-10** | 正交相机 / 透视↔正交过渡的 **iOS 实现不确定性** | 中 | 低 | `OrthographicCameraComponent` 可用性与「遮罩式瞬切」过渡手感，用小 spike 先验（延续 spike 驱动） |
+| **RISK-11** | 方案 A **「用户自带 Key」门槛**：普通用户没有 API Key | 中 | 中 | 面向有 Key 的用户/学习者定位；提供清晰的取 Key 引导；预留将来切「后端代理」的 Provider 接口（改实现不改上层） |
 
 ---
 
