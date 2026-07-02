@@ -48,7 +48,12 @@
 - **分支**：在你为代码新建的分支上开发（与 SRS 文档分支 `claude/3d-tryon-srs-svsasl` 分开）；按新对话的分支指示来，未经许可不要推别的分支。
 - **多 Target**：①spike 建议独立 Target（如 `OrthoSpike`），与正式工程隔离（用完即弃）；②脚手架是正式工程起点。
 - **关注点分离**：引擎（`SculptEngine` 等）零 SwiftUI、可单测；UI 只读状态、发意图（与 AIKit/CFD 同一纪律）。
-- AI 那条腿（understand/纹理生成/薄代理）**本阶段不做**——留到 M2，且依赖 AIKit 通用性拍板。
+- **AI 那条腿本阶段不做**（留到 M2），但方向已定、①②按此预留：
+  - **方案 A —— 无后端、端上直连大模型、用户自带 API Key**（存 **iOS Keychain**，不硬编、不随包）。
+  - 理解/分类：复用 `AIKitCore.AIProvider`，实现为**端上直连 `DirectProvider`**（`Authorization: Bearer <用户 Key>`）。
+  - 纹理生成：本 App 专属 `TextureGenProvider`（不进共享层），同样直连实现。
+  - 脚手架②可先放一个**「设置页占位 + Keychain 读写封装」**，为 M2 铺路（现在不接真实调用）。
+  - 依据：SRS `C-6` / `§8 端上直连与密钥管理` / `§6.4`。
 
 ---
 
