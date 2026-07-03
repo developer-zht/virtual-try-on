@@ -55,5 +55,11 @@
     "workerDirectory": [
       "public"
     ]
+  },
+  "lint-staged": {
+    "src/**/*.{ts,cts,mts,vue,js,cjs,mjs}": [
+      "eslint --fix -c ./eslint.config.js",
+      "prettier --write"
+    ]
   }
 }

@@ -13,12 +13,6 @@
       "path": "node_modules/cz-git"
     }
   },
-  "lint-staged": {
-    "*.swift": [
-      "swiftlint lint --fix --quiet",
-      "swiftlint lint --strict --quiet"
-    ]
-  },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
     "@commitlint/config-conventional": "^19.5.0",
