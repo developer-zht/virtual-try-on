@@ -1,4 +1,4 @@
-# Veslune App (app)
+# Quasar App (app)
 
 ## Install the dependencies
 
