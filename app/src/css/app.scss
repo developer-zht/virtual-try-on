@@ -1,1 +1,130 @@
-// app global css
+// ===== 设计 token（迁移自原型 theme.css 的 :root）=====
+// 保留成 CSS 变量：原型里用 var(--primary) 的样式可以几乎原样搬过来。
+:root {
+  --primary: #6c5ce7;
+  --primary-light: #a29bfe;
+  --primary-glow: rgba(108, 92, 231, 0.25);
+  --secondary: #fdcb6e;
+  --bg-main: #f8f9fa;
+  --bg-card: #ffffff;
+  --text-dark: #2d3436;
+  --text-gray: #636e72;
+  --text-light: #b2bec3;
+  --border-light: #f1f2f6;
+  --shadow-btn: 0px 8px 20px rgba(108, 92, 231, 0.3);
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --safe-bottom: 20px;
+}
+
+// ===== 全局重置 =====
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+html,
+body,
+#q-app {
+  height: 100%;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  background: #e8e8e8;
+}
+
+// 默认：全屏
+.app-bg {
+  min-height: 100%;
+  display: flex;
+}
+.phone-frame {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-main);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+// 仅桌面预览：套居中手机壳
+.app-bg--framed {
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: #e8e8e8;
+}
+.app-bg--framed .phone-frame {
+  max-width: 390px;
+  height: 780px;
+  border-radius: 36px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+.page-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+// 每个页面的根元素会被 MainLayout 加上 .page-slot（绝对定位 + 可滚动）
+.page-slot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-main);
+  transition:
+    transform 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+  padding: 16px 16px 24px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.page-slot::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+// ===== 页面切换过渡（对应原 App.js 的 direction 前进/后退）=====
+// 前进：新页从右侧滑入，旧页向左退出
+.page-forward-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+.page-forward-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+}
+.page-forward-leave-from {
+  transform: translateX(0);
+  opacity: 1;
+}
+.page-forward-leave-to {
+  transform: translateX(-30%);
+  opacity: 0;
+}
+// 后退：反方向
+.page-back-enter-from {
+  transform: translateX(-30%);
+  opacity: 0;
+}
+.page-back-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+}
+.page-back-leave-from {
+  transform: translateX(0);
+  opacity: 1;
+}
+.page-back-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}

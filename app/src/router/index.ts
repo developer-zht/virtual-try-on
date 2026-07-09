@@ -1,4 +1,5 @@
 import { defineRouter } from '#q-app';
+import type { Router } from 'vue-router';
 import {
   createMemoryHistory,
   createRouter,
@@ -17,6 +18,8 @@ import routes from './routes';
  * with the Router instance.
  */
 
+let _router: Router;
+
 export default defineRouter((/* { store, ssrContext } */) => {
   const createHistory = import.meta.env.QUASAR_SERVER
     ? createMemoryHistory
@@ -24,7 +27,7 @@ export default defineRouter((/* { store, ssrContext } */) => {
       ? createWebHistory
       : createWebHashHistory;
 
-  const Router = createRouter({
+  _router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
     routes,
 
@@ -34,5 +37,7 @@ export default defineRouter((/* { store, ssrContext } */) => {
     history: createHistory(import.meta.env.QUASAR_VUE_ROUTER_BASE),
   });
 
-  return Router;
+  return _router;
 });
+
+export const getRouter: () => Router = () => _router;
