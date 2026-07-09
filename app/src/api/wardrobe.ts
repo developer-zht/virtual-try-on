@@ -1,4 +1,4 @@
-import { TaskTimeoutError } from '@/errors';
+import { TaskTimeoutError, ValidationError } from '@/errors';
 import { API } from './_configs/url';
 import { request } from './request';
 import type {
@@ -97,10 +97,19 @@ export async function uploadToOss(result: UploadUrlResult, file: Blob): Promise<
 }
 
 /** 端到端编排：选好的图片 File → 直传 → 确认 → 轮询 → 拿到导入的衣物 */
+const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'] as const;
+type AllowedMime = (typeof ALLOWED)[number];
+// 返回类型 `t is AllowedMime` 就是"类型谓词"——它让编译器信任这次运行时检查
+function isAllowedMime(t: string): t is AllowedMime {
+  return (ALLOWED as readonly string[]).includes(t);
+}
 // importGarment 是"从用户选的图片开始"的入口，语义上进来的就是一个 File，用 File 是在类型上写明意图，而因为 File is-a Blob，把它传给要 Blob 的 uploadToOss 天经地义（里氏替换）
 export async function importGarment(file: File): Promise<Garment[]> {
+  if (!isAllowedMime(file.type)) {
+    throw new ValidationError(`不支持的图片格式：${file.type || '未知'}`);
+  }
   const uploaded = await requestUploadUrl({
-    content_type: file.type as UploadUrlRequest['content_type'],
+    content_type: file.type,
     file_size: file.size,
   });
   await uploadToOss(uploaded, file);
