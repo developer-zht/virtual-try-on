@@ -13,6 +13,14 @@
  * }
  */
 interface ImportMetaEnv {
-  readonly API_BASE: string;
+  readonly API_BASE_URL: string;
   readonly SENTRY_DSN: string;
+  readonly SENTRY_TRACES_RATE: string;
+  readonly LOG_ENDPOINT: string;
+}
+
+interface ImportMetaEnv {
+  readonly TEST_EMAIL: string;
+  readonly TEST_PASSWORD: string;
+  readonly TEST_NICKNAME: string;
 }
