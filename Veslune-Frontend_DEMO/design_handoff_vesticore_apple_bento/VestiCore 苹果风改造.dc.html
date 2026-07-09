@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="design_doc_mode" content="canvas">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; background: #E9E9EC; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; color: #1D1D1F; }
+  a { color: #6C5CE7; text-decoration: none; }
+  a:hover { color: #5748c9; }
+  .hs::-webkit-scrollbar { display: none; }
+  .hs { scrollbar-width: none; }
+  @keyframes vc-up { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes vc-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes vc-sun { 0%,100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.1); opacity: 1; } }
+  @keyframes vc-cloud1 { from { transform: translateX(-24px); } to { transform: translateX(26px); } }
+  @keyframes vc-cloud2 { from { transform: translateX(20px); } to { transform: translateX(-22px); } }
+  @keyframes vc-ray { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes vc-slidein { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  @keyframes vc-spin { to { transform: rotate(360deg); } }
+  @keyframes vc-pulse { 0% { transform: scale(1); opacity: 0.5; } 70% { transform: scale(1.5); opacity: 0; } 100% { transform: scale(1.5); opacity: 0; } }
+</style>
+</helmet>
+
+<div style="min-height:100vh; padding:48px 56px 80px; display:flex; flex-direction:column; align-items:center; gap:14px;">
+
+  <div style="width:100%; max-width:1180px; display:flex; flex-direction:column; gap:6px;">
+    <div style="font-size:13px; font-weight:600; letter-spacing:2px; color:#6C5CE7; text-transform:uppercase;">VestiCore Redesign</div>
+    <div style="font-size:38px; font-weight:800; letter-spacing:-1px; line-height:1.1;">苹果风 · Bento 网格改造</div>
+    <div style="font-size:16px; color:#6E6E73; max-width:640px; line-height:1.5;">克制的紫色强调、大面积浅灰分层、连续圆角卡片、统一线性图标与底部 Tab 导航。下方是可点击的交互原型，再往下是改造前 / 改造后对照。</div>
+  </div>
+
+  <!-- ============ 交互原型 ============ -->
+  <section style="width:100%; max-width:1180px; margin-top:22px; display:flex; flex-direction:column; gap:18px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="font-size:11px; font-weight:700; color:#fff; background:#1D1D1F; padding:4px 10px; border-radius:6px; letter-spacing:0.5px;">交互原型</span>
+      <span style="font-size:15px; font-weight:600;">底部 Tab 导航 · 全套新设计系统（点一点试试）</span>
+    </div>
+
+    <div style="display:flex; justify-content:center;">
+      <!-- PHONE -->
+      <div style="width:390px; height:812px; background:#F5F5F7; border-radius:46px; box-shadow:0 40px 90px -20px rgba(0,0,0,0.35), 0 0 0 11px #0C0C0E, 0 0 0 12px #2A2A2E; overflow:hidden; position:relative; display:flex; flex-direction:column;">
+
+        <!-- status bar -->
+        <div style="height:52px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:0 30px; position:relative; z-index:20;">
+          <span style="font-size:15px; font-weight:600; letter-spacing:0.3px;">9:41</span>
+          <div style="position:absolute; left:50%; top:9px; transform:translateX(-50%); width:110px; height:30px; background:#0C0C0E; border-radius:18px;"></div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="#1D1D1F"><rect x="2" y="14" width="3.2" height="6" rx="1"/><rect x="7" y="10" width="3.2" height="10" rx="1"/><rect x="12" y="6" width="3.2" height="14" rx="1"/><rect x="17" y="3" width="3.2" height="17" rx="1"/></svg>
+            <svg viewBox="0 0 24 24" width="20" height="14" fill="none"><rect x="1" y="4" width="18" height="12" rx="3" stroke="#1D1D1F" stroke-width="1.5"/><rect x="3" y="6" width="13" height="8" rx="1.5" fill="#1D1D1F"/><rect x="20.5" y="8" width="1.8" height="4" rx="0.9" fill="#1D1D1F"/></svg>
+          </div>
+        </div>
+
+        <!-- SCREEN SCROLL -->
+        <div class="hs" style="flex:1; overflow-y:auto; overflow-x:hidden; position:relative;">
+
+          <!-- ===== HOME (Bento) ===== -->
+          <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:6px 16px 24px; animation:vc-fade 0.35s ease;">
+            <!-- greeting header -->
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; padding:8px 2px 18px;">
+              <div style="display:flex; flex-direction:column; gap:3px;">
+                <span style="font-size:13px; font-weight:600; color:#AEAEB2; letter-spacing:0.2px;">{{ today.date }}</span>
+                <span style="font-size:30px; font-weight:800; letter-spacing:-0.8px; line-height:1;">今日穿搭</span>
+              </div>
+              <div onClick="{{ goProfile }}" style="width:42px; height:42px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.06); display:flex; align-items:center; justify-content:center; cursor:pointer; color:#1D1D1F;" style-active="transform:scale(0.94)">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.5 3.2-5.5 7-5.5s7 2 7 5.5"/></svg>
+              </div>
+            </div>
+
+            <!-- HERO (weather + occasion + outfit + hint merged) -->
+            <div style="position:relative; height:372px; border-radius:30px; overflow:hidden; box-shadow:0 14px 40px -14px rgba(80,90,140,0.4);">
+
+              <!-- weather background: sunny -->
+              <sc-if value="{{ today.sunny }}" hint-placeholder-val="{{ true }}">
+                <div style="position:absolute; inset:0; background:linear-gradient(168deg,#BFD6F5 0%,#DCE7F7 44%,#EFE9FB 100%);"></div>
+                <div style="position:absolute; top:-46px; right:-24px; width:190px; height:190px;">
+                  <div style="position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle,rgba(255,205,120,0.9) 0%,rgba(255,224,168,0.4) 42%,transparent 70%); animation:vc-sun 5.5s ease-in-out infinite;"></div>
+                </div>
+                <div style="position:absolute; bottom:-30px; left:-20px; width:150px; height:150px; border-radius:50%; background:radial-gradient(circle,rgba(160,150,240,0.18),transparent 70%);"></div>
+              </sc-if>
+              <!-- weather background: cloudy -->
+              <sc-if value="{{ today.cloudy }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute; inset:0; background:linear-gradient(168deg,#B7C0D0 0%,#D3DAE6 46%,#E8EBF1 100%);"></div>
+                <div style="position:absolute; top:30px; left:20px; width:120px; height:44px; border-radius:999px; background:rgba(255,255,255,0.72); filter:blur(2px); animation:vc-cloud1 9s ease-in-out infinite alternate;"></div>
+                <div style="position:absolute; top:58px; right:24px; width:90px; height:34px; border-radius:999px; background:rgba(255,255,255,0.6); filter:blur(2px); animation:vc-cloud2 11s ease-in-out infinite alternate;"></div>
+              </sc-if>
+
+              <!-- content overlay -->
+              <div style="position:relative; height:100%; display:flex; flex-direction:column; padding:18px;">
+                <!-- top status: weather left / occasion right -->
+                <div style="display:flex; align-items:flex-start; justify-content:space-between;">
+                  <div style="display:flex; flex-direction:column; gap:2px; color:#1D1D1F;">
+                    <div style="display:flex; align-items:baseline; gap:3px;"><span style="font-size:38px; font-weight:800; letter-spacing:-1.5px; line-height:1;">{{ today.temp }}</span><span style="font-size:22px; font-weight:700; color:rgba(29,29,31,0.5);">°</span></div>
+                    <span style="font-size:13px; font-weight:600; color:rgba(29,29,31,0.62);">{{ today.weatherDesc }}</span>
+                  </div>
+                  <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; color:#1D1D1F;">
+                    <span style="font-size:22px; font-weight:800; letter-spacing:-0.5px; line-height:1;">{{ today.occasion }}</span>
+                    <span style="font-size:12px; font-weight:600; color:rgba(29,29,31,0.55);">{{ today.dateShort }}</span>
+                  </div>
+                </div>
+
+                <!-- center outfit illustration -->
+                <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+                  <svg viewBox="0 0 24 24" width="96" height="96" fill="none" stroke="#6C5CE7" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.92; filter:drop-shadow(0 8px 18px rgba(108,92,231,0.25));"><path d="M9 3l-1.2 3.2L4 13h4l-1 8h10l-1-8h4l-3.8-6.8L15 3M9 6.2h6"/></svg>
+                </div>
+
+                <!-- bottom glass card: title + tags + hint + sparkle -->
+                <div style="background:rgba(255,255,255,0.74); backdrop-filter:blur(22px) saturate(180%); -webkit-backdrop-filter:blur(22px) saturate(180%); border-radius:22px; padding:15px 16px; box-shadow:0 6px 20px rgba(60,70,120,0.12);">
+                  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+                    <div style="min-width:0;">
+                      <div style="font-size:19px; font-weight:800; letter-spacing:-0.4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ today.name }}</div>
+                      <div style="display:flex; gap:6px; margin-top:8px;">
+                        <sc-for list="{{ today.tags }}" as="t" hint-placeholder-count="2"><span style="font-size:11px; font-weight:600; color:#6C5CE7; background:rgba(108,92,231,0.10); padding:3px 10px; border-radius:999px;">{{ t }}</span></sc-for>
+                      </div>
+                    </div>
+                    <div style="width:36px; height:36px; border-radius:50%; background:#6C5CE7; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 12px rgba(108,92,231,0.35);">
+                      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l1.8 5.2L19 11l-5.2 1.8L12 18l-1.8-5.2L5 11l5.2-1.8z"/></svg>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:7px; align-items:flex-start; margin-top:11px; padding-top:11px; border-top:1px solid rgba(0,0,0,0.06);">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#E0A800" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:1px;"><path d="M9 18h6M10 21.5h4M8.5 14a6 6 0 117 0c-.9.7-1.3 1.4-1.4 2.5h-4.2c-.1-1.1-.5-1.8-1.4-2.5z"/></svg>
+                    <span style="font-size:12px; line-height:1.5; color:#4A4A4F; font-weight:500;">{{ today.tip }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 搭配清单 (smaller, standalone) -->
+            <div style="border-radius:24px; background:#fff; padding:14px 4px 14px 16px; box-shadow:0 1px 3px rgba(0,0,0,0.05); margin-top:12px;">
+              <div style="display:flex; align-items:center; gap:7px; margin-bottom:11px; padding-right:16px;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#1D1D1F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5L4.5 6l1.4 2.4L8 7v13h8V7l2.1 1.4L19.5 6 16 3.5l-1.6 1.6a3.4 3.4 0 01-4.8 0z"/></svg>
+                <span style="font-size:14px; font-weight:700; letter-spacing:-0.2px;">搭配清单</span>
+                <span style="font-size:12px; color:#AEAEB2; font-weight:500; margin-left:auto; padding-right:16px;">{{ today.garmentCount }} 件</span>
+              </div>
+              <div class="hs" style="display:flex; gap:9px; overflow-x:auto; padding-right:16px;">
+                <sc-for list="{{ today.garments }}" as="g" hint-placeholder-count="4">
+                  <div style="flex-shrink:0; width:68px; display:flex; flex-direction:column; align-items:center; gap:7px;">
+                    <div style="width:68px; height:68px; border-radius:18px; background:#F5F5F7; display:flex; align-items:center; justify-content:center; color:#6C5CE7;">{{ g.iconEl }}</div>
+                    <span style="font-size:10.5px; color:#6E6E73; font-weight:500; text-align:center; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:68px;">{{ g.name }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <!-- action row: AI 换一套 / 手动 自由搭配 -->
+            <div style="display:flex; gap:10px; margin-top:12px;">
+              <button onClick="{{ reroll }}" style="flex:1; height:60px; background:rgba(108,92,231,0.10); color:#6C5CE7; border:none; border-radius:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px;" style-active="transform:scale(0.98)">
+                <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0113.8-4.5M20 5v4h-4"/><path d="M20 13a8 8 0 01-13.8 4.5M4 19v-4h4"/></svg>
+                <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.15;">
+                  <span style="font-size:15px; font-weight:700; letter-spacing:-0.2px;">换一套</span>
+                  <span style="font-size:10.5px; font-weight:600; opacity:0.72;">AI 帮你选</span>
+                </div>
+              </button>
+              <button onClick="{{ openWorkshop }}" style="flex:1; height:60px; background:#6C5CE7; color:#fff; border:none; border-radius:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; box-shadow:0 8px 22px -8px rgba(108,92,231,0.55);" style-active="transform:scale(0.98)">
+                <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8l12 8M8 16L20 8"/></svg>
+                <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.15;">
+                  <span style="font-size:15px; font-weight:700; letter-spacing:-0.2px;">自由搭配</span>
+                  <span style="font-size:10.5px; font-weight:600; color:rgba(255,255,255,0.78);">自己动手改</span>
+                </div>
+              </button>
+            </div>
+          </div>
+          </sc-if>
+
+          <!-- ===== WARDROBE ===== -->
+          <sc-if value="{{ isWardrobe }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:6px 16px 24px; animation:vc-fade 0.35s ease;">
+            <div style="display:flex; align-items:flex-end; justify-content:space-between; padding:8px 2px 18px;">
+              <span style="font-size:30px; font-weight:800; letter-spacing:-0.8px; line-height:1;">电子衣柜</span>
+              <div style="display:flex; align-items:center; gap:11px;">
+                <span style="font-size:13px; color:#AEAEB2; font-weight:600;">{{ wardrobeTotal }} 件</span>
+                <div onClick="{{ openScan }}" style="width:36px; height:36px; border-radius:50%; background:#6C5CE7; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 6px 16px -6px rgba(108,92,231,0.6);" style-active="transform:scale(0.92)">
+                  <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5a2 2 0 012-2h1.2l1-1.6h5.6l1 1.6H21a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2z" transform="translate(-1 0)"/><circle cx="11" cy="13" r="3.2"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- demo state toggle -->
+            <div style="display:flex; gap:4px; background:#EDEDF0; border-radius:13px; padding:4px; margin-bottom:16px;">
+              <div onClick="{{ setFilled }}" style="flex:1; text-align:center; padding:7px 0; border-radius:9px; font-size:12px; font-weight:600; cursor:pointer; background:{{ filledToggleBg }}; color:{{ filledToggleColor }}; box-shadow:0 1px 3px rgba(0,0,0,0.05);">有衣物</div>
+              <div onClick="{{ setEmpty }}" style="flex:1; text-align:center; padding:7px 0; border-radius:9px; font-size:12px; font-weight:600; cursor:pointer; background:{{ emptyToggleBg }}; color:{{ emptyToggleColor }}; box-shadow:0 1px 3px rgba(0,0,0,0.05);">首次进入（空）</div>
+            </div>
+
+            <sc-if value="{{ wardrobeFilled }}" hint-placeholder-val="{{ true }}">
+            <!-- category chips -->
+            <div class="hs" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:16px;">
+              <sc-for list="{{ cats }}" as="c" hint-placeholder-count="6">
+                <div onClick="{{ c.onClick }}" style="flex-shrink:0; padding:9px 16px; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; background:{{ c.bg }}; color:{{ c.color }}; box-shadow:{{ c.shadow }};" style-active="transform:scale(0.96)">
+                  <span>{{ c.iconEl }}</span>{{ c.name }}
+                </div>
+              </sc-for>
+            </div>
+
+            <!-- grid of items -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <sc-for list="{{ wardrobeItems }}" as="it" hint-placeholder-count="8">
+                <div style="border-radius:22px; background:#fff; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.05); cursor:pointer;" style-active="transform:scale(0.98)">
+                  <div style="position:relative; height:120px; background:#F5F5F7; display:flex; align-items:center; justify-content:center; color:#6C5CE7;">
+                    {{ it.iconEl }}
+                    <span style="position:absolute; top:10px; left:10px; font-size:10px; font-weight:600; background:rgba(108,92,231,0.12); color:#6C5CE7; padding:2px 8px; border-radius:999px;">{{ it.season }}</span>
+                  </div>
+                  <div style="padding:12px 13px 14px; display:flex; flex-direction:column; gap:8px;">
+                    <span style="font-size:14px; font-weight:700; letter-spacing:-0.2px;">{{ it.name }}</span>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                      <span style="width:14px; height:14px; border-radius:50%; flex-shrink:0; background:{{ it.colorBg }}; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.08);"></span>
+                      <span style="font-size:12px; color:#6E6E73; font-weight:500;">{{ it.color }}</span>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            </sc-if>
+
+            <!-- EMPTY STATE (首次进入) -->
+            <sc-if value="{{ wardrobeEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:52px 24px 40px;">
+              <div onClick="{{ openScan }}" style="position:relative; width:124px; height:124px; margin-bottom:26px; cursor:pointer;" style-active="transform:scale(0.94)">
+                <div style="position:absolute; inset:0; border-radius:50%; background:rgba(108,92,231,0.4); animation:vc-pulse 2.2s ease-out infinite;"></div>
+                <div style="position:absolute; inset:0; border-radius:50%; background:#6C5CE7; display:flex; align-items:center; justify-content:center; box-shadow:0 18px 36px -10px rgba(108,92,231,0.65);">
+                  <svg viewBox="0 0 24 24" width="54" height="54" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5a2 2 0 012-2h1.2l1-1.6h5.6l1 1.6H18a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><circle cx="12" cy="13" r="3.6"/></svg>
+                </div>
+              </div>
+              <div style="font-size:21px; font-weight:800; letter-spacing:-0.4px; margin-bottom:9px;">拍下你的第一件单品</div>
+              <div style="font-size:14px; color:#8E8E93; line-height:1.6; max-width:252px;">AI 会自动识别品类与颜色，帮你建立电子衣柜；单品越多，穿搭推荐越准。</div>
+              <div onClick="{{ openScan }}" style="margin-top:22px; display:inline-flex; align-items:center; gap:6px; font-size:14px; font-weight:600; color:#6C5CE7; cursor:pointer; padding:8px 16px; border-radius:999px; background:rgba(108,92,231,0.08);" style-active="transform:scale(0.96)">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="8.5" cy="10" r="1.6"/><path d="M4 17l5-4 3 2.2L16 11l4 4"/></svg>从相册导入
+              </div>
+            </div>
+            </sc-if>
+          </div>
+          </sc-if>
+
+          <!-- ===== PREFERENCE ===== -->
+          <sc-if value="{{ isPref }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:6px 16px 24px; animation:vc-fade 0.35s ease;">
+            <div style="padding:8px 2px 18px;">
+              <span style="font-size:30px; font-weight:800; letter-spacing:-0.8px; line-height:1;">穿搭偏好</span>
+            </div>
+
+            <!-- stats BENTO -->
+            <div style="display:grid; grid-template-columns:1.35fr 1fr; grid-template-rows:auto auto; gap:12px; margin-bottom:16px;">
+              <div style="grid-row:span 2; border-radius:24px; background:linear-gradient(160deg,#6C5CE7,#8B7BF0); padding:20px; color:#fff; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 12px 30px -10px rgba(108,92,231,0.5); position:relative; overflow:hidden;">
+                <div style="position:absolute; bottom:-30px; right:-20px; opacity:0.16;"><svg viewBox="0 0 24 24" width="130" height="130" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.6-7-9.2a4 4 0 017-2.6 4 4 0 017 2.6C19 15.4 12 20 12 20z"/></svg></div>
+                <span style="font-size:13px; font-weight:600; opacity:0.85;">保存穿搭</span>
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <span style="font-size:56px; font-weight:800; letter-spacing:-2px; line-height:0.95;">{{ prefStats.saved }}</span>
+                  <span style="font-size:13px; font-weight:500; opacity:0.8;">套已收藏</span>
+                </div>
+              </div>
+              <div style="border-radius:24px; background:#fff; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:8px;">
+                <div style="width:30px; height:30px; border-radius:10px; background:rgba(108,92,231,0.10); display:flex; align-items:center; justify-content:center; color:#6C5CE7;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12.5l-8 8L3 11V3.5H10.5z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg></div>
+                <span style="font-size:26px; font-weight:800; letter-spacing:-1px; line-height:1;">{{ prefStats.tagCount }}</span>
+                <span style="font-size:12px; color:#6E6E73; font-weight:500;">偏好标签</span>
+              </div>
+              <div style="border-radius:24px; background:#fff; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:8px;">
+                <div style="width:30px; height:30px; border-radius:10px; background:rgba(0,178,148,0.12); display:flex; align-items:center; justify-content:center; color:#00B894;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.2-8 4.2-8-4.2z"/><path d="M4 12l8 4.2 8-4.2"/></svg></div>
+                <span style="font-size:26px; font-weight:800; letter-spacing:-1px; line-height:1;">{{ prefStats.occCount }}</span>
+                <span style="font-size:12px; color:#6E6E73; font-weight:500;">场合类型</span>
+              </div>
+            </div>
+
+            <!-- saved outfit list -->
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <sc-for list="{{ prefOutfits }}" as="o" hint-placeholder-count="3">
+                <div style="border-radius:22px; background:#fff; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                  <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px;">
+                    <div style="display:flex; align-items:center; gap:11px; min-width:0;">
+                      <div style="width:40px; height:40px; border-radius:13px; background:rgba(108,92,231,0.10); display:flex; align-items:center; justify-content:center; color:#6C5CE7; flex-shrink:0;">{{ o.iconEl }}</div>
+                      <div style="min-width:0;">
+                        <div style="font-size:15px; font-weight:700; letter-spacing:-0.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ o.name }}</div>
+                        <div style="font-size:11px; color:#AEAEB2; font-weight:500; margin-top:2px;">{{ o.meta }}</div>
+                      </div>
+                    </div>
+                    <div style="display:flex; gap:4px; flex-shrink:0;">
+                      <div onClick="{{ o.onApply }}" style="width:32px; height:32px; border-radius:10px; background:#F5F5F7; display:flex; align-items:center; justify-content:center; color:#6C5CE7; cursor:pointer;" style-active="transform:scale(0.9)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v16l-6-4-6 4z"/></svg></div>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:7px; flex-wrap:wrap; margin-bottom:12px;">
+                    <sc-for list="{{ o.garments }}" as="g" hint-placeholder-count="4"><div style="display:flex; align-items:center; gap:5px; background:#F5F5F7; border-radius:999px; padding:5px 11px 5px 8px;"><span style="color:#6C5CE7;">{{ g.iconEl }}</span><span style="font-size:11px; color:#1D1D1F; font-weight:600;">{{ g.name }}</span></div></sc-for>
+                  </div>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                    <sc-for list="{{ o.tags }}" as="t" hint-placeholder-count="3"><span style="font-size:11px; color:#6E6E73; background:#F5F5F7; padding:3px 10px; border-radius:999px; font-weight:600;">{{ t }}</span></sc-for>
+                    <span style="font-size:10px; color:#6C5CE7; background:rgba(108,92,231,0.08); padding:3px 9px; border-radius:999px; font-weight:600; margin-left:auto;">{{ o.source }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          </sc-if>
+
+          <!-- ===== PROFILE ===== -->
+          <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:6px 16px 24px; animation:vc-fade 0.35s ease;">
+            <div style="padding:8px 2px 18px;">
+              <span style="font-size:30px; font-weight:800; letter-spacing:-0.8px; line-height:1;">我的档案</span>
+            </div>
+
+            <!-- profile header card -->
+            <div style="border-radius:26px; background:linear-gradient(160deg,#1D1D1F,#3A3A3F); padding:22px; display:flex; align-items:center; gap:16px; margin-bottom:14px; box-shadow:0 10px 28px -12px rgba(0,0,0,0.4);">
+              <div style="width:62px; height:62px; border-radius:50%; background:linear-gradient(135deg,#6C5CE7,#8B7BF0); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 6px 16px rgba(108,92,231,0.4);">
+                <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.5 3.2-5.5 7-5.5s7 2 7 5.5"/></svg>
+              </div>
+              <div style="flex:1; color:#fff;">
+                <div style="font-size:19px; font-weight:800; letter-spacing:-0.3px;">我的档案</div>
+                <div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:3px;">完善身材数据，让推荐更懂你</div>
+              </div>
+            </div>
+
+            <!-- body data card -->
+            <div style="border-radius:24px; background:#fff; padding:6px 18px; box-shadow:0 1px 3px rgba(0,0,0,0.05); margin-bottom:14px;">
+              <div style="font-size:13px; font-weight:700; color:#AEAEB2; padding:14px 0 8px; letter-spacing:0.2px;">身体数据</div>
+              <sc-for list="{{ bodyData }}" as="b" hint-placeholder-count="5">
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-top:1px solid rgba(0,0,0,0.05);">
+                  <span style="font-size:15px; font-weight:500; color:#1D1D1F;">{{ b.label }}</span>
+                  <span style="font-size:15px; font-weight:600; color:#1D1D1F;">{{ b.value }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <!-- advanced options (collapsible) -->
+            <div style="border-radius:24px; background:#fff; padding:6px 18px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+              <div onClick="{{ toggleAdv }}" style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; cursor:pointer;" style-active="opacity:0.6">
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <span style="font-size:15px; font-weight:700; color:#1D1D1F; letter-spacing:-0.2px;">高级选项</span>
+                  <span style="font-size:12px; color:#AEAEB2; font-weight:500;">风格与颜色偏好（可选，让推荐更准）</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:5px; color:#AEAEB2; font-size:12px; font-weight:600;">{{ advChevron }}
+                  <sc-if value="{{ advOpen }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg></sc-if>
+                  <sc-if value="{{ advClosed }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></sc-if>
+                </div>
+              </div>
+              <sc-if value="{{ advOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:4px 0 18px; border-top:1px solid rgba(0,0,0,0.05);">
+                <div style="font-size:13px; font-weight:700; color:#AEAEB2; padding:14px 0 12px; letter-spacing:0.2px;">风格偏好</div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;">
+                  <sc-for list="{{ styleTags }}" as="s" hint-placeholder-count="6"><span style="font-size:13px; font-weight:600; padding:7px 15px; border-radius:999px; background:{{ s.bg }}; color:{{ s.color }};">{{ s.name }}</span></sc-for>
+                </div>
+                <div style="font-size:13px; font-weight:700; color:#AEAEB2; padding-bottom:12px; letter-spacing:0.2px;">颜色偏好</div>
+                <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                  <sc-for list="{{ colorPrefs }}" as="c" hint-placeholder-count="4"><span style="width:34px; height:34px; border-radius:50%; background:{{ c.bg }}; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.08), 0 0 0 {{ c.ring }} rgba(108,92,231,0.25);"></span></sc-for>
+                </div>
+              </div>
+              </sc-if>
+            </div>
+
+            <!-- save profile -->
+            <button onClick="{{ saveProfile }}" style="width:100%; height:54px; margin-top:16px; background:#6C5CE7; color:#fff; border:none; border-radius:20px; font-size:16px; font-weight:700; letter-spacing:-0.2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 8px 22px -8px rgba(108,92,231,0.55);" style-active="transform:scale(0.98)">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 13 10 18 20 6"/></svg>保存档案
+            </button>
+          </div>
+          </sc-if>
+
+        </div>
+
+        <!-- TAB BAR -->
+        <div style="flex-shrink:0; height:84px; padding:8px 20px 24px; display:flex; align-items:flex-start; justify-content:space-around; background:rgba(245,245,247,0.82); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); border-top:1px solid rgba(0,0,0,0.06); position:relative; z-index:20;">
+          <div onClick="{{ goHome }}" style="display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; color:{{ tabColor.home }}; width:56px;" style-active="transform:scale(0.9)">
+            <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5L12 4l8 7.5"/><path d="M6 10.5V20h12v-9.5"/></svg>
+            <span style="font-size:10px; font-weight:{{ tabWeight.home }};">首页</span>
+          </div>
+          <div onClick="{{ goWardrobe }}" style="display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; color:{{ tabColor.wardrobe }}; width:56px;" style-active="transform:scale(0.9)">
+            <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a2 2 0 00-1 3.7L12 8m0 0v1.5M12 8l-8.4 9.3c-.7.8-.2 2 .9 2h15c1.1 0 1.6-1.2.9-2L12 8z"/></svg>
+            <span style="font-size:10px; font-weight:{{ tabWeight.wardrobe }};">衣柜</span>
+          </div>
+          <div onClick="{{ goPref }}" style="display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; color:{{ tabColor.pref }}; width:56px;" style-active="transform:scale(0.9)">
+            <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.6-7-9.2a4 4 0 017-2.6 4 4 0 017 2.6C19 15.4 12 20 12 20z"/></svg>
+            <span style="font-size:10px; font-weight:{{ tabWeight.pref }};">偏好</span>
+          </div>
+          <div onClick="{{ goProfile }}" style="display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; color:{{ tabColor.profile }}; width:56px;" style-active="transform:scale(0.9)">
+            <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.5 3.2-5.5 7-5.5s7 2 7 5.5"/></svg>
+            <span style="font-size:10px; font-weight:{{ tabWeight.profile }};">我的</span>
+          </div>
+        </div>
+
+        <!-- toast -->
+        <sc-if value="{{ toastMsg }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute; left:20px; right:20px; bottom:100px; background:rgba(29,29,31,0.92); backdrop-filter:blur(12px); color:#fff; padding:13px 18px; border-radius:16px; text-align:center; font-size:14px; font-weight:600; z-index:200; animation:vc-up 0.3s ease; box-shadow:0 10px 30px rgba(0,0,0,0.3);">{{ toastMsg }}</div>
+        </sc-if>
+
+        <!-- ===== OVERLAY: WORKSHOP ===== -->
+        <sc-if value="{{ isWorkshop }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute; top:52px; left:0; right:0; bottom:0; background:#F5F5F7; z-index:30; display:flex; flex-direction:column; animation:vc-slidein 0.32s cubic-bezier(0.4,0,0.2,1);">
+          <div style="flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:rgba(245,245,247,0.82); backdrop-filter:blur(20px) saturate(180%); -webkit-backdrop-filter:blur(20px) saturate(180%); border-bottom:1px solid rgba(0,0,0,0.06);">
+            <div onClick="{{ closeScreen }}" style="display:flex; align-items:center; gap:2px; color:#1D1D1F; cursor:pointer; font-size:15px; font-weight:600;" style-active="opacity:0.5"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>返回</div>
+            <span style="font-size:16px; font-weight:700; letter-spacing:-0.2px;">自由搭配工坊</span>
+            <div onClick="{{ openSave }}" style="font-size:14px; font-weight:700; color:#6C5CE7; cursor:pointer; padding:4px 8px;" style-active="opacity:0.5">保存</div>
+          </div>
+          <div class="hs" style="flex:1; overflow-y:auto; padding:16px;">
+            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(108,92,231,0.08); color:#6C5CE7; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:600; margin-bottom:14px;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg>
+              简约通勤 · 基于你的偏好
+            </div>
+
+            <!-- try-on canvas -->
+            <div style="position:relative; height:300px; border-radius:26px; overflow:hidden; background:linear-gradient(160deg,#ECE8FF,#F7F4FF); box-shadow:0 10px 30px -14px rgba(108,92,231,0.28); display:flex; align-items:center; justify-content:center;">
+              <svg viewBox="0 0 24 24" width="120" height="120" fill="none" stroke="#8B7BF0" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.55;"><circle cx="12" cy="5" r="2.4"/><path d="M12 7.4v7M12 8.5L7 11M12 8.5L17 11M12 14.4L8.5 21M12 14.4L15.5 21"/></svg>
+              <sc-if value="{{ wsHasItems }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute; left:14px; right:14px; bottom:14px; background:rgba(255,255,255,0.74); backdrop-filter:blur(18px); border-radius:18px; padding:12px 14px;">
+                  <div style="font-size:11px; font-weight:700; color:#AEAEB2; margin-bottom:8px;">已上身</div>
+                  <div class="hs" style="display:flex; gap:8px; overflow-x:auto;">
+                    <sc-for list="{{ wsAdded }}" as="a" hint-placeholder-count="2"><div style="flex-shrink:0; display:flex; align-items:center; gap:6px; background:#F5F5F7; border-radius:999px; padding:5px 12px 5px 8px;"><span>{{ a.iconEl }}</span><span style="font-size:11px; font-weight:600; color:#1D1D1F; white-space:nowrap;">{{ a.name }}</span></div></sc-for>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ wsLoading }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute; inset:0; background:rgba(255,255,255,0.86); backdrop-filter:blur(3px); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:0 30px;">
+                  <div style="width:42px; height:42px; border:4px solid #ECE8FF; border-top-color:#6C5CE7; border-radius:50%; animation:vc-spin 0.8s linear infinite;"></div>
+                  <div style="font-size:14px; font-weight:600; color:#1D1D1F;">AI 换装中…</div>
+                  <div style="width:100%;">
+                    <div style="height:5px; background:#ECE8FF; border-radius:999px; overflow:hidden;"><div style="height:100%; width:{{ wsProg }}%; background:linear-gradient(90deg,#6C5CE7,#8B7BF0); border-radius:999px; transition:width 0.25s;"></div></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:11px; color:#6E6E73; font-weight:500;"><span>{{ wsProgText }}</span><span>{{ wsProg }}%</span></div>
+                  </div>
+                  <div style="font-size:11px; color:#AEAEB2; font-weight:500; text-align:center;">💡 {{ wsTip }}</div>
+                </div>
+              </sc-if>
+            </div>
+
+            <!-- wardrobe picker -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin:18px 2px 12px;">
+              <span style="font-size:15px; font-weight:700; letter-spacing:-0.2px;">我的衣柜</span>
+              <span style="font-size:12px; color:#AEAEB2; font-weight:500;">点击衣物即可换装</span>
+            </div>
+            <div class="hs" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:14px;">
+              <sc-for list="{{ wsCats }}" as="c" hint-placeholder-count="6"><div onClick="{{ c.onClick }}" style="flex-shrink:0; padding:8px 15px; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; background:{{ c.bg }}; color:{{ c.color }}; box-shadow:{{ c.shadow }};" style-active="transform:scale(0.96)"><span>{{ c.iconEl }}</span>{{ c.name }}</div></sc-for>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+              <sc-for list="{{ wsPick }}" as="it" hint-placeholder-count="9"><div onClick="{{ it.onClick }}" style="border-radius:18px; background:#fff; padding:12px 8px; display:flex; flex-direction:column; align-items:center; gap:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); cursor:pointer;" style-active="transform:scale(0.95)"><div style="width:48px; height:48px; border-radius:14px; background:#F5F5F7; display:flex; align-items:center; justify-content:center; color:#6C5CE7;">{{ it.iconEl }}</div><span style="font-size:10.5px; color:#6E6E73; font-weight:500; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;">{{ it.name }}</span></div></sc-for>
+            </div>
+
+            <button onClick="{{ openSave }}" style="width:100%; height:54px; margin-top:16px; background:#6C5CE7; color:#fff; border:none; border-radius:20px; font-size:16px; font-weight:700; letter-spacing:-0.2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 8px 22px -8px rgba(108,92,231,0.55);" style-active="transform:scale(0.98)">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 13 10 18 20 6"/></svg>保存这套穿搭并设为偏好
+            </button>
+          </div>
+
+          <!-- iOS save sheet -->
+          <sc-if value="{{ showSave }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closeSave }}" style="position:absolute; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:40; display:flex; align-items:flex-end; animation:vc-fade 0.25s ease;">
+              <div onClick="{{ sheetStop }}" style="width:100%; background:#fff; border-radius:28px 28px 0 0; padding:10px 22px 26px; animation:vc-up 0.32s cubic-bezier(0.4,0,0.2,1);">
+                <div style="width:38px; height:5px; background:#E0E0E4; border-radius:999px; margin:0 auto 18px;"></div>
+                <div style="font-size:19px; font-weight:800; letter-spacing:-0.4px; margin-bottom:16px;">给这套穿搭取个名字</div>
+                <input type="text" value="简约通勤风_0629" style="width:100%; padding:14px 16px; border:none; background:#F5F5F7; border-radius:16px; font-size:15px; font-weight:500; color:#1D1D1F; outline:none; margin-bottom:18px; font-family:inherit;"/>
+                <div style="font-size:13px; font-weight:700; color:#AEAEB2; margin-bottom:10px;">自动生成标签</div>
+                <div style="display:flex; gap:7px; flex-wrap:wrap; margin-bottom:22px;">
+                  <span style="font-size:12px; font-weight:600; color:#6C5CE7; background:rgba(108,92,231,0.10); padding:5px 13px; border-radius:999px;">简约</span>
+                  <span style="font-size:12px; font-weight:600; color:#6C5CE7; background:rgba(108,92,231,0.10); padding:5px 13px; border-radius:999px;">通勤</span>
+                  <span style="font-size:12px; font-weight:600; color:#6C5CE7; background:rgba(108,92,231,0.10); padding:5px 13px; border-radius:999px;">卡其色</span>
+                  <span style="font-size:12px; font-weight:600; color:#6C5CE7; background:rgba(108,92,231,0.10); padding:5px 13px; border-radius:999px;">风衣</span>
+                </div>
+                <div style="display:flex; gap:12px;">
+                  <button onClick="{{ closeSave }}" style="flex:1; height:52px; background:#F5F5F7; color:#6E6E73; border:none; border-radius:18px; font-size:16px; font-weight:700; cursor:pointer;" style-active="transform:scale(0.98)">取消</button>
+                  <button onClick="{{ confirmSave }}" style="flex:1.4; height:52px; background:#6C5CE7; color:#fff; border:none; border-radius:18px; font-size:16px; font-weight:700; cursor:pointer; box-shadow:0 8px 22px -8px rgba(108,92,231,0.55);" style-active="transform:scale(0.98)">确认保存</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <!-- ===== OVERLAY: SCAN ===== -->
+        <sc-if value="{{ isScan }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute; top:52px; left:0; right:0; bottom:0; background:#F5F5F7; z-index:30; display:flex; flex-direction:column; animation:vc-slidein 0.32s cubic-bezier(0.4,0,0.2,1);">
+          <div style="flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:rgba(245,245,247,0.82); backdrop-filter:blur(20px) saturate(180%); -webkit-backdrop-filter:blur(20px) saturate(180%); border-bottom:1px solid rgba(0,0,0,0.06);">
+            <div onClick="{{ closeScreen }}" style="display:flex; align-items:center; gap:2px; color:#1D1D1F; cursor:pointer; font-size:15px; font-weight:600;" style-active="opacity:0.5"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>返回</div>
+            <span style="font-size:16px; font-weight:700; letter-spacing:-0.2px;">拍照识别</span>
+            <div onClick="{{ closeScreen }}" style="font-size:14px; font-weight:600; color:#AEAEB2; cursor:pointer; padding:4px 8px;" style-active="opacity:0.5">跳过</div>
+          </div>
+          <div class="hs" style="flex:1; overflow-y:auto; padding:16px;">
+            <!-- steps -->
+            <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:18px;">
+              <div style="display:flex; align-items:center; gap:6px; background:#6C5CE7; color:#fff; padding:6px 14px; border-radius:999px; font-size:12px; font-weight:700; box-shadow:0 6px 14px -6px rgba(108,92,231,0.6);"><span style="width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:10px;">1</span>拍照</div>
+              <div style="width:16px; height:2px; background:#DADADE; border-radius:2px;"></div>
+              <div style="display:flex; align-items:center; gap:6px; background:#fff; color:#AEAEB2; padding:6px 14px; border-radius:999px; font-size:12px; font-weight:600;"><span style="width:16px; height:16px; border-radius:50%; background:#F0F0F2; display:flex; align-items:center; justify-content:center; font-size:10px;">2</span>档案</div>
+              <div style="width:16px; height:2px; background:#DADADE; border-radius:2px;"></div>
+              <div style="display:flex; align-items:center; gap:6px; background:#fff; color:#AEAEB2; padding:6px 14px; border-radius:999px; font-size:12px; font-weight:600;"><span style="width:16px; height:16px; border-radius:50%; background:#F0F0F2; display:flex; align-items:center; justify-content:center; font-size:10px;">3</span>搭配</div>
+            </div>
+
+            <!-- camera preview -->
+            <sc-if value="{{ scanHasImage }}" hint-placeholder-val="{{ false }}">
+              <div style="width:100%; height:280px; border-radius:26px; background:#fff; box-shadow:0 8px 26px -14px rgba(108,92,231,0.3); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; border:2px solid #6C5CE7;">
+                <div style="width:96px; height:96px; border-radius:26px; background:#F5F5F7; display:flex; align-items:center; justify-content:center; color:#6C5CE7;"><svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5L4.5 6l1.4 2.4L8 7v13h8V7l2.1 1.4L19.5 6 16 3.5l-1.6 1.6a3.4 3.4 0 01-4.8 0z"/><path d="M12 8.5v11"/></svg></div>
+                <div style="display:flex; align-items:center; gap:6px; font-size:14px; font-weight:700; color:#6C5CE7;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 13 10 18 20 6"/></svg>已上传 · 卡其色风衣</div>
+                <span style="font-size:12px; color:#AEAEB2; font-weight:500;">AI 识别中…</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ scanNoImage }}" hint-placeholder-val="{{ true }}">
+              <div style="width:100%; height:280px; border-radius:26px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; border:2px dashed #D8D8DC;">
+                <div style="width:76px; height:76px; border-radius:50%; background:#F5F5F7; display:flex; align-items:center; justify-content:center; color:#AEAEB2;"><svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5a2 2 0 012-2h1.2l1-1.6h5.6l1 1.6H18a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><circle cx="12" cy="13" r="3.4"/></svg></div>
+                <span style="font-size:13px; color:#AEAEB2; font-weight:500;">点击下方拍照或从相册上传</span>
+              </div>
+            </sc-if>
+
+            <!-- 拍照视角 -->
+            <div style="font-size:13px; font-weight:700; color:#AEAEB2; margin:18px 2px 10px;">拍照视角</div>
+            <div style="display:flex; gap:8px;">
+              <sc-for list="{{ scanAngles }}" as="a" hint-placeholder-count="3"><div onClick="{{ a.onClick }}" style="flex:1; text-align:center; padding:11px 0; border-radius:16px; font-size:13px; font-weight:600; cursor:pointer; background:{{ a.bg }}; color:{{ a.color }}; box-shadow:{{ a.shadow }};" style-active="transform:scale(0.97)">{{ a.label }}</div></sc-for>
+            </div>
+
+            <!-- upload buttons -->
+            <div style="display:flex; gap:10px; margin-top:16px;">
+              <button onClick="{{ scanUpload }}" style="flex:1; height:52px; background:#fff; color:#1D1D1F; border:none; border-radius:18px; font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05);" style-active="transform:scale(0.97)"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5a2 2 0 012-2h1.2l1-1.6h5.6l1 1.6H18a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><circle cx="12" cy="13" r="3.4"/></svg>拍照</button>
+              <button onClick="{{ scanUpload }}" style="flex:1; height:52px; background:#fff; color:#1D1D1F; border:none; border-radius:18px; font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05);" style-active="transform:scale(0.97)"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="8.5" cy="10" r="1.6"/><path d="M4 17l5-4 3 2.2L16 11l4 4"/></svg>相册上传</button>
+            </div>
+
+            <div style="display:flex; gap:8px; align-items:flex-start; background:rgba(253,203,110,0.14); border-radius:16px; padding:12px 14px; margin-top:16px;">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#E0A800" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:1px;"><path d="M13 3L4 14h7l-1 7 9-11h-7z"/></svg>
+              <span style="font-size:12px; color:#8A6D00; line-height:1.5; font-weight:500;">AI 正在后台分析，你可先完善个人信息</span>
+            </div>
+
+            <button onClick="{{ scanNext }}" style="width:100%; height:54px; margin-top:16px; border:none; border-radius:20px; font-size:16px; font-weight:700; letter-spacing:-0.2px; cursor:pointer; background:{{ scanNextBg }}; color:{{ scanNextColor }}; box-shadow:{{ scanNextShadow }};" style-active="transform:scale(0.98)">{{ scanNextText }}</button>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ===== TOP-LAYER: AUTH (注册/登录) ===== -->
+        <sc-if value="{{ showAuth }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute; top:0; left:0; right:0; bottom:0; z-index:60; display:flex; align-items:flex-end; background:rgba(20,20,26,0.34); backdrop-filter:blur(16px) saturate(160%); -webkit-backdrop-filter:blur(16px) saturate(160%); animation:vc-fade 0.3s ease;">
+          <div style="width:100%; background:#fff; border-radius:30px 30px 0 0; padding:12px 24px 28px; animation:vc-up 0.38s cubic-bezier(0.4,0,0.2,1); box-shadow:0 -12px 44px rgba(0,0,0,0.2);">
+            <div style="width:38px; height:5px; background:#E0E0E4; border-radius:999px; margin:0 auto 20px;"></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:11px; margin-bottom:22px;">
+              <div style="width:58px; height:58px; border-radius:19px; background:linear-gradient(150deg,#6C5CE7,#8B7BF0); display:flex; align-items:center; justify-content:center; box-shadow:0 10px 26px -8px rgba(108,92,231,0.6);"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.6L20 10.5l-6.1 1.9L12 18l-1.9-5.6L4 10.5l6.1-1.9z"/></svg></div>
+              <div style="text-align:center;">
+                <div style="font-size:23px; font-weight:800; letter-spacing:-0.5px;">{{ authTitle }}</div>
+                <div style="font-size:13px; color:#8E8E93; margin-top:5px; font-weight:500;">{{ authSub }}</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:4px; background:#F0F0F2; border-radius:13px; padding:4px; margin-bottom:18px;">
+              <div onClick="{{ setAuthReg }}" style="flex:1; text-align:center; padding:9px 0; border-radius:9px; font-size:14px; font-weight:700; cursor:pointer; background:{{ regTabBg }}; color:{{ regTabColor }};">注册</div>
+              <div onClick="{{ setAuthLogin }}" style="flex:1; text-align:center; padding:9px 0; border-radius:9px; font-size:14px; font-weight:700; cursor:pointer; background:{{ loginTabBg }}; color:{{ loginTabColor }};">登录</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:11px; background:#F5F5F7; border-radius:16px; padding:0 16px; margin-bottom:11px;">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#AEAEB2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/></svg>
+              <input type="tel" placeholder="手机号" style="flex:1; border:none; background:transparent; padding:14px 0; font-size:15px; color:#1D1D1F; outline:none; font-family:inherit; min-width:0;"/>
+            </div>
+            <div style="display:flex; align-items:center; gap:11px; background:#F5F5F7; border-radius:16px; padding:0 16px; margin-bottom:18px;">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#AEAEB2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="3"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+              <input type="text" placeholder="验证码" style="flex:1; border:none; background:transparent; padding:14px 0; font-size:15px; color:#1D1D1F; outline:none; font-family:inherit; min-width:0;"/>
+              <span style="font-size:13px; font-weight:700; color:#6C5CE7; cursor:pointer; white-space:nowrap;" style-active="opacity:0.5">获取验证码</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:18px;">
+              <div style="width:18px; height:18px; border-radius:50%; background:#6C5CE7; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 13 10 18 20 6"/></svg></div>
+              <span style="font-size:12px; color:#8E8E93; font-weight:500;">已阅读并同意 <span style="color:#6C5CE7; font-weight:600;">用户协议</span> 与 <span style="color:#6C5CE7; font-weight:600;">隐私政策</span></span>
+            </div>
+            <button onClick="{{ submitAuth }}" style="width:100%; height:54px; background:#6C5CE7; color:#fff; border:none; border-radius:18px; font-size:16px; font-weight:700; letter-spacing:-0.2px; cursor:pointer; box-shadow:0 8px 22px -8px rgba(108,92,231,0.55);" style-active="transform:scale(0.98)">{{ authSubmitText }}</button>
+            <div style="display:flex; align-items:center; gap:12px; margin:20px 0 14px;">
+              <div style="flex:1; height:1px; background:#F0F0F2;"></div><span style="font-size:11px; color:#AEAEB2; font-weight:500;">其他方式</span><div style="flex:1; height:1px; background:#F0F0F2;"></div>
+            </div>
+            <div style="display:flex; justify-content:center; gap:22px;">
+              <div style="width:46px; height:46px; border-radius:50%; background:#07C160; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 12px rgba(7,193,96,0.3);" style-active="transform:scale(0.92)"><svg viewBox="0 0 24 24" width="24" height="24" fill="#fff"><path d="M9 4C5.1 4 2 6.6 2 9.9c0 1.8 1 3.5 2.6 4.6L4 17l2.4-1.2c.8.2 1.7.4 2.6.4h.6a5 5 0 01-.2-1.5C9.4 11.4 12.3 9 16 9h.6C16 6.2 12.9 4 9 4zm-2.4 3.7a.9.9 0 110 1.8.9.9 0 010-1.8zm4.8 0a.9.9 0 110 1.8.9.9 0 010-1.8z"/><path d="M22 15.1c0-2.6-2.5-4.7-5.6-4.7s-5.6 2.1-5.6 4.7 2.5 4.7 5.6 4.7c.6 0 1.3-.1 1.9-.3l1.8.9-.5-1.5c1.4-.9 2.4-2.2 2.4-3.8zm-7.4-1a.7.7 0 110 1.4.7.7 0 010-1.4zm3.6 0a.7.7 0 110 1.4.7.7 0 010-1.4z"/></svg></div>
+              <div style="width:46px; height:46px; border-radius:50%; background:#1D1D1F; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2);" style-active="transform:scale(0.92)"><svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M16.4 12.6c0-2.2 1.8-3.3 1.9-3.4-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.6.8-3.3.8-.7 0-1.7-.8-2.8-.8-1.5 0-2.8.8-3.6 2.2-1.5 2.7-.4 6.6 1.1 8.8.7 1 1.6 2.2 2.7 2.2 1.1 0 1.5-.7 2.8-.7 1.3 0 1.6.7 2.8.7 1.1 0 1.9-1 2.6-2 .8-1.2 1.2-2.3 1.2-2.4 0 0-2.2-.9-2.2-3.7zM14.3 5.9c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 1.9-.5 2.5-1.2z"/></svg></div>
+            </div>
+            <div onClick="{{ closeAuth }}" style="text-align:center; margin-top:18px; font-size:13px; color:#AEAEB2; font-weight:500; cursor:pointer;" style-active="opacity:0.5">稍后再说</div>
+          </div>
+        </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 对照 1：设计系统 ============ -->
+  <section style="width:100%; max-width:1180px; margin-top:56px; display:flex; flex-direction:column; gap:18px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="font-size:11px; font-weight:700; color:#fff; background:#1D1D1F; padding:4px 10px; border-radius:6px; letter-spacing:0.5px;">对照 · 第一步</span>
+      <span style="font-size:15px; font-weight:600;">设计系统 · 改造前 → 改造后</span>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+      <!-- BEFORE panel -->
+      <div style="background:#F8F9FA; border-radius:20px; padding:24px; border:1px solid #ECECEC;">
+        <div style="font-size:13px; font-weight:700; color:#B2BEC3; letter-spacing:1px; margin-bottom:18px;">改造前</div>
+        <div style="font-size:12px; font-weight:600; color:#636E72; margin-bottom:8px;">色彩 · 高饱和 + 紫色发光</div>
+        <div style="display:flex; gap:8px; margin-bottom:20px;">
+          <div style="width:44px; height:44px; border-radius:10px; background:#6C5CE7; box-shadow:0 8px 20px rgba(108,92,231,0.30);"></div>
+          <div style="width:44px; height:44px; border-radius:10px; background:#A29BFE;"></div>
+          <div style="width:44px; height:44px; border-radius:10px; background:#FDCB6E;"></div>
+          <div style="width:44px; height:44px; border-radius:10px; background:#FF6B6B;"></div>
+          <div style="width:44px; height:44px; border-radius:10px; background:#00D2D3;"></div>
+        </div>
+        <div style="font-size:12px; font-weight:600; color:#636E72; margin-bottom:8px;">圆角 12px · 紧凑内边距</div>
+        <div style="background:#fff; border-radius:12px; padding:12px 14px; box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:20px;">
+          <div style="font-size:13px; font-weight:600; color:#B2BEC3;">卡片标题</div>
+          <div style="font-size:15px; color:#2D3436; margin-top:4px;">卡片内容 · radius 12</div>
+        </div>
+        <div style="font-size:12px; font-weight:600; color:#636E72; margin-bottom:8px;">图标 · Emoji</div>
+        <div style="display:flex; gap:14px; font-size:26px;">🧥 👔 👗 🏢 💝</div>
+      </div>
+
+      <!-- AFTER panel -->
+      <div style="background:#F5F5F7; border-radius:24px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <div style="font-size:13px; font-weight:700; color:#6C5CE7; letter-spacing:1px; margin-bottom:18px;">改造后</div>
+        <div style="font-size:12px; font-weight:600; color:#6E6E73; margin-bottom:8px;">色彩 · 中性分层 · 紫色仅留强调</div>
+        <div style="display:flex; gap:8px; margin-bottom:20px; align-items:center;">
+          <div style="width:44px; height:44px; border-radius:13px; background:#6C5CE7;"></div>
+          <div style="width:44px; height:44px; border-radius:13px; background:#fff; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.06);"></div>
+          <div style="width:44px; height:44px; border-radius:13px; background:#F5F5F7; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.06);"></div>
+          <div style="width:44px; height:44px; border-radius:13px; background:#1D1D1F;"></div>
+          <div style="width:44px; height:44px; border-radius:13px; background:#AEAEB2;"></div>
+        </div>
+        <div style="font-size:12px; font-weight:600; color:#6E6E73; margin-bottom:8px;">圆角 24px squircle · 大留白</div>
+        <div style="background:#fff; border-radius:22px; padding:20px 20px; box-shadow:0 1px 3px rgba(0,0,0,0.05); margin-bottom:20px;">
+          <div style="font-size:13px; font-weight:700; color:#AEAEB2;">卡片标题</div>
+          <div style="font-size:17px; font-weight:600; color:#1D1D1F; margin-top:6px; letter-spacing:-0.3px;">卡片内容 · radius 24</div>
+        </div>
+        <div style="font-size:12px; font-weight:600; color:#6E6E73; margin-bottom:10px;">图标 · 统一线性 (SF 风格)</div>
+        <div style="display:flex; gap:16px; color:#1D1D1F;">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5L4.5 6l1.4 2.4L8 7v13h8V7l2.1 1.4L19.5 6 16 3.5l-1.6 1.6a3.4 3.4 0 01-4.8 0z"/><path d="M12 8.5v11"/></svg>
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3.5L4.5 6.5l1.6 2.6L8.5 7.6V20h7V7.6l2.4 1.5L20 6.5 16 3.5l-1.6 1.6a3.2 3.2 0 01-4.8 0z"/></svg>
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5l-1.2 3.2L4 13.5h4l-1 7h10l-1-7h4l-3.8-6.8L15 3.5"/><path d="M9 6.7h6"/></svg>
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.2-8 4.2-8-4.2z"/><path d="M4 12l8 4.2 8-4.2"/><path d="M4 16.4l8 4.2 8-4.2"/></svg>
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.6-7-9.2a4 4 0 017-2.6 4 4 0 017 2.6C19 15.4 12 20 12 20z"/></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 对照 2：首页 ============ -->
+  <section style="width:100%; max-width:1180px; margin-top:56px; display:flex; flex-direction:column; gap:18px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="font-size:11px; font-weight:700; color:#fff; background:#1D1D1F; padding:4px 10px; border-radius:6px; letter-spacing:0.5px;">对照 · 第二步</span>
+      <span style="font-size:15px; font-weight:600;">今日穿搭首页 · 纵向堆叠 → Bento 网格</span>
+    </div>
+    <div style="display:flex; gap:36px; flex-wrap:wrap; justify-content:center;">
+
+      <!-- BEFORE home -->
+      <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+        <span style="font-size:12px; font-weight:700; color:#B2BEC3; letter-spacing:1px;">改造前 · 纵向堆叠</span>
+        <div style="width:300px; background:#F8F9FA; border-radius:28px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,0.10);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:6px; background:#fff; padding:4px 10px 4px 4px; border-radius:24px;"><div style="width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#6C5CE7,#A29BFE); display:flex; align-items:center; justify-content:center; font-size:15px;">👤</div><span style="font-size:12px; font-weight:600; color:#2D3436;">我的</span></div>
+            <span style="font-size:15px; font-weight:600; color:#2D3436;">VestiCore</span>
+            <span style="width:40px;"></span>
+          </div>
+          <div style="display:flex; gap:10px; margin-bottom:12px;">
+            <div style="flex:1; background:#fff; border-radius:12px; padding:10px 12px; display:flex; align-items:center; gap:8px; box-shadow:0 1px 4px rgba(0,0,0,0.04);"><span style="font-size:22px;">📅</span><div><div style="font-size:12px; font-weight:600; color:#2D3436;">今日穿搭</div><div style="font-size:10px; color:#B2BEC3;">已准备好</div></div></div>
+            <div style="flex:1; background:#fff; border-radius:12px; padding:10px 12px; display:flex; align-items:center; gap:8px; box-shadow:0 1px 4px rgba(0,0,0,0.04);"><span style="font-size:22px;">☀️</span><div><div style="font-size:12px; font-weight:600; color:#2D3436;">26°C</div><div style="font-size:10px; color:#B2BEC3;">通勤</div></div></div>
+          </div>
+          <div style="height:150px; border-radius:20px; background:linear-gradient(135deg,#F8F6FF,#FFFAF0); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; margin-bottom:12px;"><span style="font-size:48px;">👗</span><span style="font-size:12px; color:#6C5CE7; font-weight:500;">今日推荐穿搭</span></div>
+          <div style="text-align:center; margin-bottom:12px;"><div style="font-size:16px; font-weight:700; color:#2D3436; margin-bottom:6px;">简约通勤方案</div><div style="display:flex; justify-content:center; gap:6px;"><span style="font-size:11px; background:#F1F2F6; color:#636E72; padding:3px 12px; border-radius:12px;">简约</span><span style="font-size:11px; background:#F1F2F6; color:#636E72; padding:3px 12px; border-radius:12px;">通勤</span></div></div>
+          <div style="font-size:12px; font-weight:600; color:#2D3436; margin-bottom:8px;">🧥 搭配清单</div>
+          <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <div style="flex:1; background:#F8F9FA; border-radius:8px; padding:10px 6px; text-align:center;"><div style="font-size:24px;">🧥</div><div style="font-size:10px; color:#2D3436; margin-top:4px;">卡其风衣</div></div>
+            <div style="flex:1; background:#F8F9FA; border-radius:8px; padding:10px 6px; text-align:center;"><div style="font-size:24px;">👔</div><div style="font-size:10px; color:#2D3436; margin-top:4px;">白衬衫</div></div>
+            <div style="flex:1; background:#F8F9FA; border-radius:8px; padding:10px 6px; text-align:center;"><div style="font-size:24px;">👖</div><div style="font-size:10px; color:#2D3436; margin-top:4px;">西裤</div></div>
+          </div>
+          <div style="background:linear-gradient(135deg,#FFF8E1,#FFF3CD); border-radius:12px; padding:10px 12px; display:flex; gap:8px; margin-bottom:12px;"><span style="font-size:15px;">💡</span><span style="font-size:11px; color:#856404; line-height:1.5;">卡其风衣配白衬衫，通勤得体不失时尚。</span></div>
+          <div style="display:flex; gap:8px;"><button style="flex:1.2; height:42px; background:#6C5CE7; color:#fff; border:none; border-radius:28px; font-size:13px; font-weight:600; box-shadow:0 8px 20px rgba(108,92,231,0.30);">🔄 换一种风格</button><button style="flex:1; height:42px; background:#fff; color:#6C5CE7; border:1.5px solid #6C5CE7; border-radius:28px; font-size:13px; font-weight:500;">✂️ 修改</button></div>
+        </div>
+      </div>
+
+      <!-- AFTER home (hero static replica) -->
+      <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+        <span style="font-size:12px; font-weight:700; color:#6C5CE7; letter-spacing:1px;">改造后 · 大 Hero + Bento</span>
+        <div style="width:300px; background:#F5F5F7; border-radius:28px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,0.10);">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px;">
+            <div><div style="font-size:11px; font-weight:600; color:#AEAEB2;">周三 · 7月8日</div><div style="font-size:24px; font-weight:800; letter-spacing:-0.6px; color:#1D1D1F;">今日穿搭</div></div>
+            <div style="width:36px; height:36px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.06); display:flex; align-items:center; justify-content:center; color:#1D1D1F;"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.5 3.2-5.5 7-5.5s7 2 7 5.5"/></svg></div>
+          </div>
+          <!-- HERO (weather + occasion + outfit + hint merged) -->
+          <div style="position:relative; height:288px; border-radius:26px; overflow:hidden; box-shadow:0 12px 34px -14px rgba(80,90,140,0.4);">
+            <div style="position:absolute; inset:0; background:linear-gradient(168deg,#BFD6F5,#DCE7F7 44%,#EFE9FB);"></div>
+            <div style="position:absolute; top:-36px; right:-18px; width:150px; height:150px; border-radius:50%; background:radial-gradient(circle,rgba(255,205,120,0.9) 0%,rgba(255,224,168,0.4) 42%,transparent 70%);"></div>
+            <div style="position:relative; height:100%; display:flex; flex-direction:column; padding:15px;">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between;">
+                <div style="color:#1D1D1F;"><div style="display:flex; align-items:baseline; gap:2px;"><span style="font-size:32px; font-weight:800; letter-spacing:-1.2px; line-height:1;">26</span><span style="font-size:18px; font-weight:700; color:rgba(29,29,31,0.5);">°</span></div><span style="font-size:12px; font-weight:600; color:rgba(29,29,31,0.6);">晴 · 微风</span></div>
+                <div style="text-align:right; color:#1D1D1F;"><div style="font-size:19px; font-weight:800; letter-spacing:-0.4px; line-height:1;">通勤</div><div style="font-size:11px; font-weight:600; color:rgba(29,29,31,0.55); margin-top:3px;">7月8日 周三</div></div>
+              </div>
+              <div style="flex:1; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="74" height="74" fill="none" stroke="#6C5CE7" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.92; filter:drop-shadow(0 8px 16px rgba(108,92,231,0.25));"><path d="M9 3l-1.2 3.2L4 13h4l-1 8h10l-1-8h4l-3.8-6.8L15 3M9 6.2h6"/></svg></div>
+              <div style="background:rgba(255,255,255,0.74); backdrop-filter:blur(20px) saturate(180%); -webkit-backdrop-filter:blur(20px) saturate(180%); border-radius:20px; padding:13px 14px; box-shadow:0 6px 18px rgba(60,70,120,0.12);">
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+                  <div><div style="font-size:17px; font-weight:800; letter-spacing:-0.3px; color:#1D1D1F;">简约通勤方案</div><div style="display:flex; gap:5px; margin-top:7px;"><span style="font-size:10px; font-weight:600; color:#6C5CE7; background:rgba(108,92,231,0.10); padding:3px 9px; border-radius:999px;">简约</span><span style="font-size:10px; font-weight:600; color:#6C5CE7; background:rgba(108,92,231,0.10); padding:3px 9px; border-radius:999px;">通勤</span></div></div>
+                  <div style="width:32px; height:32px; border-radius:50%; background:#6C5CE7; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 12px rgba(108,92,231,0.35);"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l1.8 5.2L19 11l-5.2 1.8L12 18l-1.8-5.2L5 11l5.2-1.8z"/></svg></div>
+                </div>
+                <div style="display:flex; gap:6px; align-items:flex-start; margin-top:10px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.06);"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#E0A800" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:1px;"><path d="M9 18h6M10 21.5h4M8.5 14a6 6 0 117 0c-.9.7-1.3 1.4-1.4 2.5h-4.2c-.1-1.1-.5-1.8-1.4-2.5z"/></svg><span style="font-size:11px; line-height:1.5; color:#4A4A4F; font-weight:500;">卡其风衣配白衬衫，通勤得体又显高。</span></div>
+              </div>
+            </div>
+          </div>
+          <!-- 搭配清单 small -->
+          <div style="border-radius:22px; background:#fff; padding:13px 14px; box-shadow:0 1px 3px rgba(0,0,0,0.05); margin-top:12px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#1D1D1F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5L4.5 6l1.4 2.4L8 7v13h8V7l2.1 1.4L19.5 6 16 3.5l-1.6 1.6a3.4 3.4 0 01-4.8 0z"/></svg><span style="font-size:13px; font-weight:700; color:#1D1D1F;">搭配清单</span><span style="font-size:11px; color:#AEAEB2; font-weight:500; margin-left:auto;">4 件</span></div>
+            <div style="display:flex; gap:8px;">
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;"><div style="width:100%; height:48px; border-radius:14px; background:#F5F5F7; display:flex; align-items:center; justify-content:center; color:#6C5CE7;"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5L4.5 6l1.4 2.4L8 7v13h8V7l2.1 1.4L19.5 6 16 3.5l-1.6 1.6a3.4 3.4 0 01-4.8 0z"/></svg></div><span style="font-size:9px; color:#6E6E73;">卡其风衣</span></div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;"><div style="width:100%; height:48px; border-radius:14px; background:#F5F5F7; display:flex; align-items:center; justify-content:center; color:#6C5CE7;"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3.5L4.5 6.5l1.6 2.6L8.5 7.6V20h7V7.6l2.4 1.5L20 6.5 16 3.5l-1.6 1.6a3.2 3.2 0 01-4.8 0z"/></svg></div><span style="font-size:9px; color:#6E6E73;">白衬衫</span></div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;"><div style="width:100%; height:48px; border-radius:14px; background:#F5F5F7; display:flex; align-items:center; justify-content:center; color:#6C5CE7;"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h10l.8 8-1.6 9h-3.4L12 11l-.8 9.5H7.8L6.2 11.5z"/></svg></div><span style="font-size:9px; color:#6E6E73;">西裤</span></div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;"><div style="width:100%; height:48px; border-radius:14px; background:#F5F5F7; display:flex; align-items:center; justify-content:center; color:#6C5CE7;"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15.5c0-.8.4-1.3 1.2-1.6L7 13l2.2 2.6 4.8.9c3 .5 5.5 1.1 6 3.5H3z"/></svg></div><span style="font-size:9px; color:#6E6E73;">乐福鞋</span></div>
+            </div>
+          </div>
+          <!-- action row -->
+          <div style="display:flex; gap:8px; margin-top:12px;">
+            <button style="flex:1; height:52px; background:rgba(108,92,231,0.10); color:#6C5CE7; border:none; border-radius:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0113.8-4.5M20 5v4h-4"/><path d="M20 13a8 8 0 01-13.8 4.5M4 19v-4h4"/></svg><div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.1;"><span style="font-size:13px; font-weight:700;">换一套</span><span style="font-size:9px; font-weight:600; opacity:0.7;">AI 帮你选</span></div></button>
+            <button style="flex:1; height:52px; background:#6C5CE7; color:#fff; border:none; border-radius:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; box-shadow:0 8px 22px -8px rgba(108,92,231,0.55);"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8l12 8M8 16L20 8"/></svg><div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.1;"><span style="font-size:13px; font-weight:700;">自由搭配</span><span style="font-size:9px; font-weight:600; color:rgba(255,255,255,0.78);">自己动手改</span></div></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 对照 3：偏好统计 ============ -->
+  <section style="width:100%; max-width:1180px; margin-top:56px; margin-bottom:20px; display:flex; flex-direction:column; gap:18px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="font-size:11px; font-weight:700; color:#fff; background:#1D1D1F; padding:4px 10px; border-radius:6px; letter-spacing:0.5px;">对照 · 第三步</span>
+      <span style="font-size:15px; font-weight:600;">偏好页统计区 · 三等分 → Bento（保存穿搭为主角）</span>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start;">
+      <!-- before stats -->
+      <div style="background:#F8F9FA; border-radius:20px; padding:24px; border:1px solid #ECECEC;">
+        <div style="font-size:13px; font-weight:700; color:#B2BEC3; letter-spacing:1px; margin-bottom:16px;">改造前 · 三个等大卡片</div>
+        <div style="display:flex; gap:8px;">
+          <div style="flex:1; background:#fff; border-radius:12px; padding:12px 8px; display:flex; flex-direction:column; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.04);"><span style="font-size:22px;">🎯</span><span style="font-size:20px; font-weight:700; color:#2D3436; margin-top:4px;">3</span><span style="font-size:10px; color:#B2BEC3; margin-top:2px;">保存穿搭</span></div>
+          <div style="flex:1; background:#fff; border-radius:12px; padding:12px 8px; display:flex; flex-direction:column; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.04);"><span style="font-size:22px;">🏷️</span><span style="font-size:20px; font-weight:700; color:#2D3436; margin-top:4px;">9</span><span style="font-size:10px; color:#B2BEC3; margin-top:2px;">偏好标签</span></div>
+          <div style="flex:1; background:#fff; border-radius:12px; padding:12px 8px; display:flex; flex-direction:column; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.04);"><span style="font-size:22px;">📅</span><span style="font-size:20px; font-weight:700; color:#2D3436; margin-top:4px;">3</span><span style="font-size:10px; color:#B2BEC3; margin-top:2px;">场合类型</span></div>
+        </div>
+      </div>
+      <!-- after stats -->
+      <div style="background:#F5F5F7; border-radius:24px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <div style="font-size:13px; font-weight:700; color:#6C5CE7; letter-spacing:1px; margin-bottom:16px;">改造后 · Bento（主角放大）</div>
+        <div style="display:grid; grid-template-columns:1.35fr 1fr; grid-template-rows:auto auto; gap:12px;">
+          <div style="grid-row:span 2; border-radius:22px; background:linear-gradient(160deg,#6C5CE7,#8B7BF0); padding:18px; color:#fff; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 12px 30px -10px rgba(108,92,231,0.5); position:relative; overflow:hidden; min-height:150px;"><div style="position:absolute; bottom:-24px; right:-16px; opacity:0.16;"><svg viewBox="0 0 24 24" width="110" height="110" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.6-7-9.2a4 4 0 017-2.6 4 4 0 017 2.6C19 15.4 12 20 12 20z"/></svg></div><span style="font-size:12px; font-weight:600; opacity:0.85;">保存穿搭</span><div><div style="font-size:52px; font-weight:800; letter-spacing:-2px; line-height:0.95;">3</div><span style="font-size:12px; opacity:0.8;">套已收藏</span></div></div>
+          <div style="border-radius:22px; background:#fff; padding:14px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:6px;"><div style="width:28px; height:28px; border-radius:9px; background:rgba(108,92,231,0.10); display:flex; align-items:center; justify-content:center; color:#6C5CE7;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12.5l-8 8L3 11V3.5H10.5z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg></div><span style="font-size:24px; font-weight:800; letter-spacing:-1px; color:#1D1D1F;">9</span><span style="font-size:11px; color:#6E6E73;">偏好标签</span></div>
+          <div style="border-radius:22px; background:#fff; padding:14px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:6px;"><div style="width:28px; height:28px; border-radius:9px; background:rgba(0,178,148,0.12); display:flex; align-items:center; justify-content:center; color:#00B894;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.2-8 4.2-8-4.2z"/><path d="M4 12l8 4.2 8-4.2"/></svg></div><span style="font-size:24px; font-weight:800; letter-spacing:-1px; color:#1D1D1F;">3</span><span style="font-size:11px; color:#6E6E73;">场合类型</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ICONS = {
+  coat: [['path',{d:'M8 3.5L4.5 6l1.4 2.4L8 7v13h8V7l2.1 1.4L19.5 6 16 3.5l-1.6 1.6a3.4 3.4 0 01-4.8 0z'}],['path',{d:'M12 8.5v11'}]],
+  shirt: [['path',{d:'M8.5 3.5L4.5 6.5l1.6 2.6L8.5 7.6V20h7V7.6l2.4 1.5L20 6.5 16 3.5l-1.6 1.6a3.2 3.2 0 01-4.8 0z'}]],
+  pants: [['path',{d:'M7 3.5h10l.8 8-1.6 9h-3.4L12 11l-.8 9.5H7.8L6.2 11.5z'}],['path',{d:'M7 3.5h10'}]],
+  dress: [['path',{d:'M9 3.5l-1.2 3.2L4 13.5h4l-1 7h10l-1-7h4l-3.8-6.8L15 3.5'}],['path',{d:'M9 6.7h6'}]],
+  shoe: [['path',{d:'M3 15.5c0-.8.4-1.3 1.2-1.6L7 13l2.2 2.6 4.8.9c3 .5 5.5 1.1 6 3.5H3z'}],['path',{d:'M7 13V9.5'}]],
+  knit: [['path',{d:'M8.5 3.5L4.5 6.5l1.6 2.6L8.5 7.6V20h7V7.6l2.4 1.5L20 6.5 16 3.5'}],['path',{d:'M9 11l6 4M15 11l-6 4'}]],
+  tshirt: [['path',{d:'M8.5 3.5L4 6l1.5 3 2.5-1.4V20h8V7.6L18.5 9 20 6l-4.5-2.5-1.5 1.4a3 3 0 01-4 0z'}]],
+  box: [['path',{d:'M3.5 7.5L12 3l8.5 4.5v9L12 21l-8.5-4.5z'}],['path',{d:'M3.5 7.5L12 12l8.5-4.5M12 12v9'}]],
+  robot: [['rect',{x:'4',y:'8',width:'16',height:'12',rx:'3'}],['path',{d:'M12 4v4M9 13h.01M15 13h.01M9 17h6'}]],
+  scissors: [['circle',{cx:'6',cy:'6.5',r:'2.2'}],['circle',{cx:'6',cy:'17.5',r:'2.2'}],['path',{d:'M8 7.6L20 16M8 16.4L20 8'}]],
+};
+function iconEl(name, size, color, sw) {
+  const shapes = ICONS[name] || ICONS.shirt;
+  return React.createElement('svg', {
+    viewBox: '0 0 24 24', width: size || 30, height: size || 30, fill: 'none',
+    stroke: color || 'currentColor', strokeWidth: sw || 1.7, strokeLinecap: 'round', strokeLinejoin: 'round',
+    style: { display: 'block', flexShrink: 0 }
+  }, shapes.map((s, i) => React.createElement(s[0], { key: i, ...s[1] })));
+}
+function garmentIconName(name) {
+  if (/风衣|外套|皮衣|夹克|大衣/.test(name)) return 'coat';
+  if (/开衫|针织|毛衣|羊/.test(name)) return 'knit';
+  if (/衬衫/.test(name)) return 'shirt';
+  if (/T恤|短T|上衣|卫衣/.test(name)) return 'tshirt';
+  if (/裤/.test(name)) return 'pants';
+  if (/裙/.test(name)) return 'dress';
+  if (/鞋|靴|乐福/.test(name)) return 'shoe';
+  return 'shirt';
+}
+const COLOR_MAP = {
+  '白':'#F2F2F4','黑':'#2D3436','深灰':'#636E72','卡其':'#D4A574','米色':'#F5DEB3',
+  '米白':'#FAF0E6','棕':'#8B4513','灰':'#B2BEC3','牛仔蓝':'#5B7FA5','蓝格':'#6C8EBF','碎花':'#E6A5C7'
+};
+
+const OUTFITS = [
+  { name:'简约通勤方案', tags:['简约','通勤'], temp:26, weatherIcon:'sun', weatherDesc:'晴 · 微风', occasion:'通勤',
+    garments:['卡其色风衣','白色衬衫','深灰西裤','棕色乐福鞋'],
+    tip:'卡其风衣配白衬衫，通勤得体又不失时尚感。九分裤露脚踝更显高。' },
+  { name:'甜酷街头混搭', tags:['街头','甜酷'], temp:22, weatherIcon:'cloud', weatherDesc:'多云 · 凉爽', occasion:'约会',
+    garments:['黑色皮衣','格纹衬衫','束脚运动裤','白色运动鞋'],
+    tip:'皮衣叠格纹衬衫，街头感十足；收腿裤型整体显瘦显高。' },
+  { name:'温柔知性风', tags:['温柔','知性'], temp:24, weatherIcon:'sun', weatherDesc:'晴 · 舒适', occasion:'出游',
+    garments:['针织开衫','米色长裙','白色运动鞋'],
+    tip:'针织开衫配米色长裙，温柔知性；同色系搭配视觉延伸更显高挑。' },
+];
+
+const WARDROBE = [
+  { id:1, name:'卡其色风衣', cat:'外套', color:'卡其', season:'春秋' },
+  { id:2, name:'白色衬衫', cat:'上衣', color:'白', season:'四季' },
+  { id:3, name:'深灰西裤', cat:'下装', color:'深灰', season:'四季' },
+  { id:4, name:'黑色皮衣', cat:'外套', color:'黑', season:'秋冬' },
+  { id:5, name:'格纹衬衫', cat:'上衣', color:'蓝格', season:'春秋' },
+  { id:6, name:'米色长裙', cat:'裙装', color:'米色', season:'春夏' },
+  { id:7, name:'棕色乐福鞋', cat:'鞋履', color:'棕', season:'四季' },
+  { id:8, name:'白色运动鞋', cat:'鞋履', color:'白', season:'四季' },
+  { id:9, name:'牛仔外套', cat:'外套', color:'牛仔蓝', season:'春秋' },
+  { id:10, name:'针织开衫', cat:'外套', color:'米白', season:'春秋' },
+  { id:11, name:'百褶裙', cat:'裙装', color:'黑', season:'四季' },
+  { id:12, name:'束脚运动裤', cat:'下装', color:'灰', season:'春秋' },
+];
+const CATS = [
+  { name:'全部', icon:'box' },{ name:'外套', icon:'coat' },{ name:'上衣', icon:'shirt' },
+  { name:'下装', icon:'pants' },{ name:'裙装', icon:'dress' },{ name:'鞋履', icon:'shoe' },
+];
+
+const SAVED = [
+  { id:'o1', name:'简约通勤风_0629', date:'06-29', occasion:'通勤', weather:'☀ 26°',
+    garments:['卡其色风衣','白色衬衫','深灰西裤','棕色乐福鞋'], tags:['简约','通勤','卡其色'], source:'AI 推荐', ai:true },
+  { id:'o2', name:'甜酷混搭_0630', date:'06-30', occasion:'约会', weather:'⛅ 22°',
+    garments:['黑色皮衣','格纹衬衫','束脚运动裤','白色运动鞋'], tags:['街头','甜酷','黑色系'], source:'自由搭配', ai:false },
+  { id:'o3', name:'温柔知性风_0628', date:'06-28', occasion:'出游', weather:'☀ 24°',
+    garments:['针织开衫','米色长裙','白色运动鞋'], tags:['温柔','知性','米色系'], source:'AI 推荐', ai:true },
+];
+
+class Component extends DCLogic {
+  state = { tab: 'home', outfitIdx: 0, cat: '全部', toast: null,
+    screen: null, wsCat: '全部', wsItems: [], wsLoading: false, wsProg: 0, wsTip: 0, showSave: false,
+    scanHasImage: false, scanAngle: 'flat', wardrobeEmpty: false,
+    loggedIn: false, showAuth: false, authMode: 'register', advOpen: false };
+
+  componentDidMount() { if (!this.state.loggedIn) this.setState({ showAuth: true, tab: 'profile' }); }
+  setTab(t) { this.setState({ tab: t }); }
+  openAuth() { this.setState({ showAuth: true, tab: 'profile' }); }
+  closeAuth() { this.setState({ showAuth: false }); }
+  submitAuth() { this.setState({ loggedIn: true, showAuth: false, tab: 'profile' }); this.showToast('欢迎加入 VestiCore ✦'); }
+  toggleAdv() { this.setState(s => ({ advOpen: !s.advOpen })); }
+  saveProfile() { this.showToast('档案已保存 ✓'); }
+  openWorkshop() { this.setState({ screen: 'workshop' }); }
+  openScan() { if (!this.state.loggedIn) { this.openAuth(); return; } this.setState({ screen: 'scan', scanHasImage: false }); }
+  closeScreen() { clearInterval(this._ws); this.setState({ screen: null, wsLoading: false }); }
+  addWs(item) {
+    if (this.state.wsLoading) return;
+    this.setState(s => ({ wsItems: s.wsItems.some(x => x.id === item.id) ? s.wsItems : [...s.wsItems, item], wsLoading: true, wsProg: 0 }));
+    clearInterval(this._ws);
+    this._ws = setInterval(() => {
+      this.setState(s => {
+        let p = s.wsProg + Math.random() * 7 + 3;
+        if (p >= 100) { p = 100; clearInterval(this._ws); setTimeout(() => { this.setState({ wsLoading: false }); this.showToast('换装成功 ✦'); }, 350); }
+        return { wsProg: p, wsTip: Math.floor(p / 25) % 4 };
+      });
+    }, 240);
+  }
+  confirmSave() { clearInterval(this._ws); this.setState({ showSave: false, screen: null, wsItems: [], wsLoading: false }); this.showToast('穿搭已保存并设为偏好 ✓'); }
+  scanNext() { this.setState({ screen: null }); this.showToast('衣物已加入电子衣柜 ✓'); }
+  showToast(msg) { this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 1800); }
+  reroll() { this.setState(s => ({ outfitIdx: (s.outfitIdx + 1) % OUTFITS.length })); this.showToast('已换一套风格 ✦'); }
+  applyOutfit(name) { this.showToast('已应用「' + name + '」为今日穿搭'); }
+
+  renderVals() {
+    const tab = this.state.tab;
+    const o = OUTFITS[this.state.outfitIdx];
+    const wIconMap = { sun: '☀', cloud: '⛅' };
+    const weatherSvg = React.createElement('svg', { viewBox:'0 0 24 24', width:20, height:20, fill:'none', stroke:'#1D1D1F', strokeWidth:1.7, strokeLinecap:'round', strokeLinejoin:'round' },
+      o.weatherIcon === 'cloud'
+        ? [React.createElement('path',{key:0,d:'M7 18a4 4 0 01-.5-8 5.5 5.5 0 0110.5 1.2A3.5 3.5 0 0117 18z'})]
+        : [React.createElement('circle',{key:0,cx:12,cy:12,r:4}), ...[0,45,90,135,180,225,270,315].map((a,i)=>{const r=a*Math.PI/180;const x1=12+6*Math.cos(r),y1=12+6*Math.sin(r),x2=12+8.2*Math.cos(r),y2=12+8.2*Math.sin(r);return React.createElement('line',{key:'l'+i,x1,y1,x2,y2});})]
+    );
+
+    const today = {
+      date: '周三 · 7月8日', dateShort: '7月8日 周三',
+      name: o.name, tags: o.tags, temp: o.temp, weatherIcon: weatherSvg, weatherDesc: o.weatherDesc,
+      occasion: o.occasion, tip: o.tip, garmentCount: o.garments.length, sunny: o.weatherIcon === 'sun', cloudy: o.weatherIcon === 'cloud',
+      garments: o.garments.map((g,i) => ({ name: g, iconEl: iconEl(garmentIconName(g), 40, '#6C5CE7', 1.6) })),
+    };
+
+    const cats = CATS.map(c => {
+      const active = this.state.cat === c.name;
+      return { name: c.name, onClick: () => this.setState({ cat: c.name }),
+        iconEl: iconEl(c.icon, 16, active ? '#fff' : '#6E6E73', 1.7),
+        bg: active ? '#6C5CE7' : '#fff', color: active ? '#fff' : '#6E6E73',
+        shadow: active ? '0 6px 16px -6px rgba(108,92,231,0.6)' : '0 1px 3px rgba(0,0,0,0.05)' };
+    });
+    const items = (this.state.cat === '全部' ? WARDROBE : WARDROBE.filter(i => i.cat === this.state.cat))
+      .map(it => ({ ...it, iconEl: iconEl(garmentIconName(it.name), 46, '#6C5CE7', 1.5),
+        colorBg: COLOR_MAP[it.color] || '#ddd' }));
+
+    const prefOutfits = SAVED.map(s => ({
+      name: s.name, meta: s.date + ' · ' + s.occasion + ' · ' + s.weather, source: s.source,
+      iconEl: iconEl(s.ai ? 'robot' : 'scissors', 20, '#6C5CE7', 1.7),
+      onApply: () => this.applyOutfit(s.name),
+      garments: s.garments.map(g => ({ name: g, iconEl: iconEl(garmentIconName(g), 15, '#6C5CE7', 1.7) })),
+      tags: s.tags,
+    }));
+    const prefStats = {
+      saved: SAVED.length,
+      tagCount: new Set(SAVED.flatMap(s => s.tags)).size,
+      occCount: new Set(SAVED.map(s => s.occasion)).size,
+    };
+
+    const styleSel = ['简约','通勤'];
+    const styleTags = ['简约','通勤','复古','街头','甜美','运动'].map(s => ({
+      name: s, bg: styleSel.includes(s) ? '#6C5CE7' : '#F5F5F7', color: styleSel.includes(s) ? '#fff' : '#6E6E73' }));
+    const colorSel = ['黑','白'];
+    const colorPrefs = [['红','#FF6B6B'],['蓝','#54A0FF'],['黑','#2D3436'],['白','#F2F2F4'],['灰','#B2BEC3'],['粉','#FD79A8']]
+      .map(([n,hex]) => ({ bg: hex, ring: colorSel.includes(n) ? '3px' : '0px' }));
+    const bodyData = [
+      { label:'身高', value:'170 cm' },{ label:'体重', value:'65 kg' },{ label:'肩宽', value:'44 cm' },
+      { label:'体型', value:'沙漏形' },{ label:'日常尺码', value:'M' },
+    ];
+
+    // workshop
+    const WS_TIPS = ['衬衫塞进高腰裤更显腿长', '卡其风衣 + 白内搭，经典永不过时', '乐福鞋配九分裤，露脚踝更显瘦', '外套披肩瞬间提升时尚感'];
+    const wsCats = CATS.map(c => { const a = this.state.wsCat === c.name; return { name: c.name, iconEl: iconEl(c.icon, 15, a ? '#fff' : '#6E6E73', 1.7), bg: a ? '#6C5CE7' : '#fff', color: a ? '#fff' : '#6E6E73', shadow: a ? '0 6px 16px -6px rgba(108,92,231,0.6)' : '0 1px 3px rgba(0,0,0,0.05)', onClick: () => this.setState({ wsCat: c.name }) }; });
+    const wsPick = (this.state.wsCat === '全部' ? WARDROBE : WARDROBE.filter(i => i.cat === this.state.wsCat)).map(it => ({ name: it.name, iconEl: iconEl(garmentIconName(it.name), 34, '#6C5CE7', 1.5), onClick: () => this.addWs(it) }));
+    const wsAdded = this.state.wsItems.map(it => ({ name: it.name, iconEl: iconEl(garmentIconName(it.name), 20, '#6C5CE7', 1.6) }));
+    const wp = this.state.wsProg;
+    const wsProgText = wp < 20 ? '正在分析身材数据…' : wp < 45 ? '匹配衣物版型与垂感…' : wp < 70 ? '优化色彩搭配与层次…' : wp < 90 ? '渲染上身效果细节…' : '即将呈现完美穿搭！';
+    const scanAngles = [['平铺图', 'flat'], ['悬挂图', 'hanging'], ['上身图', 'wearing']].map(([l, v]) => { const a = this.state.scanAngle === v; return { label: l, val: v, onClick: () => this.setState({ scanAngle: v }), bg: a ? '#6C5CE7' : '#fff', color: a ? '#fff' : '#6E6E73', shadow: a ? '0 6px 16px -6px rgba(108,92,231,0.6)' : '0 1px 3px rgba(0,0,0,0.05)' }; });
+    const scanReady = this.state.scanHasImage;
+
+    const am = this.state.authMode, isReg = am === 'register';
+    const on = '#6C5CE7', off = '#AEAEB2';
+    return {
+      showAuth: this.state.showAuth, isRegister: isReg, isLogin: !isReg,
+      authTitle: isReg ? '创建你的账号' : '欢迎回来',
+      authSub: isReg ? '注册后即可上传衣物、生成专属穿搭' : '登录以同步你的电子衣柜',
+      authSubmitText: isReg ? '注册并登录' : '登录',
+      regTabBg: isReg ? '#fff' : 'transparent', regTabColor: isReg ? '#1D1D1F' : '#8E8E93',
+      loginTabBg: isReg ? 'transparent' : '#fff', loginTabColor: isReg ? '#8E8E93' : '#1D1D1F',
+      setAuthReg: () => this.setState({ authMode: 'register' }), setAuthLogin: () => this.setState({ authMode: 'login' }),
+      closeAuth: () => this.closeAuth(), submitAuth: () => this.submitAuth(),
+      advOpen: this.state.advOpen, advClosed: !this.state.advOpen, toggleAdv: () => this.toggleAdv(),
+      advChevron: this.state.advOpen ? '收起' : '展开', saveProfile: () => this.saveProfile(),
+      screen: this.state.screen, isWorkshop: this.state.screen === 'workshop', isScan: this.state.screen === 'scan',
+      openWorkshop: () => this.openWorkshop(), openScan: () => this.openScan(), closeScreen: () => this.closeScreen(),
+      wsCats, wsPick, wsAdded, wsHasItems: wsAdded.length > 0, wsLoading: this.state.wsLoading,
+      wsProg: Math.round(wp), wsProgText, wsTip: WS_TIPS[this.state.wsTip % 4],
+      showSave: this.state.showSave, openSave: () => this.setState({ showSave: true }), closeSave: () => this.setState({ showSave: false }),
+      confirmSave: () => this.confirmSave(), sheetStop: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
+      scanHasImage: this.state.scanHasImage, scanNoImage: !this.state.scanHasImage, scanAngles, scanUpload: () => this.setState({ scanHasImage: true }), scanNext: () => { if (this.state.scanHasImage) this.scanNext(); },
+      scanNextText: scanReady ? '加入衣柜 · 下一步' : '请先上传衣物图片',
+      scanNextBg: scanReady ? '#6C5CE7' : '#E4E4E8', scanNextColor: scanReady ? '#fff' : '#AEAEB2',
+      scanNextShadow: scanReady ? '0 8px 22px -8px rgba(108,92,231,0.55)' : 'none',
+      isHome: tab==='home', isWardrobe: tab==='wardrobe', isPref: tab==='pref', isProfile: tab==='profile',
+      goHome: () => this.setTab('home'), goWardrobe: () => this.setTab('wardrobe'),
+      goPref: () => this.setTab('pref'), goProfile: () => this.setTab('profile'),
+      tabColor: { home: tab==='home'?on:off, wardrobe: tab==='wardrobe'?on:off, pref: tab==='pref'?on:off, profile: tab==='profile'?on:off },
+      tabWeight: { home: tab==='home'?700:500, wardrobe: tab==='wardrobe'?700:500, pref: tab==='pref'?700:500, profile: tab==='profile'?700:500 },
+      today, reroll: () => this.reroll(), toastEdit: () => this.showToast('打开自由搭配工坊…'),
+      wardrobeTotal: WARDROBE.length, cats, wardrobeItems: items,
+      wardrobeEmpty: this.state.wardrobeEmpty, wardrobeFilled: !this.state.wardrobeEmpty,
+      setEmpty: () => this.setState({ wardrobeEmpty: true }), setFilled: () => this.setState({ wardrobeEmpty: false }),
+      emptyToggleBg: this.state.wardrobeEmpty ? '#fff' : 'transparent', filledToggleBg: this.state.wardrobeEmpty ? 'transparent' : '#fff',
+      emptyToggleColor: this.state.wardrobeEmpty ? '#1D1D1F' : '#8E8E93', filledToggleColor: this.state.wardrobeEmpty ? '#8E8E93' : '#1D1D1F',
+      prefOutfits, prefStats, styleTags, colorPrefs, bodyData,
+      toastMsg: this.state.toast,
+    };
+  }
+}
+</script>
+</body>
+</html>
