@@ -26,6 +26,7 @@ export default defineConfig((/* ctx */) => {
       // 'line-awesome',
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
 
+      // 额外资源：图标字体 / 字体
       'roboto-font', // optional, you are not bound to it
       'material-icons', // optional, you are not bound to it
     ],
@@ -33,8 +34,8 @@ export default defineConfig((/* ctx */) => {
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     build: {
       target: {
-        // browser: 'baseline-widely-available',
-        // node: 'node22'
+        browser: 'baseline-widely-available',
+        node: 'node22',
       },
 
       typescript: {
