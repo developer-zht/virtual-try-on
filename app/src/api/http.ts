@@ -5,6 +5,7 @@ import { API } from './_configs/url';
 import { STORAGE_KEYS } from '@/constants/storage';
 import { getCookie } from '@/utils/cookie';
 import { extractAccessToken } from './auth';
+import { ROUTES } from '@/constants/routes';
 
 export const instance: AxiosInstance = axios.create({
   baseURL: import.meta.env.API_BASE_URL || '/api',
@@ -57,7 +58,7 @@ instance.interceptors.response.use(
         console.log(refreshErr);
 
         localStorage.removeItem(STORAGE_KEYS.accessToken);
-        void getRouter().push('/auth/login'); // 不加 / 会被当成相对当前路由
+        void getRouter().push({ name: ROUTES.login }); // 不加 / 会被当成相对当前路由
 
         return Promise.reject(
           refreshErr instanceof Error ? refreshErr : new Error(String(refreshErr)),
