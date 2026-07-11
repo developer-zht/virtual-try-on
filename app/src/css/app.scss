@@ -1,20 +1,36 @@
-// ===== 设计 token（迁移自原型 theme.css 的 :root）=====
-// 保留成 CSS 变量：原型里用 var(--primary) 的样式可以几乎原样搬过来。
+// ===== 设计 token（苹果风 + Bento 改造 · 迁移自设计稿 theme.css 的 :root）=====
+// 全部用 CSS 自定义属性（--xxx）：运行时可读改、可在 .vue 的 :style 里直接用，
+// 也让设计稿里 var(--primary) 的写法能几乎原样搬过来。
 :root {
+  /* 主色：只用于关键 CTA 按钮 + 选中态，不再大面积铺 */
   --primary: #6c5ce7;
-  --primary-light: #a29bfe;
-  --primary-glow: rgba(108, 92, 231, 0.25);
-  --secondary: #fdcb6e;
-  --bg-main: #f8f9fa;
-  --bg-card: #ffffff;
-  --text-dark: #2d3436;
-  --text-gray: #636e72;
-  --text-light: #b2bec3;
-  --border-light: #f1f2f6;
-  --shadow-btn: 0px 8px 20px rgba(108, 92, 231, 0.3);
-  --radius-lg: 20px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
+  --primary-soft: rgba(108, 92, 231, 0.1); /* 选中/强调的浅底 */
+
+  /* 背景分层：大面积浅灰 + 纯白卡片 */
+  --bg-main: #f5f5f7; /* 页面底 */
+  --bg-card: #ffffff; /* 卡片 */
+  --bg-fill: #f5f5f7; /* 卡内填充块（缩略图底等）*/
+
+  /* 文字：Apple 系统灰阶 */
+  --text-dark: #1d1d1f; /* 主文字/大标题 */
+  --text-gray: #6e6e73; /* 次要文字 */
+  --text-light: #aeaeb2; /* 三级/占位 */
+
+  --hairline: rgba(0, 0, 0, 0.06); /* 分隔线 */
+
+  /* 阴影：中性灰，去掉一切紫色发光 */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05); /* 卡片静置 */
+  --shadow-hero: 0 14px 40px -14px rgba(80, 90, 140, 0.4); /* 大卡/hero */
+  --shadow-cta: 0 8px 22px -8px rgba(108, 92, 231, 0.55); /* 主按钮（唯一保留的带色阴影）*/
+
+  /* 圆角：连续圆角 squircle，整体放大 */
+  --radius-hero: 30px; /* 首页 hero */
+  --radius-lg: 24px; /* 主卡片 */
+  --radius-md: 20px; /* 中卡片/按钮 */
+  --radius-sm: 16px; /* 小卡片/输入框 */
+  --radius-pill: 999px; /* 胶囊/标签/圆点 */
+
+  /* 底部安全区（保留原值，Tab 导航会用）*/
   --safe-bottom: 20px;
 }
 
@@ -33,7 +49,7 @@ body,
 }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
-  background: #e8e8e8;
+  background: #e9e9ec;
 }
 
 // 默认：全屏
@@ -56,7 +72,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 12px;
-  background: #e8e8e8;
+  background: #e9e9ec;
 }
 .app-bg--framed .phone-frame {
   max-width: 390px;
