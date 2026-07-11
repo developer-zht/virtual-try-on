@@ -79,5 +79,16 @@ export default defineConfigWithVueTs(
     },
   },
 
+  // 新增自定义配置项：放在所有预设之后，确保你的覆盖最终生效
+  {
+    files: ['**/*.ts', '**/*.vue'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
+  },
+
   prettierSkipFormatting,
 );

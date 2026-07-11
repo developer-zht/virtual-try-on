@@ -5,9 +5,10 @@
   },
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
-    "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .prettier*, prettier*, .editorconfig,.stylelintrc.ts,postcss.config.cjs, commitlint*",
+    "package.json": "package-lock.json, .nvmrc, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .prettier*, prettier*, .editorconfig, .stylelint*, commitlint*, postcss*",
     ".gitignore": ".gitattributes, .gitmodules, .gitmessage, .mailmap",
-    ".env": ".env.*"
+    ".env": ".env.*,  env.d.ts",
+    "quasar.config.ts": "tsconfig*"
   },
   "editor.formatOnSave": true
 }
