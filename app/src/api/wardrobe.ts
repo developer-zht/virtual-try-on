@@ -1,4 +1,4 @@
-import { TaskTimeoutError, ValidationError } from '@/errors';
+import { TaskFailedError, TaskTimeoutError, ValidationError } from '@/errors';
 import { API } from './_configs/url';
 import { request } from './request';
 import type {
@@ -58,15 +58,16 @@ export function getTask(id: string): Promise<Task> {
 }
 
 /** 轮询任务直到 done/failed；超过 maxWaitMs 抛超时 */
-export async function pollTask(id: string, maxWaitMs = 60_000) {
+export async function pollTask(id: string, maxWaitMs = 60_000, onProgress?: (p: number) => void) {
   const deadline = Date.now() + maxWaitMs;
 
   for (;;) {
     const task = await getTask(id);
+    onProgress?.(task.progress);
     if (task.status === 'done' || task.status === 'failed') return task;
     if (Date.now() > deadline) throw new TaskTimeoutError(id, maxWaitMs);
     const wait = task.poll_after_ms || 2000;
-    await new Promise((resolve) => setTimeout(() => resolve, wait));
+    await new Promise<void>((resolve) => setTimeout(() => resolve(), wait));
   }
 }
 
@@ -104,7 +105,10 @@ function isAllowedMime(t: string): t is AllowedMime {
   return (ALLOWED as readonly string[]).includes(t);
 }
 // importGarment 是"从用户选的图片开始"的入口，语义上进来的就是一个 File，用 File 是在类型上写明意图，而因为 File is-a Blob，把它传给要 Blob 的 uploadToOss 天经地义（里氏替换）
-export async function importGarment(file: File): Promise<Garment[]> {
+export async function importGarment(
+  file: File,
+  onProgress?: (p: number) => void,
+): Promise<Garment[]> {
   if (!isAllowedMime(file.type)) {
     throw new ValidationError(`不支持的图片格式：${file.type || '未知'}`);
   }
@@ -113,9 +117,14 @@ export async function importGarment(file: File): Promise<Garment[]> {
     file_size: file.size,
   });
   await uploadToOss(uploaded, file);
-  const { task_id } = await confirmUpload(uploaded.upload_id);
-  const task = await pollTask(task_id);
-  if (task.status === 'failed') throw new Error(task.error_message ?? '衣物导入失败');
+  const uploadConfirmResult = await confirmUpload(uploaded.upload_id);
+  const task = await pollTask(uploadConfirmResult.task_id, 60_000, onProgress);
+  if (task.status === 'failed')
+    throw new TaskFailedError(
+      uploadConfirmResult.task_id,
+      task.error_message ?? '衣物导入失败',
+      task.error_code,
+    );
   return task.garments ?? [];
 }
 
