@@ -14,13 +14,13 @@
 
 // Quasar 主题色（供 Quasar 组件用，如 <q-btn color="primary">）
 // Quasar 会自动把本文件注入每个 .vue 的 <style>，所以全项目可用。
-// 与 app.scss 里的 :root CSS 变量保持一致。
+// 与 app.scss 的 :root CSS 变量保持一致。
 
 $primary: #6c5ce7;
 $secondary: #fdcb6e;
 $accent: #a29bfe;
 
-$dark: #2d3436;
+$dark: #1d1d1f; // ← 原 #2d3436，对齐 --text-dark（苹果近黑）
 $dark-page: #121212;
 
 $positive: #21ba45;

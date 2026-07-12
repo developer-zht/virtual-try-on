@@ -30,8 +30,12 @@
   --radius-sm: 16px; /* 小卡片/输入框 */
   --radius-pill: 999px; /* 胶囊/标签/圆点 */
 
-  /* 底部安全区（保留原值，Tab 导航会用）*/
-  --safe-bottom: 20px;
+  /* 顶部安全区 */
+  --safe-top: env(safe-area-inset-top);
+  /* 底部安全区：真机取系统安全区，桌面/无刘海机型保底 20px */
+  --safe-bottom: max(20px, env(safe-area-inset-bottom)); // ←改这行（原 20px）
+
+  --tab-height: 50px; // Tab 内容高度（tab-item 和内容底部留白共用）
 }
 
 // ===== 全局重置 =====
@@ -56,29 +60,9 @@ body {
 .app-bg {
   min-height: 100%;
   display: flex;
-}
-.phone-frame {
-  width: 100%;
-  height: 100%;
-  background: var(--bg-main);
-  overflow: hidden;
-  position: relative;
-  display: flex;
   flex-direction: column;
-}
-// 仅桌面预览：套居中手机壳
-.app-bg--framed {
-  min-height: 100vh;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  background: #e9e9ec;
-}
-.app-bg--framed .phone-frame {
-  max-width: 390px;
-  height: 780px;
-  border-radius: 36px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  background: var(--bg-main); // 页面底色（原来靠 phone-frame 提供）
+  position: relative; // 给绝对定位的 TabBar 当参照系
 }
 .page-wrapper {
   flex: 1;
@@ -96,13 +80,11 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--bg-main);
-  transition:
-    transform 0.38s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.38s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, opacity;
-  padding: 16px 16px 24px;
   overflow-y: auto;
   overflow-x: hidden;
+  // 底部留白 = Tab 高 + 安全区 + 一点余量，让内容能滚到 Tab 背后又不被永久遮住
+  // 顶部留白 = 16px + 顶部安全区；底部保持 Tab 清空量
+  padding: calc(16px + var(--safe-top)) 16px calc(var(--tab-height) + var(--safe-bottom) + 16px);
 }
 .page-slot::-webkit-scrollbar {
   width: 0;
@@ -110,37 +92,25 @@ body {
 }
 
 // ===== 页面切换过渡（对应原 App.js 的 direction 前进/后退）=====
-// 前进：新页从右侧滑入，旧页向左退出
-.page-forward-enter-from {
-  transform: translateX(100%);
+// Tab 切换：交叉淡化（新旧页 .page-slot 都是 absolute，叠在一起淡入淡出）
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.28s ease;
+}
+.page-fade-enter-from,
+.page-fade-leave-to {
   opacity: 0;
 }
-.page-forward-enter-to {
-  transform: translateX(0);
-  opacity: 1;
+
+// 全屏浮层过渡：渐显 + 从下方微微上抬（配合 route.meta.overlay）
+.page-rise-enter-active,
+.page-rise-leave-active {
+  transition:
+    opacity 0.32s ease,
+    transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.page-forward-leave-from {
-  transform: translateX(0);
-  opacity: 1;
-}
-.page-forward-leave-to {
-  transform: translateX(-30%);
+.page-rise-enter-from,
+.page-rise-leave-to {
   opacity: 0;
-}
-// 后退：反方向
-.page-back-enter-from {
-  transform: translateX(-30%);
-  opacity: 0;
-}
-.page-back-enter-to {
-  transform: translateX(0);
-  opacity: 1;
-}
-.page-back-leave-from {
-  transform: translateX(0);
-  opacity: 1;
-}
-.page-back-leave-to {
-  transform: translateX(100%);
-  opacity: 0;
+  transform: translateY(24px);
 }
