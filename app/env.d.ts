@@ -13,10 +13,10 @@
  * }
  */
 interface ImportMetaEnv {
-  readonly API_BASE_URL: string;
-  readonly SENTRY_DSN: string;
-  readonly SENTRY_TRACES_RATE: string;
-  readonly LOG_ENDPOINT: string;
+  readonly QCLI_API_BASE_URL: string;
+  readonly QCLI_SENTRY_DSN: string;
+  readonly QCLI_SENTRY_TRACES_RATE: string;
+  readonly QCLI_LOG_ENDPOINT: string;
 }
 
 interface ImportMetaEnv {
