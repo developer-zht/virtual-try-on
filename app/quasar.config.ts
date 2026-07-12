@@ -11,7 +11,12 @@ export default defineConfig((/* ctx */) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['pinia', 'msw', 'sentry'],
+    boot: [
+      'pinia',
+      // 'msw',
+      'sentry',
+      'auth',
+    ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['app.scss'],
@@ -33,6 +38,14 @@ export default defineConfig((/* ctx */) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     build: {
+      env: {
+        file: [
+          '.env.development',
+          '.env.development.local',
+          '.env.production',
+          '.env.production.local',
+        ],
+      },
       target: {
         browser: 'baseline-widely-available',
         node: 'node22',
