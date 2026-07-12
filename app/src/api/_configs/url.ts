@@ -1,6 +1,6 @@
 export const BASE_URL = import.meta.env.VITE_API_BASE || '/api';
 
-// baseURL 里已含 /api/v1（见 .env：API_BASE_URL=https://veslune.aabbaq.com/api/v1）
+// baseURL 里已含 /api/v1（见 .env：QCLI_API_BASE_URL=https://veslune.aabbaq.com/api/v1）
 // 所以这里的路径都不带 /api/v1
 export const API = {
   auth: {

@@ -8,7 +8,7 @@ import { extractAccessToken } from './auth';
 import { ROUTES } from '@/constants/routes';
 
 export const instance: AxiosInstance = axios.create({
-  baseURL: import.meta.env.API_BASE_URL || '/api',
+  baseURL: import.meta.env.QCLI_API_BASE_URL || 'api/',
   timeout: 15000, // 15s 超时，防止请求悬挂
 });
 

@@ -58,3 +58,16 @@ export class TaskTimeoutError extends AppError {
     this.name = 'TaskTimeoutError';
   }
 }
+
+// ⑥ 任务失败：status=failed（AI 真的跑了但没成功）
+export class TaskFailedError extends AppError {
+  public taskId: string;
+  public errorCode: string | undefined;
+
+  constructor(taskId: string, message: string, errorCode?: string) {
+    super(message);
+    this.taskId = taskId;
+    this.errorCode = errorCode;
+    this.name = 'TaskFailedError';
+  }
+}
