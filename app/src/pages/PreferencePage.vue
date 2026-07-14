@@ -35,7 +35,7 @@
       <div v-for="o in cards" :key="o.id" class="saved-card">
         <div class="saved-card__head">
           <div class="saved-card__icon" :class="`saved-card__icon--${o.source}`">
-            <AppIcon :name="o.source === 'ai' ? 'sparkle' : 'scissors'" :size="18" />
+            <AppIcon :name="o.source === 'ai' ? 'bulb' : 'scissors'" :size="18" />
           </div>
           <div class="saved-card__title">
             <div class="saved-card__name">{{ o.name }}</div>
@@ -47,7 +47,7 @@
             disabled
             title="设为今日穿搭需后端放开（当前仅支持 generated）"
           >
-            <AppIcon name="bookmark" :size="18" />
+            <AppIcon name="sparkle" :size="18" />
           </button>
           <button class="saved-card__del" aria-label="删除" @click="onDelete(o.id)">
             <AppIcon name="trash" :size="18" />
@@ -73,13 +73,15 @@ import { ROUTES } from '@/constants/routes';
 import type { Outfit } from '@/api/types/outfits';
 import { useAuthStore } from '@/stores/auth';
 import { useSavedOutfitsStore } from '@/stores/savedOutfits';
+import { useNotifyStore } from '@/stores/notify';
 
 const router = useRouter();
+const notify = useNotifyStore();
 const auth = useAuthStore();
 
 const saved = useSavedOutfitsStore();
 const { isEmpty, savedCount, occasionCount, tagCount, items } = storeToRefs(saved);
-const { fetchSaved, remove } = saved;
+const { fetchSaved, removeSaved } = saved;
 
 onMounted(() => {
   void fetchSaved(); // 未登录时 store 内部早退 → items 空 → isEmpty → 显空态
@@ -119,8 +121,15 @@ function onEmptyCta() {
   else auth.openAuth('register');
 }
 
-function onDelete(id: string) {
-  void remove(id);
+async function onDelete(id: string) {
+  const ok = await notify.confirm({
+    title: '删除收藏',
+    message: '确定要从个人偏好中删除这套收藏吗？此操作不可撤销。',
+    okText: '删除',
+    danger: true,
+  });
+  if (!ok) return;
+  if (await removeSaved(id)) notify.success('已删除');
 }
 </script>
 <style scoped lang="scss">
@@ -322,7 +331,7 @@ function onDelete(id: string) {
   border: none;
   border-radius: 50%;
   background: var(--bg-fill);
-  color: var(--text-light);
+  color: var(--danger);
   display: flex;
   align-items: center;
   justify-content: center;

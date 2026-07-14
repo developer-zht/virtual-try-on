@@ -67,7 +67,7 @@ export const useProfileStore = defineStore('profile', () => {
   // ── action：载入档案（嵌套 → 扁平）──
   async function fetchProfile() {
     const res = await _runAsync(() => getProfile(), loading, error);
-    console.log(res);
+    console.log('fetchProfiler', res);
     if (res) profile.value = fromApi(res);
   }
 

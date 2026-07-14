@@ -154,10 +154,13 @@ import { onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useProfileStore } from '@/stores/profile';
 import { useNotifyStore } from '@/stores/notify';
+import { watch } from 'vue';
 
 // ==================== 登录检查 ====================
 
 const auth = useAuthStore();
+
+const { loggedIn } = storeToRefs(auth);
 
 // 登录闸门：未登录时，点击/聚焦本页任何交互控件都拦下并弹注册
 function guardClick(e: MouseEvent) {
@@ -199,11 +202,6 @@ const userSub = computed(() =>
 
 // ==================== 个人数据 ====================
 
-// const user = { name: '张三', sub: '身高 178 · 体重 70kg' };
-
-// 身体数据（可编辑）
-// const body = reactive({ height: 178, weight: 70, skin: '自然色' });
-
 const profileStore = useProfileStore();
 const { profile, options, saving, error } = storeToRefs(profileStore);
 const { fetchProfile, fetchOptions, saveProfile } = profileStore;
@@ -211,6 +209,10 @@ const { fetchProfile, fetchOptions, saveProfile } = profileStore;
 onMounted(() => {
   void fetchOptions(); // 选项无需登录，总是拉
   if (auth.loggedIn) void fetchProfile(); // 档案需登录，未登录先不拉（避免 401）
+});
+
+watch(loggedIn, (isLoggedIn) => {
+  if (isLoggedIn) void fetchProfile();
 });
 
 type NumberProfileKey =
