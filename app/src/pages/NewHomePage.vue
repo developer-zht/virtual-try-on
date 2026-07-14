@@ -12,7 +12,8 @@
     <!-- 未生成 → Welcome 引导（§1.0）-->
     <div v-else-if="!home.outfitReady" class="welcome">
       <div class="welcome__logo">
-        <AppIcon name="sparkle" :size="30" />
+        <!-- <AppIcon name="sparkle" :size="30" /> -->
+        <img :src="logoLunar" class="welcome__logo-img" />
       </div>
       <h1 class="welcome__slogan">告别「今天穿什么」的烦恼</h1>
       <p class="welcome__sub">登录、上传衣物，AI 每天帮你搭配</p>
@@ -31,15 +32,18 @@
           <span class="step__label">注册账号</span>
         </button>
         <button class="step" @click="goProfile">
-          <span class="step__badge" :class="{ 'step__badge--done': auth.loggedIn }">
-            <AppIcon v-if="auth.loggedIn" name="check" :size="15" />
+          <span
+            class="step__badge"
+            :class="{ 'step__badge--done': personalData.height && personalData.weight }"
+          >
+            <AppIcon v-if="personalData.height && personalData.weight" name="check" :size="15" />
             <template v-else>2</template>
           </span>
           <span class="step__label">填写身体数据</span>
         </button>
         <button class="step" @click="goWardrobe">
           <span class="step__badge" :class="{ 'step__badge--done': wardrobe.hasClothes }">
-            <span v-if="wardrobe.loading" class="badge-spinner"></span>
+            <span v-if="wardrobe.loading" class="badge-spinner">{{ wardrobe.loading }}</span>
             <AppIcon v-else-if="wardrobe.hasClothes" name="check" :size="15" />
             <template v-else>3</template>
           </span>
@@ -62,6 +66,8 @@
           </button>
         </template>
       </PageHeader>
+
+      <DemoHint>测试账号的性别和肤色分别固定为「女」和「小麦色」，暂时无法更改</DemoHint>
 
       <!-- 4.2 HERO 大卡 -->
       <section class="hero hero--sunny">
@@ -155,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRouter } from 'vue-router';
 import AppIcon from '@/components/icons/AppIcon.vue';
 import PageHeader from '@/components/PageHeader.vue';
@@ -168,35 +174,49 @@ import { useAuthStore } from '@/stores/auth';
 import type { OutfitGarment } from '@/api/types/outfits';
 import { useWeather } from '@/composables/useWeather';
 import DemoHint from '@/components/DemoHint.vue';
-import { useTryOn } from '@/composables/useTryOn';
+// import { useTryOn } from '@/composables/useTryOn';
 import { saveOutfit } from '@/api/userOutfits';
 import { AppError } from '@/errors';
 import { messageFromError } from '@/utils/errorMessage';
 import { useNotifyStore } from '@/stores/notify';
+import { useProfileStore } from '@/stores/profile';
+import logoLunar from '@/assets/logo-lunar.png';
 
 const router = useRouter();
-const auth = useAuthStore();
 const notify = useNotifyStore();
+
+const auth = useAuthStore();
+const { loggedIn } = storeToRefs(auth);
 
 const home = useHomeStore();
 const { outfits } = storeToRefs(home);
-const { generate, loadToday, persistToday } = home;
+const { generate, loadTodayOutfits, persistToday } = home;
 
 // canGenerate 依赖 wardrobe.hasClothes，而 hasClothes 只有在 wardrobe.fetch() 跑过后才准。所以进首页要先 wardrobe.fetch()，否则"明明有衣服，按钮却是灰的"（因为 items 还是空数组）。
 const wardrobe = useWardrobeStore();
 const { getClothes } = wardrobe;
 
+const profile = useProfileStore();
+const { profile: personalData } = storeToRefs(profile);
+const { fetchProfile } = profile;
+
 const { weather, load: loadWeather } = useWeather();
 
 onMounted(async () => {
-  // void getClothes();
-  // void loadToday();
-  await Promise.all([wardrobe.getClothes(), loadToday()]); // 并行、都 await；loadToday 不抛错
   if (!home.outfitReady && home.canGenerate) {
     await generate(); // 没今日穿搭 & 能生成 → 自动来一套
   }
   if (auth.loggedIn) void loadWeather();
 });
+
+watch(
+  loggedIn,
+  async (isLoggedIn) => {
+    if (isLoggedIn)
+      await Promise.all([getClothes(), loadTodayOutfits(), fetchProfile(), loadWeather()]);
+  },
+  { immediate: true },
+);
 
 // 生成闸门"还差哪一步"的提示
 const gateHint = computed(() =>
@@ -240,10 +260,10 @@ onBeforeRouteLeave(() => {
 // ==================== HERO 展示数据 ====================
 
 // ----- 今日穿搭展示数据：从 store 的 outfits[0] + weather 派生（全带兜底）-----
-const currentOutfit = computed(() => outfits.value[0] ?? null);
-console.log(currentOutfit.value);
 const avatarUrl = computed(() => auth.user?.avatar_url ?? null);
-
+const outfitsSize = computed(() => outfits.value.length ?? 0);
+const outfitsCurrentIndex = ref<number>(0);
+const currentOutfit = computed(() => outfits.value[outfitsCurrentIndex.value] ?? null);
 const outfitTitle = computed(
   () => currentOutfit.value?.name ?? currentOutfit.value?.occasion ?? '今日推荐',
 );
@@ -252,10 +272,9 @@ const outfitTags = computed(() => currentOutfit.value?.tags_en ?? []);
 const outfitHint = computed(
   () => currentOutfit.value?.tips?.[0] ?? currentOutfit.value?.reason ?? '',
 );
-const heroGarments = computed(() => {
-  console.log(currentOutfit.value);
-  return currentOutfit.value?.garments.slice(0, 3) ?? [];
-});
+// const heroGarments = computed(() => {
+//   return currentOutfit.value?.garments.slice(0, 3) ?? [];
+// });
 
 // const {
 //   trying: tryTrying,
@@ -284,14 +303,12 @@ const heroGarments = computed(() => {
 // );
 
 const currentOutfitId = computed(() => currentOutfit.value?.id ?? null);
-console.log(currentOutfitId.value);
 
 const heroImage = computed(() =>
   currentOutfitId.value ? (home.tryOnImages[currentOutfitId.value] ?? null) : null,
 );
 
 const tryTrying = computed(() => {
-  console.log(currentOutfitId.value);
   return currentOutfitId.value ? home.tryOnLoading[currentOutfitId.value] === true : false;
 });
 
@@ -343,9 +360,16 @@ async function addToLike(id: string | undefined) {
 }
 
 async function regenerateOutfit() {
-  // store 内部已 guard，页面不用再判
-  await generate();
-  console.log(outfits);
+  // 换装时先考虑 outfits 组内的 outfit，组内的 outfit 消耗完后，再考虑重新 generate
+  if (outfitsCurrentIndex.value < outfitsSize.value - 1) {
+    console.log(outfitsCurrentIndex.value);
+    outfitsCurrentIndex.value++;
+    console.log(outfitsSize.value);
+  } else {
+    // store 内部已 guard，页面不用再判
+    await generate();
+    outfitsCurrentIndex.value = 0;
+  }
 }
 
 // ==================== 导航 ====================
@@ -381,15 +405,22 @@ function goWardrobe() {
   padding: 0 20px;
 }
 .welcome__logo {
-  width: 64px;
-  height: 64px;
+  // width: 64px;
+  // height: 64px;
+  width: 96px;
+  height: 96px;
   border-radius: 20px;
-  background: var(--primary);
+  // background: var(--primary);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-cta);
+  // box-shadow: var(--shadow-hero);
+}
+.welcome__logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .welcome__slogan {
   margin-top: 20px;
