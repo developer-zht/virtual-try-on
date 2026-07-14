@@ -16,5 +16,6 @@ export function recommendOutfits(body: RecommendRequest): Promise<RecommendResul
     url: API.outfits.recommend,
     method: 'POST',
     data: body,
+    timeout: 600_000, // AI 返回结果的时间为 5~10 分钟，因此需要单独设置超时时间
   });
 }
