@@ -20,7 +20,11 @@ interface ImportMetaEnv {
 }
 
 interface ImportMetaEnv {
-  readonly TEST_EMAIL: string;
-  readonly TEST_PASSWORD: string;
-  readonly TEST_NICKNAME: string;
+  readonly QCLI_TEST_EMAIL: string;
+  readonly QCLI_TEST_PASSWORD: string;
+  readonly QCLI_TEST_NICKNAME: string;
+}
+
+interface ImportMetaEnv {
+  readonly QCLI_DEMO: string;
 }
