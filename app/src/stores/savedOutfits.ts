@@ -6,6 +6,7 @@ import { _runAsync } from './_runAsync';
 import { deleteSavedOutfit, listSavedOutfits } from '@/api/userOutfits';
 import { AppError } from '@/errors';
 import { messageFromError } from '@/utils/errorMessage';
+import { useNotifyStore } from './notify';
 
 export const useSavedOutfitsStore = defineStore('savedOutfits', () => {
   const auth = useAuthStore(); // 跨 store 读登录态（像 home.canGenerate）
@@ -35,17 +36,27 @@ export const useSavedOutfitsStore = defineStore('savedOutfits', () => {
   }
 
   // 删除：乐观移除 + 失败回滚（复用 wardrobe 范式）
-  async function remove(id: string): Promise<void> {
+  async function removeSaved(id: string): Promise<boolean> {
     const index = items.value.findIndex((o) => o.id === id);
-    if (index === -1) return; // 幂等 no-op
+    if (index === -1) {
+      // 幂等 no-op
+      if (import.meta.env.DEV)
+        console.debug('[savedOutfits] removeSaved: id 不在列表（已删除?）', id);
+      return false;
+    }
     const backup = items.value[index]!; // 先乐观移除
-    items.value.splice(index);
+    items.value.splice(index, 1);
     try {
       await deleteSavedOutfit(id);
+      return true;
     } catch (e) {
       items.value.splice(index, 0, backup); // 回滚
-      if (e instanceof AppError) error.value = messageFromError(e);
-      else throw e; // 未知错误重抛 Sentry
+      if (e instanceof AppError) {
+        const msg = messageFromError(e);
+        error.value = msg;
+        useNotifyStore().error(msg);
+        return false;
+      } else throw e; // 未知错误重抛 Sentry
     }
   }
 
@@ -58,6 +69,6 @@ export const useSavedOutfitsStore = defineStore('savedOutfits', () => {
     tagCount,
     occasionCount,
     fetchSaved,
-    remove,
+    removeSaved,
   };
 });
