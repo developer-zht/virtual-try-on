@@ -17,6 +17,8 @@
 
     <!-- 上传/识别进度：全局持久 toast，跨页面存在（自己读 store 决定显隐）-->
     <UploadToast />
+    <NotifyHost />
+    <ConfirmHost />
   </div>
 </template>
 
@@ -24,14 +26,11 @@
 import { useRoute } from 'vue-router';
 import TabBar from '@/components/TabBar.vue';
 import { useAuthStore } from '@/stores/auth';
-import { storeToRefs } from 'pinia';
 import AuthSheet from '@/components/AuthSheet.vue';
 import UploadToast from '@/components/UploadToast.vue';
+import NotifyHost from '@/components/NotifyHost.vue';
+import ConfirmHost from '@/components/ConfirmHost.vue';
 
 const route = useRoute();
-
 const auth = useAuthStore();
-
-const { showAuth } = storeToRefs(auth);
-console.log(showAuth.value);
 </script>
