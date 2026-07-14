@@ -75,6 +75,7 @@ import { ref, computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '@/stores/auth';
 import AppIcon from '@/components/icons/AppIcon.vue';
+import { useNotifyStore } from '@/stores/notify';
 
 const auth = useAuthStore();
 // storeToRefs：把 state/getter 取成 ref 且保持响应式（直接解构会丢响应性）
@@ -95,7 +96,11 @@ async function onSubmit() {
 
 onMounted(async () => {
   console.log('已登录,记得事后删除掉该代码');
-  await login({ email: 'laogeen@gmail.com', password: 'laogen12345' });
+  await login({
+    email: import.meta.env.QCLI_TEST_EMAIL,
+    password: import.meta.env.QCLI_TEST_PASSWORD,
+  });
+  useNotifyStore().success('您已登录测试账号', 3000);
 });
 </script>
 

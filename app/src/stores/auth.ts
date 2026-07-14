@@ -1,4 +1,3 @@
-// 1:1 参考 —— 对照你 try-on-2d 的 src/stores/auth.ts
 // 新增 restore()：刷新后用 token 复活 user
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
@@ -8,12 +7,9 @@ import type { LoginRaw } from '@/api/types/login';
 import { STORAGE_KEYS } from '@/constants/storage';
 import { validateEmail, validatePassword } from '@/utils/validators';
 import { _runAsync } from './_runAsync';
+import type { LoginPayload } from './types/auth';
 
 type SessionUser = LoginRaw['user'];
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
 
 export const useAuthStore = defineStore('auth', () => {
   // ── state ──
@@ -50,6 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem(STORAGE_KEYS.accessToken, raw.access_token); // 盒子①
     token.value = raw.access_token; // 盒子②
     user.value = raw.user;
+    console.log(user);
     closeAuth();
     return true;
   }
