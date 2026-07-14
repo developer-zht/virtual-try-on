@@ -8,6 +8,7 @@ import { STORAGE_KEYS } from '@/constants/storage';
 import { validateEmail, validatePassword } from '@/utils/validators';
 import { _runAsync } from './_runAsync';
 import type { LoginPayload } from './types/auth';
+import { useNotifyStore } from './notify';
 
 type SessionUser = LoginRaw['user'];
 
@@ -46,8 +47,9 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem(STORAGE_KEYS.accessToken, raw.access_token); // 盒子①
     token.value = raw.access_token; // 盒子②
     user.value = raw.user;
-    console.log(user);
     closeAuth();
+    if (import.meta.env.QCLI_DEMO)
+      useNotifyStore().info('您已登录测试账号，该账号人物已固定为小麦肤色的女性', 10_000);
     return true;
   }
 
