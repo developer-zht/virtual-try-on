@@ -23,14 +23,20 @@ export function validatePassword(pwd: string): FieldError | null {
 
 // null = 未填，允许（部分更新，不是必填）
 export function validateHeight(cm: number | null): FieldError | null {
+  // 从 cm === null 改成 cm == null，将 undefined 也包含进来，因为 undefined == null 为 true，这样既检查了 undefined，也检查了 null
   if (cm === null) return null;
+  // 补 Number.isFinite(双保险)
+  if (!Number.isFinite(cm)) return { code: 'HEIGHT_INVALID', message: '身高需为数字' };
   if (cm < 50 || cm > 250)
     return { code: 'HEIGHT_OUT_OF_RANGE', message: '身高需在 50–250 cm 之间' };
   return null;
 }
 
 export function validateWeight(kg: number | null): FieldError | null {
-  if (kg === null) return null;
+  // 从 kg === null 改成 cm == null，将 undefined 也包含进来，因为 undefined == null 为 true，这样既检查了 undefined，也检查了 null
+  if (kg == null) return null;
+  // 补 Number.isFinite(双保险)
+  if (!Number.isFinite(kg)) return { code: 'WEIGHT_INVALID', message: '体重需为数字' };
   if (kg < 20 || kg > 300)
     return { code: 'WEIGHT_OUT_OF_RANGE', message: '体重需在 20–300 kg 之间' };
   return null;

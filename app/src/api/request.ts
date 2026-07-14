@@ -13,7 +13,7 @@ export async function request<T>(config: AxiosRequestConfig): Promise<T> {
 
     if (err.response) {
       // 服务器有响应但状态非 2xx（例：500 {code:50000,message:"internal server error"}）
-      throw new HttpError(err.response.status, err.response.data.message, err.response.data.code);
+      throw new HttpError(err.response.status, err.response.data?.message, err.response.data?.code);
     }
     // 没有 response = 请求没到达/没回来 → 网络层问题
     throw new NetworkError(err.message);

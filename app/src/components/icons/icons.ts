@@ -27,6 +27,7 @@ export const icons = {
   tag: '<path d="M20.5 12.5l-8 8L3 11V3.5H10.5z"/><circle cx="7.5" cy="7.5" r="1.3"/>',
   layers: '<path d="M12 3l8 4.2-8 4.2-8-4.2z"/><path d="M4 12l8 4.2 8-4.2"/>',
   bookmark: '<path d="M6 4h12v16l-6-4-6 4z"/>',
+  trash: '<path d="M4 7h16M9 7V4.5h6V7M6 7l1 13h10l1-13M10 10.5v6M14 10.5v6"/>',
 
   // —— 导航 / 箭头 / 状态 ——
   home: '<path d="M4 11.5L12 4l8 7.5"/><path d="M6 10.5V20h12v-9.5"/>',

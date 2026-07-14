@@ -9,7 +9,7 @@ import { ROUTES } from '@/constants/routes';
 
 export const instance: AxiosInstance = axios.create({
   baseURL: import.meta.env.QCLI_API_BASE_URL || 'api/',
-  timeout: 15000, // 15s 超时，防止请求悬挂
+  timeout: 15_000, // 15s 超时，防止请求悬挂
 });
 
 // 请求拦截：自动带上登录 token

@@ -6,6 +6,14 @@
   --primary: #6c5ce7;
   --primary-soft: rgba(108, 92, 231, 0.1); /* 选中/强调的浅底 */
 
+  /* 语义色 */
+  // 危险 / 删除等破坏性操作
+  --danger: #ff3b30;
+  --danger-soft: rgba(255, 59, 48, 0.12); /* 危险操作的浅底 / hover 底 */
+  // 成功 / 警告
+  --success: #34c759;
+  --warning: #ff9500;
+
   /* 背景分层：大面积浅灰 + 纯白卡片 */
   --bg-main: #f5f5f7; /* 页面底 */
   --bg-card: #ffffff; /* 卡片 */
@@ -34,6 +42,9 @@
   --safe-top: env(safe-area-inset-top);
   /* 底部安全区：真机取系统安全区，桌面/无刘海机型保底 20px */
   --safe-bottom: max(20px, env(safe-area-inset-bottom)); // ←改这行（原 20px）
+  /* 与安全区的间距 */
+  --safe-top-gap: 16px;
+  --safe-bottom-gap: 16px;
 
   --tab-height: 50px; // Tab 内容高度（tab-item 和内容底部留白共用）
 }
