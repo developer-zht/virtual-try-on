@@ -39,14 +39,31 @@
   --radius-pill: 999px; /* 胶囊/标签/圆点 */
 
   /* 顶部安全区 */
-  --safe-top: env(safe-area-inset-top);
+  --safe-top: env(safe-area-inset-top, 0px);
   /* 底部安全区：真机取系统安全区，桌面/无刘海机型保底 20px */
-  --safe-bottom: max(20px, env(safe-area-inset-bottom)); // ←改这行（原 20px）
+  --safe-bottom: max(20px, env(safe-area-inset-bottom, 0px)); // ←改这行（原 20px）
   /* 与安全区的间距 */
-  --safe-top-gap: 16px;
-  --safe-bottom-gap: 16px;
+  --safe-page-top-gap: 16px;
+  --safe-page-bottom-gap: 16px;
+
+  --safe-toast-top-gap: 0px;
+  --safe-toast-bottom-gap: 16px;
 
   --tab-height: 50px; // Tab 内容高度（tab-item 和内容底部留白共用）
+
+  --accent-gold: #c8a24a; /* 暖金，默认主题也能用（点缀/高亮）*/
+}
+
+/* 只在 <html data-theme="lunar"> 时生效，完全不影响默认 */
+:root[data-theme='lunar'] {
+  --primary: #4a4fb0; /* 星月夜靛蓝，替代亮紫 */
+  --primary-soft: rgba(74, 79, 176, 0.1);
+
+  --shadow-cta: 0 8px 22px -8px rgba(74, 79, 176, 0.55);
+  --shadow-hero: 0 14px 40px -14px rgba(40, 46, 90, 0.45);
+
+  --accent-gold: #d9a54c; /* logo 月/日暖金 */
+  /* 背景/文字/圆角沿用亮色 bento，不改 */
 }
 
 // ===== 全局重置 =====
