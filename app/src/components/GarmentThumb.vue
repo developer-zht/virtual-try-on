@@ -44,6 +44,6 @@ const resolvedSrc = computed(() => props.src ?? (props.name ? GARMENT_IMG[props.
   width: 100%;
   height: 100%;
   object-fit: contain; // 服装完整显示不裁切
-  padding: 12%; // 四周留白
+  padding: 8px; // 四周留白
 }
 </style>
