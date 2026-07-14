@@ -28,7 +28,7 @@ const GLYPH: Record<NotifyType, string> = { success: '✓', error: '✕', warnin
 <style scoped lang="scss">
 .notify-host {
   position: fixed;
-  top: calc(env(safe-area-inset-top, 0px) + var(--safe-top-gap));
+  top: calc(env(safe-area-inset-top, 0px) + var(--safe-toast-top-gap));
   left: 16px;
   right: 16px;
   z-index: 1200;

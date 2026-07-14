@@ -3,7 +3,14 @@ import { ref } from 'vue';
 import type { ConfirmOptions, NotifyType, Toast } from './types/notify';
 
 export const useNotifyStore = defineStore('notify', () => {
-  const toasts = ref<Toast[]>([]);
+  const toasts = ref<Toast[]>([
+    // {
+    //   id: 1,
+    //   type: 'error',
+    //   message: 'Debug 样例，持续时间 24 h',
+    //   timeout: 86_400,
+    // },
+  ]);
   let seq = 0;
   function push(type: NotifyType, message: string, timeout = 2600): number {
     const id = ++seq;
