@@ -31,7 +31,7 @@ const processingCount = computed(
 <style scoped lang="scss">
 .toast {
   position: fixed;
-  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  top: calc(env(safe-area-inset-top, 0px) + var(--safe-toast-top-gap));
   left: 16px;
   right: 16px;
   z-index: 900; // 低于 AuthSheet(1000)，高于页面/Tab

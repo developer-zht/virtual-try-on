@@ -65,23 +65,6 @@ export interface UploadConfirmResult {
   poll_after_ms: number;
 }
 
-/** 异步任务状态 */
-export type TaskStatus = 'pending' | 'processing' | 'done' | 'failed';
-
-/** GET /tasks/:id 的响应 data */
-export interface Task {
-  id: string;
-  status: TaskStatus;
-  stage: string;
-  progress: number;
-  poll_after_ms: number;
-  garments?: Garment[]; // done 且是衣橱导入时才有
-  error_code?: string; // failed 时
-  error_message?: string; // failed 时
-  created_at: string;
-  completed_at?: string;
-}
-
 /** POST /wardrobe/upload-url 的请求体 */
 export interface UploadUrlRequest {
   content_type: 'image/jpeg' | 'image/png' | 'image/webp';
