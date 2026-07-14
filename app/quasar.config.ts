@@ -2,6 +2,8 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app';
+import { viteSingleFile } from 'vite-plugin-singlefile';
+import checker from 'vite-plugin-checker';
 
 export default defineConfig((/* ctx */) => {
   return {
@@ -64,7 +66,7 @@ export default defineConfig((/* ctx */) => {
       // vueRouterBase,
       // vueDevtools,
 
-      // publicPath: '/',
+      publicPath: './',
       // define: {},
       // defineEnv: {}
       // ignorePublicFolder: true,
@@ -72,12 +74,21 @@ export default defineConfig((/* ctx */) => {
       // distDir
 
       // extendViteConf (viteConf) {},
+      extendViteConf(viteConf) {
+        viteConf.plugins = [...(viteConf.plugins ?? []), viteSingleFile()];
+        viteConf.build = {
+          ...(viteConf.build ?? {}),
+          cssCodeSplit: false,
+          assetsInlineLimit: Number.MAX_SAFE_INTEGER,
+        };
+      },
       // viteVuePluginOptions: {},
 
       vitePlugins: [
         [
-          'vite-plugin-checker',
+          checker,
           {
+            overlay: false,
             vueTsc: true,
             eslint: {
               lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{ts,js,mjs,cjs,vue}"',
