@@ -1,6 +1,6 @@
 import { request } from './request';
 import { API } from './_configs/url';
-import type { Profile, ProfileOptions, ProfilePatch } from './types/profile';
+import type { Profile, ProfilePatch } from './types/profile'; // ← 去掉 ProfileOptions
 
 /** 获取当前用户的身体数据与偏好（需登录） */
 export function getProfile(): Promise<Profile> {
@@ -11,8 +11,4 @@ export function getProfile(): Promise<Profile> {
 export function updateProfile(patch: ProfilePatch): Promise<Profile> {
   return request<Profile>({ url: API.user.profile, method: 'PUT', data: patch });
 }
-
-/** 获取 Profile 表单枚举选项（无需登录） */
-export function getProfileOptions(): Promise<ProfileOptions> {
-  return request<ProfileOptions>({ url: API.user.profileOptions, method: 'GET' });
-}
+// getProfileOptions 已删：端点 /metadata/profile-options 被后端移除，改用 metadata.ts 的 getEnums

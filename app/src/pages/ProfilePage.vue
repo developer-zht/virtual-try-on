@@ -2,58 +2,44 @@
   <div class="profile" @click.capture="guardClick" @focusin="guardFocus">
     <PageHeader title="我的" />
 
-    <!-- 深色渐变名片 -->
+    <!-- 深色渐变名片（接 auth.user）-->
     <div class="namecard">
       <div class="namecard__avatar"><AppIcon name="user" :size="30" /></div>
       <div class="namecard__info">
-        <div class="namecard__name">{{ user.name }}</div>
-        <div class="namecard__sub">{{ user.sub }}</div>
+        <div class="namecard__name">{{ userName }}</div>
+        <div class="namecard__sub">{{ userSub }}</div>
       </div>
     </div>
 
     <!-- 身体数据卡（可编辑）-->
     <div class="card data">
-      <div class="data__row">
-        <span class="data__label">身高</span>
+      <div
+        v-for="(field, index) in numberFields"
+        :key="field.key"
+        class="data__row"
+        :class="{ 'data__row--divider': index !== 0 }"
+      >
+        <span class="data__label">{{ field.label }}</span>
         <span class="data__field">
           <input
-            v-model.number="body.height"
+            :value="profile[field.key] ?? ''"
             class="data__input"
             type="number"
             inputmode="numeric"
+            :placeholder="field.allowNull ? '可选' : '必填'"
+            @input="onNumberInput(field.key, field.allowNull, $event)"
           />
-          <span class="data__unit">cm</span>
+          <span class="data__unit">{{ field.unit }}</span>
         </span>
-      </div>
-      <div class="data__row data__row--divider">
-        <span class="data__label">体重</span>
-        <span class="data__field">
-          <input
-            v-model.number="body.weight"
-            class="data__input"
-            type="number"
-            inputmode="numeric"
-          />
-          <span class="data__unit">kg</span>
-        </span>
-      </div>
-      <div class="data__row data__row--divider">
-        <span class="data__label">肤色</span>
-        <input
-          v-model="body.skin"
-          class="data__input data__input--text"
-          type="text"
-          placeholder="如 自然色"
-        />
       </div>
     </div>
 
-    <!-- 体型（下拉菜单单选）-->
+    <!-- 体型（下拉单选，接 profile.bodyType + options.bodyTypes）-->
     <div class="card select">
       <button class="select-row" @click="bodyTypeOpen = !bodyTypeOpen">
         <span class="select-row__label">体型</span>
         <span class="select-row__value">
-          {{ bodyType }}
+          {{ bodyTypeLabel }}
           <AppIcon
             name="chevron-down"
             :size="16"
@@ -62,18 +48,16 @@
           />
         </span>
       </button>
-      <!-- 点空白处关闭菜单 -->
       <div v-if="bodyTypeOpen" class="menu-backdrop" @click="bodyTypeOpen = false"></div>
-      <!-- 下拉菜单：竖直列表 -->
       <ul v-show="bodyTypeOpen" class="menu">
-        <li v-for="t in bodyTypeOptions" :key="t">
+        <li v-for="o in options?.bodyTypes ?? []" :key="o.value">
           <button
             class="menu__item"
-            :class="{ 'menu__item--active': bodyType === t }"
-            @click="selectBodyType(t)"
+            :class="{ 'menu__item--active': profile.bodyType === o.value }"
+            @click="selectBodyType(o.value)"
           >
-            {{ t }}
-            <AppIcon v-if="bodyType === t" name="check" :size="16" />
+            {{ o.label_zh }}
+            <AppIcon v-if="profile.bodyType === o.value" name="check" :size="16" />
           </button>
         </li>
       </ul>
@@ -95,32 +79,35 @@
       <div v-show="advOpen" class="adv__body">
         <div class="adv__divider"></div>
 
-        <div class="adv__label">风格偏好</div>
+        <!-- 风格：多选（接 profile.styles + options.styleTags）-->
+        <div class="adv__label">风格偏好 <span>(最多选 3 个)</span></div>
         <div class="chip-row">
           <button
-            v-for="s in styleOptions"
-            :key="s"
+            v-for="o in options?.styleTags ?? []"
+            :key="o.value"
             class="pref-chip"
-            :class="{ 'pref-chip--active': selectedStyles.includes(s) }"
-            @click="toggleStyle(s)"
+            :class="{ 'pref-chip--active': profile.styles.includes(o.value) }"
+            @click="toggleStyle(o.value)"
           >
-            {{ s }}
+            {{ o.label_zh }}
           </button>
         </div>
 
+        <!-- 颜色：单选（接 profile.color + options.colors；枚举值→hex）-->
         <div class="adv__label">颜色偏好</div>
         <div class="adv__colors">
           <button
-            v-for="c in colorOptions"
-            :key="c"
+            v-for="o in options?.colors ?? []"
+            :key="o.value"
             class="color-dot"
-            :class="{ 'color-dot--active': selectedColor === c }"
-            :style="{ background: c }"
-            :aria-label="`颜色 ${c}`"
-            @click="selectedColor = c"
+            :class="{ 'color-dot--active': profile.color === o.value }"
+            :style="{ background: colorHex(o.value) }"
+            :aria-label="`颜色 ${o.label_zh}`"
+            @click="selectColor(o.value)"
           ></button>
         </div>
 
+        <!-- 视觉模型：纯前端，暂不发后端 -->
         <div class="adv__label">视觉生成模型</div>
         <div class="chip-row">
           <button
@@ -149,29 +136,28 @@
       </div>
     </div>
 
-    <!-- 保存按钮 -->
-    <button class="save-btn" @click="onSave">
+    <!-- 错误 + 保存按钮 -->
+    <div v-if="error" class="save-error">{{ error }}</div>
+    <button class="save-btn" :disabled="saving" @click="onSave">
       <AppIcon name="check" :size="20" />
-      保存档案
+      {{ saving ? '保存中…' : '保存档案' }}
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, computed } from 'vue';
 import AppIcon from '@/components/icons/AppIcon.vue';
 import { useAuthStore } from '@/stores/auth';
 import PageHeader from '@/components/PageHeader.vue';
 import { onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useProfileStore } from '@/stores/profile';
+import { useNotifyStore } from '@/stores/notify';
+
+// ==================== 登录检查 ====================
 
 const auth = useAuthStore();
-
-const user = { name: '张三', sub: '身高 178 · 体重 70kg' };
-
-// 身体数据（可编辑）
-const body = reactive({ height: 178, weight: 70, skin: '自然色' });
 
 // 登录闸门：未登录时，点击/聚焦本页任何交互控件都拦下并弹注册
 function guardClick(e: MouseEvent) {
@@ -187,52 +173,6 @@ function guardFocus(e: FocusEvent) {
   }
 }
 
-// 体型：下拉单选
-const bodyTypeOptions = ['梨形', '苹果形', '沙漏形', '矩形', '倒三角'];
-const bodyType = ref('沙漏形');
-const bodyTypeOpen = ref(false);
-function selectBodyType(t: string) {
-  bodyType.value = t;
-  bodyTypeOpen.value = false; // 选完收起
-}
-
-// 折叠状态
-const advOpen = ref(false);
-
-// 风格偏好：多选
-const styleOptions = ['简约', '通勤', '休闲', '街头', '复古'];
-const selectedStyles = ref<string[]>(['简约', '通勤']);
-// function toggleStyle(s: string) {
-//   const i = selectedStyles.value.indexOf(s);
-//   if (i === -1) selectedStyles.value.push(s);
-//   else selectedStyles.value.splice(i, 1);
-// }
-
-// 颜色偏好：单选
-const colorOptions = ['#1d1d1f', '#6c5ce7', '#e17055', '#00b894', '#0984e3', '#fdcb6e'];
-const selectedColor = ref('#6c5ce7');
-
-// 视觉生成模型：单选
-const genModelOptions = ['通义万相', '智谱CogView', '自定义模型'];
-const genModel = ref('通义万相');
-
-// 视觉理解模型：单选
-const vlModelOptions = ['Qwen-VL', 'GPT-4o', '自定义模型'];
-const vlModel = ref('Qwen-VL');
-
-const profileStore = useProfileStore();
-const { profile, options, saving, error } = storeToRefs(profileStore);
-const {
-  fetchProfile,
-  // fetchOptions,
-  saveProfile,
-} = profileStore;
-
-onMounted(() => {
-  // void fetchOptions(); // 选项无需登录，总是拉
-  if (auth.loggedIn) void fetchProfile(); // 档案需登录，未登录先不拉（避免 401）
-});
-
 // 登录闸门：未登录时任何编辑动作 → 开登录弹层，返回 false 让调用方停手
 function guard(): boolean {
   if (!auth.loggedIn) {
@@ -242,20 +182,202 @@ function guard(): boolean {
   return true;
 }
 
-// 风格多选：切换 + 上限 3
+// ── 名片：接 auth.user ──
+const userName = computed(() => {
+  // 注意这里故意用的是 ==，等价于 value === null || value === undefined
+  return auth.user?.nickname == null
+    ? '未登录'
+    : auth.user?.nickname.trim() === ''
+      ? auth.user?.email
+      : auth.user.nickname;
+});
+const userSub = computed(() =>
+  profile.value.height && profile.value.weight
+    ? `身高 ${profile.value.height} · 体重 ${profile.value.weight}kg`
+    : '完善你的身体数据',
+);
+
+// ==================== 个人数据 ====================
+
+// const user = { name: '张三', sub: '身高 178 · 体重 70kg' };
+
+// 身体数据（可编辑）
+// const body = reactive({ height: 178, weight: 70, skin: '自然色' });
+
+const profileStore = useProfileStore();
+const { profile, options, saving, error } = storeToRefs(profileStore);
+const { fetchProfile, fetchOptions, saveProfile } = profileStore;
+
+onMounted(() => {
+  void fetchOptions(); // 选项无需登录，总是拉
+  if (auth.loggedIn) void fetchProfile(); // 档案需登录，未登录先不拉（避免 401）
+});
+
+type NumberProfileKey =
+  | 'height'
+  | 'weight'
+  | 'shoulderWidth'
+  | 'waist'
+  | 'hip'
+  | 'thigh'
+  | 'calf'
+  | 'legLength'
+  | 'footLength';
+
+const numberFields: {
+  key: NumberProfileKey;
+  label: string;
+  unit: string;
+  allowNull: boolean;
+}[] = [
+  {
+    key: 'height',
+    label: '身高',
+    unit: 'cm',
+    allowNull: false,
+  },
+  {
+    key: 'weight',
+    label: '体重',
+    unit: 'kg',
+    allowNull: false,
+  },
+  {
+    key: 'shoulderWidth',
+    label: '肩宽',
+    unit: 'cm',
+    allowNull: true,
+  },
+  {
+    key: 'waist',
+    label: '腰围',
+    unit: 'cm',
+    allowNull: true,
+  },
+  {
+    key: 'hip',
+    label: '臀围',
+    unit: 'cm',
+    allowNull: true,
+  },
+  {
+    key: 'thigh',
+    label: '大腿围',
+    unit: 'cm',
+    allowNull: true,
+  },
+  {
+    key: 'calf',
+    label: '小腿围',
+    unit: 'cm',
+    allowNull: true,
+  },
+  {
+    key: 'legLength',
+    label: '腿长',
+    unit: 'cm',
+    allowNull: true,
+  },
+  {
+    key: 'footLength',
+    label: '脚长',
+    unit: 'mm',
+    allowNull: true,
+  },
+];
+
+function onNumberInput(key: NumberProfileKey, allowNull: boolean, e: Event) {
+  const value = (e.target as HTMLInputElement).value.trim();
+
+  // 空 → null
+  if (value === '') {
+    profile.value[key] = null;
+    return;
+  }
+
+  const n = Number(value);
+  if (Number.isFinite(n)) profile.value[key] = n; // 非数字：忽略，不写 NaN
+}
+
+// 体型：下拉单选
+const bodyTypeLabel = computed(() => {
+  const type = profile.value.bodyType;
+  if (!type) return '未选择';
+  return options.value?.bodyTypes.find((o) => o.value === type)?.label_zh ?? type;
+});
+const bodyTypeOpen = ref(false);
+function selectBodyType(value: string) {
+  if (!guard()) return;
+  profile.value.bodyType = value; // 存英文枚举 value
+  bodyTypeOpen.value = false; // 选完收起
+}
+
+// ==================== 高级选项 ====================
+
+// 折叠状态
+const advOpen = ref(false);
+
+// ── 颜色：单选 + 枚举值→hex 映射 ──
+const COLOR_HEX: Record<string, string> = {
+  Black: '#1d1d1f',
+  White: '#f5f5f7',
+  Gray: '#8e8e93',
+  Red: '#e0245e',
+  Blue: '#0984e3',
+  Green: '#00b894',
+  Yellow: '#fdcb6e',
+  Purple: '#6c5ce7',
+  Pink: '#fd79a8',
+  Brown: '#8b5a2b',
+  Khaki: '#b8a678',
+  DenimBlue: '#4a6fa5',
+  Orange: '#e17055',
+  Beige: '#e8dcc4',
+  Camel: '#c19a6b',
+  Burgundy: '#7b2d3a',
+  Navy: '#2c3e57',
+  Olive: '#808000',
+  Multi: '#cccccc',
+};
+
+function colorHex(value: string) {
+  return COLOR_HEX[value] ?? '#cccccc';
+}
+
+function selectColor(value: string) {
+  if (!guard()) return;
+  profile.value.color = value;
+}
+
+// 视觉生成模型：单选
+const genModelOptions = ['通义万相', '智谱CogView', '自定义模型'];
+const genModel = ref('通义万相');
+
+// 视觉理解模型：单选
+const vlModelOptions = ['Qwen-VL', 'GPT-4o', '自定义模型'];
+const vlModel = ref('Qwen-VL');
+
+// ── 风格：多选，上限 3（统一读写 profile.styles）──
 function toggleStyle(value: string) {
   if (!guard()) return;
   const arr = profile.value.styles;
   const i = arr.indexOf(value);
-  if (i >= 0) arr.splice(i, 1);
-  else if (arr.length < 3) arr.push(value);
+  if (i >= 0) {
+    arr.splice(i, 1);
+  } else if (arr.length < 3) {
+    arr.push(value);
+  } else {
+    arr.pop();
+    arr.push(value);
+  }
 }
+
+// ==================== 保存 ====================
 
 async function onSave() {
   if (!guard()) return;
-  const ok = await saveProfile();
   // ok=true：保存成功（profile 已被后端返回值刷新）；失败：error 已有文案，模板自动显示
-  void ok;
+  if (await saveProfile()) useNotifyStore().success('已保存');
 }
 </script>
 
@@ -326,6 +448,7 @@ async function onSave() {
 .namecard__name {
   font-size: 20px;
   font-weight: 800;
+  overflow: hidden;
 }
 .namecard__sub {
   margin-top: 3px;
@@ -498,6 +621,7 @@ async function onSave() {
 .adv__colors {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap; /* 颜色排多了能换行 */
 }
 .color-dot {
   width: 34px;
@@ -506,6 +630,7 @@ async function onSave() {
   border-radius: 50%;
   cursor: pointer;
   transition: box-shadow 0.15s;
+  box-shadow: inset 0 0 0 1px var(--hairline);
 }
 .color-dot--active {
   box-shadow:
@@ -517,5 +642,15 @@ async function onSave() {
 .save-btn {
   @include btn-primary;
   margin-top: 4px;
+}
+/* 错误行 + 保存按钮禁用态 */
+.save-error {
+  font-size: 13px;
+  color: var(--negative, #c10015);
+  padding: 0 2px;
+}
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 </style>

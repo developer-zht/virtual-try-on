@@ -62,19 +62,3 @@ export interface ProfilePatch {
   style_tags_en?: string[]; // 最多 3 个
   color_preferences_en?: string[]; // 最多 5 个
 }
-
-/** GET /metadata/profile-options 的 data —— 表单枚举字典 */
-export interface EnumOption {
-  value: string;
-  label: string;
-}
-export interface ProfileOptions {
-  body_types: EnumOption[];
-  style_tags: EnumOption[];
-  colors: EnumOption[];
-  sizes: {
-    tops_cn: string[];
-    bottoms_waist_cn: string[];
-    bottoms_length_cn: string[];
-  };
-}
