@@ -12,7 +12,8 @@ export const ROUTES = {
   wardrobe: 'wardrobe',
   preference: 'preference',
   profile: 'profile',
-  login: 'login', // ← 新增：http.ts 401 跳转用它
+  bodyData: 'body-data',
+  login: 'login', // http.ts 401 跳转
 } as const;
 
 // as const 让每个 value 变成「字面量类型」（'welcome' 而不是宽泛的 string），

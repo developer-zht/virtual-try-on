@@ -20,9 +20,9 @@
 @mixin btn-primary {
   width: 100%;
   height: 52px;
-  background: var(--primary);
+  background: var(--gradient-button-primary);
   color: #fff;
-  border: none;
+  border: 1px solid var(--button-primary-border);
   border-radius: 28px;
   font-size: 17px;
   font-weight: 600;
@@ -44,9 +44,9 @@
 @mixin btn-secondary {
   width: 100%;
   height: 48px;
-  background: transparent;
+  background: var(--gradient-button-secondary);
   color: var(--primary);
-  border: 1.5px solid var(--primary);
+  border: 1px solid var(--button-secondary-border);
   border-radius: 28px;
   font-size: 16px;
   font-weight: 500;
@@ -58,7 +58,7 @@
   gap: 6px;
   flex-shrink: 0;
   &:active {
-    background: var(--primary-soft); // 旧：硬编码 rgba(108,92,231,0.06) → 改用 token
+    filter: brightness(0.98);
   }
 }
 

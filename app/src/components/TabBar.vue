@@ -42,7 +42,7 @@ const tabs: Tab[] = [
   display: flex;
   flex-shrink: 0;
   border-top: 1px solid var(--hairline);
-  background: rgba(245, 245, 247, 0.82); // 磨砂玻璃：半透明底
+  background: var(--surface-navigation); // 磨砂玻璃：由主题 token 控制半透明底
   backdrop-filter: blur(20px) saturate(180%); // + 背景模糊
   -webkit-backdrop-filter: blur(20px) saturate(180%); // Safari 需前缀
   padding-bottom: var(--safe-bottom); // 坐在安全区之上

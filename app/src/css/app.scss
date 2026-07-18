@@ -1,10 +1,27 @@
 // ===== 设计 token（苹果风 + Bento 改造 · 迁移自设计稿 theme.css 的 :root）=====
 // 全部用 CSS 自定义属性（--xxx）：运行时可读改、可在 .vue 的 :style 里直接用，
-// 也让设计稿里 var(--primary) 的写法能几乎原样搬过来。
+
 :root {
-  /* 主色：只用于关键 CTA 按钮 + 选中态，不再大面积铺 */
-  --primary: #6c5ce7;
-  --primary-soft: rgba(108, 92, 231, 0.1); /* 选中/强调的浅底 */
+  /*
+   * --primary 仍然只是“颜色”，供文字、图标、描边和进度使用。
+   * 渐变必须使用下面独立的 --gradient-* token，避免 color / border-color 失效。
+   */
+  --primary: #5b608f;
+  --primary-soft: rgba(91, 96, 143, 0.11); /* 选中/强调的浅底 */
+
+  /* 全局环境、特色卡片和按钮各自拥有不同强度的同源渐变 */
+  --gradient-app:
+    radial-gradient(circle at 8% -4%, rgba(229, 231, 247, 0.94), rgba(229, 231, 247, 0) 42%),
+    radial-gradient(circle at 98% 94%, rgba(249, 239, 218, 0.76), rgba(249, 239, 218, 0) 40%),
+    #f8f8fa;
+  --gradient-feature: linear-gradient(138deg, #eceefb 0%, #fff 58%, #faf5ea 100%);
+  --gradient-feature-strong: linear-gradient(145deg, #7074a2 0%, #565b89 62%, #756a82 100%);
+  --gradient-button-primary: linear-gradient(135deg, #6c70a0 0%, #555a88 100%);
+  --gradient-button-secondary: linear-gradient(138deg, #eceefb 0%, #fff 58%, #faf5ea 100%);
+  --button-primary-border: rgba(255, 255, 255, 0.24);
+  --button-secondary-border: rgba(81, 86, 143, 0.13);
+  --button-disabled-bg: rgba(231, 232, 238, 0.9);
+  --surface-navigation: rgba(248, 248, 251, 0.82);
 
   /* 语义色 */
   // 危险 / 删除等破坏性操作
@@ -15,9 +32,9 @@
   --warning: #ff9500;
 
   /* 背景分层：大面积浅灰 + 纯白卡片 */
-  --bg-main: #f5f5f7; /* 页面底 */
+  --bg-main: #f8f8fa; /* 页面底的纯色回退值 */
   --bg-card: #ffffff; /* 卡片 */
-  --bg-fill: #f5f5f7; /* 卡内填充块（缩略图底等）*/
+  --bg-fill: #f2f3f6; /* 卡内填充块（缩略图底等）*/
 
   /* 文字：Apple 系统灰阶 */
   --text-dark: #1d1d1f; /* 主文字/大标题 */
@@ -28,8 +45,10 @@
 
   /* 阴影：中性灰，去掉一切紫色发光 */
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05); /* 卡片静置 */
+  --shadow-card-fullscreen: 2px 2px 15px rgba(150, 150, 150, 0.3); /* 卡片静置 */
   --shadow-hero: 0 14px 40px -14px rgba(80, 90, 140, 0.4); /* 大卡/hero */
-  --shadow-cta: 0 8px 22px -8px rgba(108, 92, 231, 0.55); /* 主按钮（唯一保留的带色阴影）*/
+  --shadow-hero-fullscreen: 2px 2px 5px rgba(150, 150, 150, 0.3); /* 大卡/hero */
+  --shadow-cta: 0 10px 24px -14px rgba(55, 60, 112, 0.54); /* 主按钮的低饱和靛蓝阴影 */
 
   /* 圆角：连续圆角 squircle，整体放大 */
   --radius-hero: 30px; /* 首页 hero */
@@ -56,10 +75,12 @@
 
 /* 只在 <html data-theme="lunar"> 时生效，完全不影响默认 */
 :root[data-theme='lunar'] {
-  --primary: #4a4fb0; /* 星月夜靛蓝，替代亮紫 */
-  --primary-soft: rgba(74, 79, 176, 0.1);
+  --primary: #535989; /* 星月夜靛蓝，替代亮紫 */
+  --primary-soft: rgba(83, 89, 137, 0.1);
+  --gradient-button-primary: linear-gradient(135deg, #666b9c 0%, #505681 100%);
+  --gradient-feature-strong: linear-gradient(145deg, #686d9d 0%, #505681 62%, #71677d 100%);
 
-  --shadow-cta: 0 8px 22px -8px rgba(74, 79, 176, 0.55);
+  --shadow-cta: 0 10px 24px -14px rgba(45, 50, 98, 0.56);
   --shadow-hero: 0 14px 40px -14px rgba(40, 46, 90, 0.45);
 
   --accent-gold: #d9a54c; /* logo 月/日暖金 */
@@ -83,13 +104,16 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
   background: #e9e9ec;
 }
+p {
+  margin: 0;
+}
 
 // 默认：全屏
 .app-bg {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--bg-main); // 页面底色（原来靠 phone-frame 提供）
+  background: var(--gradient-app); // 全局只铺一层很淡的薰衣草紫 + 奶油环境光
   position: relative; // 给绝对定位的 TabBar 当参照系
 }
 .page-wrapper {
@@ -107,7 +131,7 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--bg-main);
+  background: transparent; // 让滚动页面透出 .app-bg 的全局环境渐变
   overflow-y: auto;
   overflow-x: hidden;
   // 底部留白 = Tab 高 + 安全区 + 一点余量，让内容能滚到 Tab 背后又不被永久遮住
