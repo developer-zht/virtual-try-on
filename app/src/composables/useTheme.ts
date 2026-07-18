@@ -8,11 +8,15 @@ function apply(name: ThemeName) {
   if (name === 'default') delete root.dataset.theme;
   else root.dataset.theme = name;
   localStorage.setItem(THEME_KEY, name);
-  console.log(123);
 }
 export function useTheme() {
   function init() {
-    apply((localStorage.getItem(THEME_KEY) as ThemeName) || 'default');
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'default' || saved === 'lunar') {
+      apply(saved);
+    } else {
+      apply('default');
+    }
   }
   function set(name: ThemeName) {
     apply(name);
