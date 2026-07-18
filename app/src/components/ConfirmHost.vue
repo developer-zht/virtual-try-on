@@ -99,7 +99,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
   color: var(--text-gray);
 }
 .confirm__btn--primary {
-  background: var(--primary);
+  border: 1px solid var(--button-primary-border);
+  background: var(--gradient-button-primary);
   color: #fff;
   box-shadow: var(--shadow-cta);
 }
