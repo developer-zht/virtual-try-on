@@ -146,7 +146,8 @@ onMounted(async () => {
   height: 58px;
   margin: 0 auto 12px;
   border-radius: 18px; // squircle
-  background: var(--primary);
+  border: 1px solid var(--button-primary-border);
+  background: var(--gradient-button-primary);
   color: #fff;
   display: flex;
   align-items: center;
@@ -223,9 +224,9 @@ onMounted(async () => {
 .auth__submit {
   width: 100%;
   height: 52px;
-  border: none;
+  border: 1px solid var(--button-primary-border);
   border-radius: var(--radius-md);
-  background: var(--primary);
+  background: var(--gradient-button-primary);
   color: #fff;
   font-size: 16px;
   font-weight: 700;
