@@ -17,6 +17,7 @@
 .claude
 claude-*
 codex-*
+.superpowers/
 
 # Log
 logs
@@ -40,3 +41,6 @@ DerivedData/
 
 # 克隆的教学代码，不纳入自己的仓库
 virtual-try-on/
+
+# 后端代码，不纳入自己的仓库
+Veslune-Backend_DEMO/
