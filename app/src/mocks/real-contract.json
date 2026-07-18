@@ -1,0 +1,907 @@
+{
+  "captured_at": "2026-07-15T19:06:04.183Z",
+  "login": {
+    "status": 200,
+    "body": {
+      "code": 0,
+      "message": "ok",
+      "data": {
+        "access_token": "<redacted-token>",
+        "expires_in": 604800,
+        "profile_completed": true,
+        "user": {
+          "id": "mock-id-001",
+          "email": "mock.user@example.com",
+          "nickname": "",
+          "avatar_url": "<redacted-url>",
+          "city_code": "101010100"
+        }
+      }
+    }
+  },
+  "me": {
+    "status": 200,
+    "body": {
+      "code": 0,
+      "message": "ok",
+      "data": {
+        "id": "mock-id-001",
+        "email": "mock.user@example.com",
+        "nickname": "",
+        "avatar_url": "/codex-mocks/images/user-model.png",
+        "city_code": "101010100",
+        "garment_count": 7,
+        "profile_completed": true,
+        "created_at": "2026-07-03T17:42:46Z"
+      }
+    }
+  },
+  "profile": {
+    "status": 200,
+    "body": {
+      "code": 0,
+      "message": "ok",
+      "data": {
+        "body": {
+          "height_cm": 175,
+          "weight_kg": 52,
+          "shoulder_width_cm": null,
+          "waist_cm": null,
+          "hip_cm": null,
+          "thigh_cm": null,
+          "calf_cm": null,
+          "leg_length_cm": null,
+          "body_type": "健美",
+          "body_type_en": "athletic",
+          "sizes": {
+            "tops_cn": null,
+            "bottoms_waist_cn": null,
+            "bottoms_length_cn": null,
+            "shoes_cn": null,
+            "shoes_foot_length_mm": null
+          }
+        },
+        "preferences": {
+          "style_tags": ["简约", "波西米亚", "日系"],
+          "style_tags_en": ["minimalist", "bohemian", "japanese"],
+          "color_preferences": ["黑"],
+          "color_preferences_en": ["Black"]
+        },
+        "completed": true,
+        "updated_at": "2026-07-15T01:45:15Z"
+      }
+    }
+  },
+  "enums": {
+    "status": 200,
+    "body": {
+      "code": 0,
+      "message": "ok",
+      "data": {
+        "types": {
+          "body_shape": [
+            {
+              "value": "slim",
+              "label_zh": "偏瘦",
+              "label_en": "Slim"
+            },
+            {
+              "value": "standard",
+              "label_zh": "标准",
+              "label_en": "Standard"
+            },
+            {
+              "value": "athletic",
+              "label_zh": "健美",
+              "label_en": "Athletic"
+            },
+            {
+              "value": "curvy",
+              "label_zh": "丰满",
+              "label_en": "Curvy"
+            },
+            {
+              "value": "plus",
+              "label_zh": "加大码",
+              "label_en": "Plus"
+            },
+            {
+              "value": "petite",
+              "label_zh": "娇小",
+              "label_en": "Petite"
+            },
+            {
+              "value": "muscular",
+              "label_zh": "肌肉型",
+              "label_en": "Muscular"
+            },
+            {
+              "value": "burly",
+              "label_zh": "魁梧",
+              "label_en": "Burly"
+            }
+          ],
+          "gender": [
+            {
+              "value": "male",
+              "label_zh": "男",
+              "label_en": "Male"
+            },
+            {
+              "value": "female",
+              "label_zh": "女",
+              "label_en": "Female"
+            }
+          ],
+          "skin_tone": [
+            {
+              "value": "fair",
+              "label_zh": "白皙",
+              "label_en": "Fair"
+            },
+            {
+              "value": "light",
+              "label_zh": "浅色",
+              "label_en": "Light"
+            },
+            {
+              "value": "medium",
+              "label_zh": "自然",
+              "label_en": "Medium"
+            },
+            {
+              "value": "tan",
+              "label_zh": "小麦色",
+              "label_en": "Tan"
+            },
+            {
+              "value": "dark",
+              "label_zh": "深色",
+              "label_en": "Dark"
+            }
+          ],
+          "age_range": [
+            {
+              "value": "18_25",
+              "label_zh": "18–25",
+              "label_en": "18–25"
+            },
+            {
+              "value": "26_35",
+              "label_zh": "26–35",
+              "label_en": "26–35"
+            },
+            {
+              "value": "36_45",
+              "label_zh": "36–45",
+              "label_en": "36–45"
+            },
+            {
+              "value": "46_plus",
+              "label_zh": "46+",
+              "label_en": "46+"
+            }
+          ],
+          "hair_style": [
+            {
+              "value": "short",
+              "label_zh": "短发",
+              "label_en": "Short"
+            },
+            {
+              "value": "medium",
+              "label_zh": "中发",
+              "label_en": "Medium"
+            },
+            {
+              "value": "long",
+              "label_zh": "长发",
+              "label_en": "Long"
+            },
+            {
+              "value": "long_straight",
+              "label_zh": "长直发",
+              "label_en": "Long Straight"
+            },
+            {
+              "value": "long_wavy",
+              "label_zh": "长卷发",
+              "label_en": "Long Wavy"
+            },
+            {
+              "value": "curly",
+              "label_zh": "卷发",
+              "label_en": "Curly"
+            },
+            {
+              "value": "ponytail",
+              "label_zh": "马尾",
+              "label_en": "Ponytail"
+            },
+            {
+              "value": "bald",
+              "label_zh": "光头",
+              "label_en": "Bald"
+            }
+          ],
+          "hair_color": [
+            {
+              "value": "black",
+              "label_zh": "黑色",
+              "label_en": "Black"
+            },
+            {
+              "value": "brown",
+              "label_zh": "棕色",
+              "label_en": "Brown"
+            },
+            {
+              "value": "chestnut",
+              "label_zh": "栗色",
+              "label_en": "Chestnut"
+            },
+            {
+              "value": "dark_brown",
+              "label_zh": "深棕色",
+              "label_en": "Dark Brown"
+            }
+          ],
+          "style_tag": [
+            {
+              "value": "minimalist",
+              "label_zh": "简约",
+              "label_en": "Minimalist"
+            },
+            {
+              "value": "street",
+              "label_zh": "街头",
+              "label_en": "Street"
+            },
+            {
+              "value": "japanese",
+              "label_zh": "日系",
+              "label_en": "Japanese"
+            },
+            {
+              "value": "korean",
+              "label_zh": "韩系",
+              "label_en": "Korean"
+            },
+            {
+              "value": "european",
+              "label_zh": "欧美",
+              "label_en": "European"
+            },
+            {
+              "value": "vintage",
+              "label_zh": "复古",
+              "label_en": "Vintage"
+            },
+            {
+              "value": "sweet",
+              "label_zh": "甜美",
+              "label_en": "Sweet"
+            },
+            {
+              "value": "bohemian",
+              "label_zh": "波西米亚",
+              "label_en": "Bohemian"
+            },
+            {
+              "value": "business",
+              "label_zh": "商务",
+              "label_en": "Business"
+            },
+            {
+              "value": "sporty",
+              "label_zh": "运动",
+              "label_en": "Sporty"
+            },
+            {
+              "value": "elegant",
+              "label_zh": "优雅",
+              "label_en": "Elegant"
+            },
+            {
+              "value": "preppy",
+              "label_zh": "学院",
+              "label_en": "Preppy"
+            },
+            {
+              "value": "girly",
+              "label_zh": "少女",
+              "label_en": "Girly"
+            },
+            {
+              "value": "punk",
+              "label_zh": "朋克",
+              "label_en": "Punk"
+            }
+          ],
+          "color": [
+            {
+              "value": "Black",
+              "label_zh": "黑",
+              "label_en": "Black"
+            },
+            {
+              "value": "White",
+              "label_zh": "白",
+              "label_en": "White"
+            },
+            {
+              "value": "Gray",
+              "label_zh": "灰",
+              "label_en": "Gray"
+            },
+            {
+              "value": "Beige",
+              "label_zh": "米",
+              "label_en": "Beige"
+            },
+            {
+              "value": "Brown",
+              "label_zh": "棕",
+              "label_en": "Brown"
+            },
+            {
+              "value": "Red",
+              "label_zh": "红",
+              "label_en": "Red"
+            },
+            {
+              "value": "Blue",
+              "label_zh": "蓝",
+              "label_en": "Blue"
+            },
+            {
+              "value": "Green",
+              "label_zh": "绿",
+              "label_en": "Green"
+            },
+            {
+              "value": "Yellow",
+              "label_zh": "黄",
+              "label_en": "Yellow"
+            },
+            {
+              "value": "Purple",
+              "label_zh": "紫",
+              "label_en": "Purple"
+            },
+            {
+              "value": "Pink",
+              "label_zh": "粉",
+              "label_en": "Pink"
+            },
+            {
+              "value": "Khaki",
+              "label_zh": "卡其",
+              "label_en": "Khaki"
+            },
+            {
+              "value": "DenimBlue",
+              "label_zh": "牛仔蓝",
+              "label_en": "Denim Blue"
+            },
+            {
+              "value": "Orange",
+              "label_zh": "橙",
+              "label_en": "Orange"
+            },
+            {
+              "value": "Camel",
+              "label_zh": "驼色",
+              "label_en": "Camel"
+            },
+            {
+              "value": "Burgundy",
+              "label_zh": "酒红",
+              "label_en": "Burgundy"
+            },
+            {
+              "value": "Navy",
+              "label_zh": "藏青",
+              "label_en": "Navy"
+            },
+            {
+              "value": "Olive",
+              "label_zh": "橄榄绿",
+              "label_en": "Olive"
+            },
+            {
+              "value": "Multi",
+              "label_zh": "多色",
+              "label_en": "Multi"
+            }
+          ],
+          "occasion": [
+            {
+              "value": "commute",
+              "label_zh": "通勤",
+              "label_en": "Commute"
+            },
+            {
+              "value": "casual",
+              "label_zh": "休闲",
+              "label_en": "Casual"
+            },
+            {
+              "value": "date",
+              "label_zh": "约会",
+              "label_en": "Date"
+            },
+            {
+              "value": "sport",
+              "label_zh": "运动",
+              "label_en": "Sport"
+            },
+            {
+              "value": "formal",
+              "label_zh": "正式",
+              "label_en": "Formal"
+            },
+            {
+              "value": "home",
+              "label_zh": "居家",
+              "label_en": "Home"
+            },
+            {
+              "value": "business",
+              "label_zh": "商务",
+              "label_en": "Business"
+            },
+            {
+              "value": "travel",
+              "label_zh": "旅行",
+              "label_en": "Travel"
+            }
+          ],
+          "weather_feel": [
+            {
+              "value": "cool",
+              "label_zh": "偏凉",
+              "label_en": "Cool"
+            },
+            {
+              "value": "comfortable",
+              "label_zh": "舒适",
+              "label_en": "Comfortable"
+            },
+            {
+              "value": "warm",
+              "label_zh": "偏暖",
+              "label_en": "Warm"
+            }
+          ]
+        },
+        "loaded_at": "2026-07-15T19:01:56Z"
+      }
+    }
+  },
+  "wardrobe": {
+    "status": 200,
+    "body": {
+      "code": 0,
+      "message": "ok",
+      "data": {
+        "items": [
+          {
+            "id": "mock-id-002",
+            "image_url": "<redacted-url>",
+            "cutout_url": "/codex-mocks/images/garment-01.png",
+            "display_image_url": "/codex-mocks/images/garment-01.png",
+            "category": "上衣",
+            "category_en": "TOPS",
+            "primary_color": "灰",
+            "primary_color_en": "Gray",
+            "material": "Cotton",
+            "style_tags": ["Casual", "Basic"],
+            "confidence": 0.99,
+            "reason": "完整展示",
+            "needs_confirmation": false,
+            "processing_status": "ready",
+            "is_manually_edited": false,
+            "created_at": "2026-07-14T10:00:39Z"
+          },
+          {
+            "id": "mock-id-003",
+            "image_url": "<redacted-url>",
+            "cutout_url": "/codex-mocks/images/garment-02.png",
+            "display_image_url": "/codex-mocks/images/garment-02.png",
+            "category": "裤装",
+            "category_en": "BOTTOMS",
+            "primary_color": "Denim Blue",
+            "primary_color_en": "Denim Blue",
+            "material": "Denim",
+            "style_tags": ["Casual", "Streetwear"],
+            "confidence": 0.98,
+            "reason": "完整展示",
+            "needs_confirmation": false,
+            "processing_status": "ready",
+            "is_manually_edited": false,
+            "created_at": "2026-07-13T17:38:15Z"
+          },
+          {
+            "id": "mock-id-004",
+            "image_url": "<redacted-url>",
+            "cutout_url": "/codex-mocks/images/garment-03.png",
+            "display_image_url": "/codex-mocks/images/garment-03.png",
+            "category": "半身裙",
+            "category_en": "SKIRT",
+            "primary_color": "米",
+            "primary_color_en": "Beige",
+            "material": "Cotton",
+            "style_tags": ["Romantic", "Casual"],
+            "confidence": 0.98,
+            "reason": "完整展示",
+            "needs_confirmation": false,
+            "processing_status": "ready",
+            "is_manually_edited": false,
+            "created_at": "2026-07-13T17:10:22Z"
+          },
+          {
+            "id": "mock-id-005",
+            "image_url": "<redacted-url>",
+            "cutout_url": "/codex-mocks/images/garment-04.png",
+            "display_image_url": "/codex-mocks/images/garment-04.png",
+            "category": "半身裙",
+            "category_en": "SKIRT",
+            "primary_color": "米",
+            "primary_color_en": "Beige",
+            "material": "Cotton",
+            "style_tags": ["Elegant", "Classic"],
+            "confidence": 0.98,
+            "reason": "完整展示",
+            "needs_confirmation": false,
+            "processing_status": "ready",
+            "is_manually_edited": false,
+            "created_at": "2026-07-13T17:10:18Z"
+          },
+          {
+            "id": "mock-id-006",
+            "image_url": "<redacted-url>",
+            "cutout_url": "/codex-mocks/images/garment-05.png",
+            "display_image_url": "/codex-mocks/images/garment-05.png",
+            "category": "半身裙",
+            "category_en": "SKIRT",
+            "primary_color": "米",
+            "primary_color_en": "Beige",
+            "material": "Cotton",
+            "style_tags": ["Romantic", "Casual"],
+            "confidence": 0.98,
+            "reason": "完整展示",
+            "needs_confirmation": false,
+            "processing_status": "ready",
+            "is_manually_edited": false,
+            "created_at": "2026-07-13T17:07:38Z"
+          },
+          {
+            "id": "mock-id-007",
+            "image_url": "<redacted-url>",
+            "cutout_url": "/codex-mocks/images/garment-06.png",
+            "display_image_url": "/codex-mocks/images/garment-06.png",
+            "category": "上衣",
+            "category_en": "TOPS",
+            "primary_color": "橄榄绿",
+            "primary_color_en": "Olive",
+            "material": "Cotton",
+            "style_tags": ["Casual", "Outdoor"],
+            "confidence": 0.98,
+            "reason": "完整展示",
+            "needs_confirmation": false,
+            "processing_status": "ready",
+            "is_manually_edited": false,
+            "created_at": "2026-07-13T17:03:18Z"
+          },
+          {
+            "id": "mock-id-008",
+            "image_url": "<redacted-url>",
+            "cutout_url": "/codex-mocks/images/garment-07.png",
+            "display_image_url": "/codex-mocks/images/garment-07.png",
+            "category": "上衣",
+            "category_en": "TOPS",
+            "primary_color": "灰",
+            "primary_color_en": "Gray",
+            "material": "Cotton",
+            "style_tags": ["Casual", "Basic"],
+            "confidence": 0.99,
+            "reason": "完整展示",
+            "needs_confirmation": false,
+            "processing_status": "ready",
+            "is_manually_edited": false,
+            "created_at": "2026-07-13T16:54:13Z"
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 7,
+          "has_more": false
+        }
+      }
+    }
+  },
+  "weather": {
+    "status": 200,
+    "body": {
+      "code": 0,
+      "message": "ok",
+      "data": {
+        "city": "",
+        "city_code": "101010100",
+        "temp": 25,
+        "feels_like": 28,
+        "condition": "阴",
+        "condition_en": "Overcast",
+        "humidity": 88,
+        "season": "summer",
+        "season_en": "Summer",
+        "updated_at": "2026-07-15T19:04:48Z"
+      }
+    }
+  },
+  "today_outfit": {
+    "status": 200,
+    "body": {
+      "code": 0,
+      "message": "ok",
+      "data": {
+        "id": "mock-id-009",
+        "status": "generated",
+        "tags_en": ["commute"],
+        "occasion": "通勤",
+        "occasion_en": "commute",
+        "garments": [
+          {
+            "id": "mock-id-002",
+            "category": "上衣",
+            "category_en": "TOPS",
+            "primary_color": "灰",
+            "primary_color_en": "Gray",
+            "image_url": "<redacted-url>",
+            "display_image_url": "/codex-mocks/images/garment-01.png"
+          },
+          {
+            "id": "mock-id-003",
+            "category": "裤装",
+            "category_en": "BOTTOMS",
+            "primary_color": "Denim Blue",
+            "primary_color_en": "Denim Blue",
+            "image_url": "<redacted-url>",
+            "display_image_url": "/codex-mocks/images/garment-02.png"
+          },
+          {
+            "id": "mock-id-004",
+            "category": "半身裙",
+            "category_en": "SKIRT",
+            "primary_color": "米",
+            "primary_color_en": "Beige",
+            "image_url": "<redacted-url>",
+            "display_image_url": "/codex-mocks/images/garment-03.png"
+          }
+        ],
+        "reason": "通勤 recommendation",
+        "tips": [],
+        "created_at": "2026-07-14T16:21:14Z"
+      }
+    }
+  },
+  "recommendation": {
+    "status": 200,
+    "body": {
+      "code": 0,
+      "message": "ok",
+      "data": {
+        "outfits": [
+          {
+            "id": "mock-id-010",
+            "status": "generated",
+            "tags_en": ["commute"],
+            "occasion": "通勤",
+            "occasion_en": "commute",
+            "garments": [
+              {
+                "id": "mock-id-002",
+                "category": "上衣",
+                "category_en": "TOPS",
+                "primary_color": "灰",
+                "primary_color_en": "Gray",
+                "image_url": "<redacted-url>",
+                "display_image_url": "/codex-mocks/images/recommendation-01-01.png"
+              },
+              {
+                "id": "mock-id-003",
+                "category": "裤装",
+                "category_en": "BOTTOMS",
+                "primary_color": "Denim Blue",
+                "primary_color_en": "Denim Blue",
+                "image_url": "<redacted-url>",
+                "display_image_url": "/codex-mocks/images/recommendation-01-02.png"
+              },
+              {
+                "id": "mock-id-004",
+                "category": "半身裙",
+                "category_en": "SKIRT",
+                "primary_color": "米",
+                "primary_color_en": "Beige",
+                "image_url": "<redacted-url>",
+                "display_image_url": "/codex-mocks/images/recommendation-01-03.png"
+              }
+            ],
+            "reason": "通勤 recommendation",
+            "tips": [],
+            "created_at": "2026-07-15T19:05:33Z",
+            "weather": {
+              "temp": 25,
+              "condition": "阴",
+              "humidity": 88
+            }
+          },
+          {
+            "id": "mock-id-011",
+            "status": "generated",
+            "tags_en": ["commute"],
+            "occasion": "通勤",
+            "occasion_en": "commute",
+            "garments": [
+              {
+                "id": "mock-id-004",
+                "category": "半身裙",
+                "category_en": "SKIRT",
+                "primary_color": "米",
+                "primary_color_en": "Beige",
+                "image_url": "<redacted-url>",
+                "display_image_url": "/codex-mocks/images/recommendation-01-03.png"
+              },
+              {
+                "id": "mock-id-005",
+                "category": "半身裙",
+                "category_en": "SKIRT",
+                "primary_color": "米",
+                "primary_color_en": "Beige",
+                "image_url": "<redacted-url>",
+                "display_image_url": "/codex-mocks/images/recommendation-02-02.png"
+              },
+              {
+                "id": "mock-id-006",
+                "category": "半身裙",
+                "category_en": "SKIRT",
+                "primary_color": "米",
+                "primary_color_en": "Beige",
+                "image_url": "<redacted-url>",
+                "display_image_url": "/codex-mocks/images/recommendation-02-03.png"
+              }
+            ],
+            "reason": "通勤 recommendation",
+            "tips": [],
+            "created_at": "2026-07-15T19:05:33Z",
+            "weather": {
+              "temp": 25,
+              "condition": "阴",
+              "humidity": 88
+            }
+          },
+          {
+            "id": "mock-id-012",
+            "status": "generated",
+            "tags_en": ["commute"],
+            "occasion": "通勤",
+            "occasion_en": "commute",
+            "garments": [
+              {
+                "id": "mock-id-006",
+                "category": "半身裙",
+                "category_en": "SKIRT",
+                "primary_color": "米",
+                "primary_color_en": "Beige",
+                "image_url": "<redacted-url>",
+                "display_image_url": "/codex-mocks/images/recommendation-02-03.png"
+              },
+              {
+                "id": "mock-id-007",
+                "category": "上衣",
+                "category_en": "TOPS",
+                "primary_color": "橄榄绿",
+                "primary_color_en": "Olive",
+                "image_url": "<redacted-url>",
+                "display_image_url": "/codex-mocks/images/recommendation-03-02.png"
+              },
+              {
+                "id": "mock-id-008",
+                "category": "上衣",
+                "category_en": "TOPS",
+                "primary_color": "灰",
+                "primary_color_en": "Gray",
+                "image_url": "<redacted-url>",
+                "display_image_url": "/codex-mocks/images/recommendation-03-03.png"
+              }
+            ],
+            "reason": "通勤 recommendation",
+            "tips": [],
+            "created_at": "2026-07-15T19:05:33Z",
+            "weather": {
+              "temp": 25,
+              "condition": "阴",
+              "humidity": 88
+            }
+          }
+        ],
+        "weather": {
+          "temp": 25,
+          "condition": "阴",
+          "humidity": 88
+        }
+      }
+    }
+  },
+  "tryon_created": {
+    "status": 202,
+    "body": {
+      "code": 0,
+      "message": "ok",
+      "data": {
+        "task_id": "mock-id-013",
+        "task_type": "full_tryon",
+        "status": "pending",
+        "poll_after_ms": 2000
+      }
+    }
+  },
+  "tryon_task_snapshots": [
+    {
+      "status": 200,
+      "body": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "id": "mock-id-013",
+          "task_type": "full_tryon",
+          "status": "processing",
+          "stage": "generating",
+          "progress": 0,
+          "poll_after_ms": 0,
+          "created_at": "2026-07-15T19:05:33Z"
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "id": "mock-id-013",
+          "task_type": "full_tryon",
+          "status": "done",
+          "stage": "done",
+          "progress": 100,
+          "poll_after_ms": 0,
+          "tryon_result": {
+            "id": "mock-id-014",
+            "image_url": "/codex-mocks/images/tryon-success.png"
+          },
+          "created_at": "2026-07-15T19:05:33Z"
+        }
+      }
+    }
+  ],
+  "downloaded_images": [
+    "/codex-mocks/images/user-model.png",
+    "/codex-mocks/images/garment-01.png",
+    "/codex-mocks/images/garment-02.png",
+    "/codex-mocks/images/garment-03.png",
+    "/codex-mocks/images/garment-04.png",
+    "/codex-mocks/images/garment-05.png",
+    "/codex-mocks/images/garment-06.png",
+    "/codex-mocks/images/garment-07.png",
+    "/codex-mocks/images/recommendation-01-01.png",
+    "/codex-mocks/images/recommendation-01-02.png",
+    "/codex-mocks/images/recommendation-01-03.png",
+    "/codex-mocks/images/recommendation-02-02.png",
+    "/codex-mocks/images/recommendation-02-03.png",
+    "/codex-mocks/images/recommendation-03-02.png",
+    "/codex-mocks/images/recommendation-03-03.png",
+    "/codex-mocks/images/tryon-success.png"
+  ]
+}
