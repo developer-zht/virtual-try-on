@@ -269,9 +269,9 @@ async function onDelete(id: string) {
 .fab {
   width: 40px;
   height: 40px;
-  border: none;
+  border: 1px solid var(--button-primary-border);
   border-radius: 50%;
-  background: var(--primary);
+  background: var(--gradient-button-primary);
   color: #fff;
   display: flex;
   align-items: center;
@@ -503,7 +503,8 @@ async function onDelete(id: string) {
 .circle--primary {
   width: 112px;
   height: 112px;
-  background: var(--primary);
+  border: 1px solid var(--button-primary-border);
+  background: var(--gradient-button-primary);
   color: #fff;
   box-shadow: var(--shadow-cta);
 }
@@ -512,9 +513,9 @@ async function onDelete(id: string) {
   width: 96px;
   height: 96px;
   margin-top: 8px; // 略小，稍下沉与主圆视觉对齐
-  background: var(--bg-card);
+  background: var(--gradient-button-secondary);
   color: var(--primary);
-  box-shadow: inset 0 0 0 1.5px var(--primary-soft);
+  box-shadow: inset 0 0 0 1px var(--button-secondary-border);
 }
 .circle__pulse {
   position: absolute;
