@@ -45,6 +45,31 @@ function localizeOutfit(outfit: JsonObject, index: number): JsonObject {
 }
 
 const completeProfile = clone(captured.profile.body.data);
+// CODEX-PHASE-5：在旧版实采 Profile 上补齐完整测量值与 v1.8.1 外观中英文字段。
+// 原因：默认 Mock 必须为读取、回显、保存和 Store 映射提供一份稳定的完整身体数据基线。
+completeProfile.body = {
+  ...(completeProfile.body as JsonObject),
+  shoulder_width_cm: 38,
+  waist_cm: 66,
+  hip_cm: 90,
+  thigh_cm: 50,
+  calf_cm: 34,
+  leg_length_cm: 82,
+  gender: '女',
+  gender_en: 'female',
+  skin_tone: '自然',
+  skin_tone_en: 'medium',
+  age_range: '26–35',
+  age_range_en: '26_35',
+  hair_style: '长发',
+  hair_style_en: 'long',
+  hair_color: '黑色',
+  hair_color_en: 'black',
+  sizes: {
+    ...(((completeProfile.body as JsonObject).sizes as JsonObject) ?? {}),
+    shoes_foot_length_mm: 235,
+  },
+};
 const incompleteProfile = clone(completeProfile);
 incompleteProfile.completed = false;
 incompleteProfile.body = {
@@ -86,6 +111,8 @@ export const mockFixtures = {
   user,
   profile: completeProfile,
   incompleteProfile,
+  // CODEX-PHASE-5：模型 fixture 保留全部可由 Profile 回填的字段。
+  // 原因：POST Model 的 override 与轮询完成后回显不能只覆盖旧版五字段。
   model: {
     status: 'ready',
     task_id: null,
@@ -95,6 +122,9 @@ export const mockFixtures = {
     height_cm: 175,
     weight_kg: 52,
     skin_tone: 'medium',
+    age_range: '26_35',
+    hair_style: 'long',
+    hair_color: 'black',
     avatar_url: '/codex-mocks/images/user-model.png',
     updated_at: '2026-07-15T19:05:33Z',
   },
@@ -107,6 +137,9 @@ export const mockFixtures = {
     height_cm: null,
     weight_kg: null,
     skin_tone: null,
+    age_range: null,
+    hair_style: null,
+    hair_color: null,
     avatar_url: null,
     updated_at: null,
   },
@@ -119,6 +152,9 @@ export const mockFixtures = {
     height_cm: 175,
     weight_kg: 52,
     skin_tone: 'medium',
+    age_range: '26_35',
+    hair_style: 'long',
+    hair_color: 'black',
     avatar_url: null,
     updated_at: null,
   },
