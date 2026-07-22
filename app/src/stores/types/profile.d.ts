@@ -1,28 +1,39 @@
+/**
+ * 让 Profile Store 的扁平状态覆盖完整身体数据与 v1.8.1 外观字段。
+ * 原因：页面只消费 camelCase 状态，不应直接依赖 API 的嵌套 snake_case 结构。
+ */
 import type { EnumItem } from '@/api/types/metadata';
 
-// UI 面向的扁平形状（组件只看这个）
 export interface ProfileState {
-  height: number | null; // ← body.height_cm
-  weight: number | null; // ← body.weight_kg
+  height: number | null;
+  weight: number | null;
+  gender: string | null;
+  skinTone: string | null;
+  bodyType: string | null;
+  ageRange: string | null;
+  hairStyle: string | null;
+  hairColor: string | null;
   shoulderWidth: number | null;
   waist: number | null;
   hip: number | null;
   thigh: number | null;
   calf: number | null;
   legLength: number | null;
-  footLength: number | null; // 脚长 mm
-  bodyType: string | null; // ← body.body_type_en（英文枚举值）
-  styles: string[]; // ← preferences.style_tags_en（≤3）
-  color: string | null; // ← preferences.color_preferences_en[0]
-  skinTone: string | null; // 纯前端
-  genModel: string | null; // 纯前端
-  vlModel: string | null; // 纯前端
+  footLength: number | null;
+  styles: string[];
+  color: string | null;
+  genModel: string | null;
+  vlModel: string | null;
 }
 
-// 下拉/多选选项字典：store 从 /metadata/enums 挑这几类，防腐成 UI 分组。
-// 每项 EnumItem{value,label_zh,label_en}：value 存进 profile.*，label_zh 用于显示。
+/** Store 从 /metadata/enums 选择 Profile 页面所需的字典分组。 */
 export interface ProfileOptions {
-  bodyTypes: EnumItem[]; // ← enums.types.body_shape
-  styleTags: EnumItem[]; // ← enums.types.style_tag
-  colors: EnumItem[]; // ← enums.types.color
+  bodyTypes: EnumItem[];
+  genders: EnumItem[];
+  skinTones: EnumItem[];
+  ageRanges: EnumItem[];
+  hairStyles: EnumItem[];
+  hairColors: EnumItem[];
+  styleTags: EnumItem[];
+  colors: EnumItem[];
 }

@@ -17,50 +17,56 @@ const routes: RouteRecordRaw[] = [
         },
       }, // 访问 / 自动跳首页
 
-      // ===== 4 个主 Tab（平级）=====
+      // ==================== Tab 主页 Home ====================
       {
         path: 'home',
         name: ROUTES.home,
         meta: { tab: true, title: '首页' },
         component: () => import('@/pages/NewHomePage.vue'),
       },
-      {
-        path: 'wardrobe',
-        name: ROUTES.wardrobe,
-        meta: { tab: true, title: '电子衣柜' },
-        component: () => import('@/pages/WardrobePage.vue'),
-      },
-      {
-        path: 'preference',
-        name: ROUTES.preference,
-        meta: { tab: true, title: '偏好' },
-        component: () => import('@/pages/PreferencePage.vue'),
-      },
-      {
-        path: 'profile',
-        name: ROUTES.profile,
-        meta: { tab: true, title: '我的' },
-        component: () => import('@/pages/ProfilePage.vue'),
-      },
-
-      // ===== 引导流 / 浮层（后续步骤再整理；无 meta.tab，不显示 Tab 栏）=====
-      // { path: 'welcome', name: ROUTES.welcome, component: () => import('@/pages/WelcomePage.vue') },
-      // { path: 'scan', name: ROUTES.scan, component: () => import('@/pages/ScanPage.vue') },
-      // {
-      //   path: 'profile-form',
-      //   name: ROUTES.profileForm,
-      //   component: () => import('@/pages/deprecated/ProfileFormPage.vue'),
-      // },
+      // ----- 二级页面 自由搭配 Workshop -----
       {
         path: 'workshop',
         name: ROUTES.workshop,
         component: () => import('@/pages/WorkshopPage.vue'),
         meta: { overlay: true, title: '创意工坊' },
       },
+
+      // ==================== Tab 电子衣柜 Wardrobe ====================
+      {
+        path: 'wardrobe',
+        name: ROUTES.wardrobe,
+        meta: { tab: true, title: '电子衣柜' },
+        component: () => import('@/pages/WardrobePage.vue'),
+      },
+
+      // ==================== Tab 偏好 Preference ====================
+      {
+        path: 'preference',
+        name: ROUTES.preference,
+        meta: { tab: true, title: '偏好' },
+        component: () => import('@/pages/PreferencePage.vue'),
+      },
+
+      // ==================== Tab 我的 Profile ====================
+      {
+        path: 'profile',
+        name: ROUTES.profile,
+        meta: { tab: true, title: '我的' },
+        component: () => import('@/pages/profile/ProfilePage.vue'),
+      },
+      // ----- 二级页面 身体数据 Body-Data -----
+      {
+        path: 'body-data',
+        name: ROUTES.bodyData,
+        meta: { overlay: true, title: '身体数据' },
+        component: () => import('@/pages/profile/BodyDataPage.vue'),
+      },
     ],
   },
 
-  { path: '/:catchAll(.*)*', component: () => import('@/pages/ErrorNotFound.vue') }, // 404 垫底
+  // ==================== 兜底 404 ====================
+  { path: '/:catchAll(.*)*', component: () => import('@/pages/ErrorNotFound.vue') }, // 404
 ];
 
 export default routes;

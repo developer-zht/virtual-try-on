@@ -157,9 +157,9 @@ async function onDelete(id: string) {
 .saved-empty__btn {
   margin-top: 16px;
   padding: 9px 20px;
-  border: none;
+  border: 1px solid var(--button-secondary-border);
   border-radius: var(--radius-pill);
-  background: var(--primary-soft);
+  background: var(--gradient-button-secondary);
   color: var(--primary);
   font-size: 14px;
   font-weight: 600;
@@ -182,7 +182,7 @@ async function onDelete(id: string) {
   overflow: hidden;
   padding: 18px;
   border-radius: var(--radius-lg);
-  background: linear-gradient(160deg, #6c5ce7, #8b7bf0);
+  background: var(--gradient-feature-strong);
   color: #fff;
   box-shadow: var(--shadow-hero);
   display: flex;
