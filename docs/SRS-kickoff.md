@@ -9,6 +9,7 @@
 这个产品和本仓库的主线产品 StyleTwin(2D 纸娃娃)无业务关系,只是暂存于同仓库。
 
 == 开始前请先读这些已产出的文档(在分支 claude/festive-wozniak-6pcz8e 上)==
+- docs/backlog.md                 —— 待办与已定决策清单(务必先读,含 A-pose/视觉风格/UI 等待办)
 - docs/3D-tryon-index.md          —— 总索引 + 进度
 - docs/feasibility-3D-tryon.md    —— 可行性结论(GO)、build-vs-buy、许可核对、风险、最低iOS
 - docs/spike-week1-blendshape-pipeline.md —— Spike 真机验证结果(A–E 全过)

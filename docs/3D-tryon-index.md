@@ -11,6 +11,8 @@
 4. **[资产管线 MakeHuman→Blender→usdz](./asset-pipeline-makehuman-to-usdz.md)** — 从下资源到导出 `scene.usdz` 的逐步操作，含两态做差生成 blendshape、导出选项、存活验证、常见坑。
 5. （待产出）SRS — **前置闸门已通过**：Spike A–E 全部真机验证通过（见 spike 文档「Spike 总结」），可以开始写。
 
+> 📌 **跨对话待办清单见 [`backlog.md`](./backlog.md)**（A-pose、视觉风格、产品 UI、工具终选等；新对话先读它，避免遗忘）。
+
 ## 进度
 - ✅ 可行性分析（GO）
 - ✅ Spike 真机验证：blendshape 驱动身体、身体+衣服不穿模、运行时换 base color，A–E 全过
