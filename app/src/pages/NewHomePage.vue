@@ -1,5 +1,5 @@
 <template>
-  <div class="home">
+  <div class="home" :class="{ 'home--hero-fullscreen': isHeroFullscreen }">
     <!-- 生成过渡遮罩 -->
     <div v-if="home.generating" class="gen">
       <div class="gen__ring"></div>
@@ -9,88 +9,82 @@
       <div class="gen__text">AI 正在为你搭配… {{ home.genProg }}%</div>
     </div>
 
-    <!-- 未生成 → Welcome 引导（§1.0）-->
-    <div v-else-if="!home.outfitReady" class="welcome">
-      <div class="welcome__logo">
-        <!-- <AppIcon name="sparkle" :size="30" /> -->
-        <img :src="logoLunar" class="welcome__logo-img" />
-      </div>
-      <h1 class="welcome__slogan">告别「今天穿什么」的烦恼</h1>
-      <p class="welcome__sub">登录、上传衣物，AI 每天帮你搭配</p>
-
-      <DemoHint
-        >测试账号中已满足第 2 条和第 3
-        条要求，因此该页面会即刻消失，但您仍可前往「电子衣柜」上传衣服，也可前往「我的」修改个人数据</DemoHint
-      >
-
-      <div class="steps">
-        <button class="step" @click="auth.openAuth('register')">
-          <span class="step__badge" :class="{ 'step__badge--done': auth.loggedIn }">
-            <AppIcon v-if="auth.loggedIn" name="check" :size="15" />
-            <template v-else>1</template>
-          </span>
-          <span class="step__label">注册账号</span>
-        </button>
-        <button class="step" @click="goProfile">
-          <span
-            class="step__badge"
-            :class="{ 'step__badge--done': personalData.height && personalData.weight }"
-          >
-            <AppIcon v-if="personalData.height && personalData.weight" name="check" :size="15" />
-            <template v-else>2</template>
-          </span>
-          <span class="step__label">填写身体数据</span>
-        </button>
-        <button class="step" @click="goWardrobe">
-          <span class="step__badge" :class="{ 'step__badge--done': wardrobe.hasClothes }">
-            <span v-if="wardrobe.loading" class="badge-spinner">{{ wardrobe.loading }}</span>
-            <AppIcon v-else-if="wardrobe.hasClothes" name="check" :size="15" />
-            <template v-else>3</template>
-          </span>
-          <span class="step__label">拍照上传衣物</span>
-        </button>
-      </div>
-
-      <button class="gen-btn" :disabled="!home.canGenerate" @click="home.generate()">
-        让我来告诉你
-      </button>
-      <div v-if="!home.canGenerate" class="welcome__hint">{{ gateHint }}</div>
-    </div>
+    <HomeGuidePanel v-else-if="!home.outfitReady" :facts="guideFacts" @action="handleGuideAction" />
 
     <template v-else>
       <!-- 4.1 顶部问候栏 -->
-      <PageHeader title="今日穿搭">
-        <template #action>
+      <PageHeader title="今日">
+        <!-- <template #action>
           <button class="avatar-btn" aria-label="我的" @click="goProfile">
             <AppIcon name="user" :size="22" />
           </button>
-        </template>
+        </template> -->
       </PageHeader>
 
       <DemoHint>测试账号的性别和肤色分别固定为「女」和「小麦色」，暂时无法更改</DemoHint>
 
-      <!-- 4.2 HERO 大卡 -->
-      <section class="hero hero--sunny">
-        <!-- 4.2a 顶部状态行 -->
-        <div class="hero__status">
-          <div class="hero__weather">
-            <div class="hero__temp">{{ weather?.temp ?? '—' }}°</div>
-            <div class="hero__desc">{{ weather?.condition }}</div>
-          </div>
-          <div class="hero__occasion">
-            <div class="hero__occasion-name">{{ occasionName }}</div>
-            <div class="hero__occasion-date">{{ dateText }}</div>
-          </div>
-        </div>
+      <!-- 4.2 HERO 大卡：紧凑态与全屏态共用同一套 DOM -->
+      <div class="hero-slot">
+        <section
+          ref="heroEl"
+          class="hero"
+          :class="{
+            'hero--sunny': heroWeatherCondition === 'sunny',
+            'hero--cloudy': heroWeatherCondition === 'cloudy',
+            'hero--rainy': heroWeatherCondition === 'rainy',
+            'hero--interactive': canExpandHero && !isHeroFullscreen,
+            'hero--fullscreen': isHeroFullscreen,
+            'hero--animating': heroAnimating,
+          }"
+          :style="{ backgroundImage: heroSky }"
+          :role="canExpandHero && !isHeroFullscreen ? 'button' : undefined"
+          :tabindex="canExpandHero && !isHeroFullscreen ? 0 : undefined"
+          :aria-label="canExpandHero && !isHeroFullscreen ? '打开今日穿搭全屏浏览' : undefined"
+          @click="openHero"
+          @keydown.enter.prevent="openHero"
+          @keydown.space.prevent="openHero"
+        >
+          <WeatherCanvas
+            v-if="isHeroFullscreen"
+            class="hero__weather-canvas"
+            :condition="heroWeatherCondition"
+            :collider-el="heroCardEl"
+            :animating="heroAnimating"
+            :daylight="heroDaylight"
+          />
 
-        <!-- 4.2b 中部穿搭插画 -->
-        <div v-if="tryTrying" class="hero__trying">
-          <div class="hero__spinner"></div>
-          <div class="hero__trying-text">生成上身图 {{ tryProgress }}%</div>
-        </div>
-        <div v-else-if="heroImage" class="hero__art">
-          <img :src="heroImage" class="hero__real" alt="今日穿搭上身图" />
-          <!-- <div v-else-if="heroGarments.length" class="hero__art-collage">
+          <!-- 4.2a 顶部状态行 -->
+          <div class="hero__status">
+            <div class="hero__weather">
+              <div class="hero__temp">{{ weather?.temp ?? '—' }}°</div>
+              <div class="hero__desc">{{ weather?.condition }}</div>
+            </div>
+            <div v-if="!isHeroFullscreen" class="hero__occasion">
+              <div class="hero__occasion-name">{{ occasionName }}</div>
+              <div class="hero__occasion-date">{{ dateText }}</div>
+            </div>
+            <button
+              v-else
+              ref="heroCloseButtonEl"
+              class="hero__close"
+              aria-label="退出全屏浏览"
+              @click.stop="closeHero"
+            >
+              <AppIcon name="close" :size="22" />
+            </button>
+          </div>
+
+          <!-- 4.2b 中部穿搭插画 -->
+          <div v-if="tryTrying" class="hero__trying">
+            <div class="hero__spinner"></div>
+            <div class="hero__trying-text">生成上身图 {{ tryProgress }}%</div>
+          </div>
+          <div
+            v-else-if="heroImage"
+            :class="isHeroFullscreen ? 'hero__art--fullscreen' : 'hero__art'"
+          >
+            <img :src="heroImage" class="hero__real" alt="今日穿搭上身图" />
+            <!-- <div v-else-if="heroGarments.length" class="hero__art-collage">
             <img
               v-for="g in heroGarments"
               :key="g.id"
@@ -99,29 +93,43 @@
               alt=""
             />
           </div> -->
-        </div>
-        <AppIcon v-else name="dress" :size="96" class="hero__art-icon" />
+          </div>
+          <AppIcon v-else name="dress" :size="96" class="hero__art-icon" />
 
-        <!-- 4.2c 底部毛玻璃 hint 卡 -->
-        <div class="hero__card">
-          <div class="hero__card-top">
-            <div class="hero__card-info">
-              <div class="hero__card-title">{{ outfitTitle }}</div>
-              <div class="hero__tags">
-                <span v-for="tag in outfitTags" :key="tag" class="tag">{{ tag }}</span>
+          <button
+            v-if="canExpandHero && !isHeroFullscreen"
+            class="hero__expand"
+            aria-label="全屏查看今日穿搭"
+            @click.stop="openHero"
+          >
+            <AppIcon name="expand-arrows" :size="26" />
+          </button>
+
+          <!-- 4.2c 底部毛玻璃 hint 卡 -->
+          <div ref="heroCardEl" :class="isHeroFullscreen ? 'hero__card--fullscreen' : 'hero__card'">
+            <div class="hero__card-top">
+              <div class="hero__card-info">
+                <div class="hero__card-title">{{ outfitTitle }}</div>
+                <div class="hero__tags">
+                  <span v-for="tag in outfitTags" :key="tag" class="tag">{{ tag }}</span>
+                </div>
               </div>
+              <button
+                class="heart-btn"
+                aria-label="收藏"
+                @click.stop="addToLike(currentOutfit?.id)"
+              >
+                <AppIcon name="heart" :size="25" />
+              </button>
             </div>
-            <button class="heart-btn" aria-label="收藏" @click="addToLike(currentOutfit?.id)">
-              <AppIcon name="heart" :size="25" />
-            </button>
+            <div v-if="outfitHint" class="hero__divider"></div>
+            <div v-if="outfitHint" class="hero__hint">
+              <AppIcon name="bulb" :size="15" />
+              <span>{{ outfitHint }}</span>
+            </div>
           </div>
-          <div v-if="outfitHint" class="hero__divider"></div>
-          <div v-if="outfitHint" class="hero__hint">
-            <AppIcon name="bulb" :size="15" />
-            <span>{{ outfitHint }}</span>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       <!-- 4.3 搭配清单：横向滚动缩略图（独立白卡）-->
       <section v-if="pieces.length" class="pieces">
@@ -161,7 +169,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRouter } from 'vue-router';
 import AppIcon from '@/components/icons/AppIcon.vue';
 import PageHeader from '@/components/PageHeader.vue';
@@ -180,7 +188,10 @@ import { AppError } from '@/errors';
 import { messageFromError } from '@/utils/errorMessage';
 import { useNotifyStore } from '@/stores/notify';
 import { useProfileStore } from '@/stores/profile';
-import logoLunar from '@/assets/logo-lunar.png';
+import HomeGuidePanel from '@/components/home-guide/HomeGuidePanel.vue';
+import WeatherCanvas from '@/components/WeatherCanvas.vue';
+import { useHeroFullscreen } from '@/composables/useHeroFullscreen';
+import type { HomeGuideAction, HomeGuideFacts } from '@/components/home-guide/homeGuideFlow';
 
 const router = useRouter();
 const notify = useNotifyStore();
@@ -197,15 +208,11 @@ const wardrobe = useWardrobeStore();
 const { getClothes } = wardrobe;
 
 const profile = useProfileStore();
-const { profile: personalData } = storeToRefs(profile);
 const { fetchProfile } = profile;
 
 const { weather, load: loadWeather } = useWeather();
 
-onMounted(async () => {
-  if (!home.outfitReady && home.canGenerate) {
-    await generate(); // 没今日穿搭 & 能生成 → 自动来一套
-  }
+onMounted(() => {
   if (auth.loggedIn) void loadWeather();
 });
 
@@ -218,10 +225,15 @@ watch(
   { immediate: true },
 );
 
-// 生成闸门"还差哪一步"的提示
-const gateHint = computed(() =>
-  !auth.loggedIn ? '请先注册账号' : !wardrobe.hasClothes ? '请先上传至少一件衣物' : '',
-);
+const guideFacts = computed<HomeGuideFacts>(() => ({
+  loggedIn: auth.loggedIn,
+
+  // FUTURE：接入 Model API/Store 后，替换成 missing / generating / ready 真实状态。
+  modelStatus: auth.user?.avatar_url ? 'ready' : 'missing',
+  modelProgress: 0,
+
+  hasClothes: wardrobe.hasClothes,
+}));
 
 // 顶部日期，如「周三 · 7月8日」
 const dateText = computed(() => {
@@ -308,6 +320,97 @@ const heroImage = computed(() =>
   currentOutfitId.value ? (home.tryOnImages[currentOutfitId.value] ?? null) : null,
 );
 
+const heroEl = ref<HTMLElement | null>(null);
+const heroCardEl = ref<HTMLElement | null>(null);
+const heroCloseButtonEl = ref<HTMLButtonElement | null>(null);
+const canExpandHero = computed(() => Boolean(heroImage.value));
+const heroWeatherCondition = computed<'sunny' | 'cloudy' | 'rainy'>(() => {
+  const condition = (weather.value?.condition ?? '').toLowerCase();
+  if (condition.includes('雨') || condition.includes('rain')) return 'rainy';
+  if (
+    condition.includes('云') ||
+    condition.includes('阴') ||
+    condition.includes('cloud') ||
+    condition.includes('overcast')
+  )
+    return 'cloudy';
+  return 'sunny';
+});
+// const heroWeatherCondition: 'sunny' | 'cloudy' | 'rainy' = 'rainy';
+// 天气 × 时段 的天空渐变（top→bottom），可自行调色
+const SKY: Record<
+  'sunny' | 'cloudy' | 'rainy',
+  Record<'dawn' | 'day' | 'dusk' | 'night', string>
+> = {
+  sunny: {
+    dawn: 'linear-gradient(168deg,#f7c7a8,#f3d9d0 45%,#e8e0f0)',
+    day: 'linear-gradient(168deg,#bfd6f5,#dce7f7 44%,#efe9fb)',
+    dusk: 'linear-gradient(168deg,#f0a878,#d98db0 50%,#6b6b9e)',
+    night: 'linear-gradient(168deg,#1e2748,#2c3a63 55%,#4a5a86)',
+  },
+  cloudy: {
+    dawn: 'linear-gradient(168deg,#cfc2c0,#dcd6da 50%,#e6e6ee)',
+    day: 'linear-gradient(168deg,#c3c7cf,#d9dce3 50%,#eef0f4)',
+    dusk: 'linear-gradient(168deg,#a89aa0,#9a93ab 50%,#6f6f8c)',
+    night: 'linear-gradient(168deg,#20242f,#333a48 55%,#4a5262)',
+  },
+  rainy: {
+    dawn: 'linear-gradient(168deg,#8f92a6,#a6acc0 50%,#c4cad8)',
+    day: 'linear-gradient(168deg,#8593ad,#aab6c9 50%,#cfd6e2)',
+    dusk: 'linear-gradient(168deg,#6d7488,#7c81a0 50%,#565a78)',
+    night: 'linear-gradient(168deg,#161b28,#29303f 55%,#3c4557)',
+  },
+};
+const heroSky = computed(() => {
+  const hour = new Date().getHours();
+  const tod = hour < 5 || hour >= 20 ? 'night' : hour < 8 ? 'dawn' : hour < 17 ? 'day' : 'dusk';
+  return SKY[heroWeatherCondition.value][tod];
+});
+const heroDaylight = computed(() => {
+  const h = new Date().getHours();
+  if (h < 5 || h >= 20) return 0; // 夜
+  if (h < 7 || h >= 18) return 0.4; // 晨/暮
+  return 1; // 昼
+});
+
+const {
+  isFullscreen: isHeroFullscreen,
+  isAnimating: heroAnimating,
+  open: openHero,
+  close: closeHero,
+} = useHeroFullscreen({ heroEl, canOpen: canExpandHero });
+
+let shouldRestoreHeroFocus = false;
+let heroBodyOverflowBeforeOpen: string | null = null;
+
+function lockHeroBodyScroll() {
+  if (heroBodyOverflowBeforeOpen !== null) return;
+  heroBodyOverflowBeforeOpen = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+}
+
+function restoreHeroBodyScroll() {
+  if (heroBodyOverflowBeforeOpen === null) return;
+  document.body.style.overflow = heroBodyOverflowBeforeOpen;
+  heroBodyOverflowBeforeOpen = null;
+}
+
+watch(isHeroFullscreen, async (fullscreen) => {
+  if (fullscreen) lockHeroBodyScroll();
+  else restoreHeroBodyScroll();
+
+  await nextTick();
+  if (fullscreen) {
+    shouldRestoreHeroFocus = true;
+    heroCloseButtonEl.value?.focus({ preventScroll: true });
+  } else if (shouldRestoreHeroFocus) {
+    shouldRestoreHeroFocus = false;
+    heroEl.value?.focus({ preventScroll: true });
+  }
+});
+
+onBeforeUnmount(restoreHeroBodyScroll);
+
 const tryTrying = computed(() => {
   return currentOutfitId.value ? home.tryOnLoading[currentOutfitId.value] === true : false;
 });
@@ -379,12 +482,35 @@ function goProfile() {
   void router.push({ name: ROUTES.profile }); // void：告诉 eslint「我故意不 await」
 }
 
+function goBodyData() {
+  void router.push({ name: ROUTES.bodyData });
+}
+
 function goWorkshop() {
   void router.push({ name: ROUTES.workshop });
 }
 
 function goWardrobe() {
   void router.push({ name: ROUTES.wardrobe });
+}
+
+function handleGuideAction(action: HomeGuideAction) {
+  if (action === 'login') {
+    auth.openAuth('login');
+    return;
+  }
+
+  if (action === 'create-model') {
+    goBodyData();
+    return;
+  }
+
+  if (action === 'open-wardrobe') {
+    goWardrobe();
+    return;
+  }
+
+  if (action === 'generate-tryon') void generate();
 }
 </script>
 
@@ -393,124 +519,10 @@ function goWardrobe() {
 .home {
   gap: 18px;
 }
-
-// ===== Welcome 引导（未生成时）=====
-.welcome {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 0 20px;
-}
-.welcome__logo {
-  // width: 64px;
-  // height: 64px;
-  width: 96px;
-  height: 96px;
-  border-radius: 20px;
-  // background: var(--primary);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  // box-shadow: var(--shadow-hero);
-}
-.welcome__logo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.welcome__slogan {
-  margin-top: 20px;
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.6px;
-  color: var(--text-dark);
-}
-.welcome__sub {
-  margin-top: 8px;
-  font-size: 14px;
-  color: var(--text-gray);
-}
-.steps {
-  width: 100%;
-  margin: 28px 0 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.step {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 14px 16px;
-  border: none;
-  border-radius: var(--radius-lg);
-  background: var(--bg-card);
-  box-shadow: var(--shadow-card);
-  cursor: pointer;
-  &:active {
-    transform: scale(0.98);
-  }
-}
-.step__badge {
-  flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-fill);
-  color: var(--text-gray);
-  font-size: 13px;
-  font-weight: 700;
-}
-.step__badge--done {
-  background: var(--primary);
-  color: #fff;
-}
-.badge-spinner {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid var(--hairline);
-  border-top-color: var(--text-gray);
-  animation: vc-spin 0.7s linear infinite;
-}
-.step__label {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-dark);
-}
-.gen-btn {
-  width: 100%;
-  height: 52px;
-  border: none;
-  border-radius: var(--radius-md);
-  background: var(--primary);
-  color: #fff;
-  font-size: 17px;
-  font-weight: 700;
-  box-shadow: var(--shadow-cta);
-  cursor: pointer;
-  &:active {
-    transform: scale(0.98);
-  }
-  &:disabled {
-    background: #e4e4e8; // 差一步：置灰不可点
-    color: var(--text-light);
-    box-shadow: none;
-    cursor: default;
-  }
-}
-.welcome__hint {
-  margin-top: 12px;
-  font-size: 13px;
-  color: var(--text-gray);
+.home--hero-fullscreen {
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 // ===== 生成过渡遮罩 =====
@@ -573,10 +585,16 @@ function goWardrobe() {
 }
 
 // ===== 4.2 HERO =====
+.hero-slot {
+  position: relative;
+  flex: 1;
+  min-height: 350px;
+}
 .hero {
   position: relative;
-  flex: 1; // 吃掉剩余空间，随屏幕大小自适应
-  min-height: 320px; // 兜底
+  width: 100%;
+  height: 100%;
+  min-height: 350px;
   padding: 20px;
   border-radius: var(--radius-hero);
   overflow: hidden;
@@ -584,14 +602,61 @@ function goWardrobe() {
   display: flex;
   flex-direction: column;
 }
+.hero--interactive {
+  cursor: zoom-in;
+}
+.hero--interactive:focus-visible {
+  outline: 3px solid rgba(74, 79, 176, 0.32);
+  outline-offset: 3px;
+}
+.hero--animating {
+  will-change: transform, border-radius;
+}
+.hero--fullscreen {
+  justify-content: space-between;
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100dvh;
+  padding: calc(18px + var(--safe-top)) 18px calc(18px + var(--safe-bottom));
+  border-radius: 0;
+  box-shadow: none;
+  cursor: default;
+}
 .hero--sunny {
   background: linear-gradient(168deg, #bfd6f5, #dce7f7 44%, #efe9fb);
+  // background: var(--bg-main);
+}
+.hero--cloudy {
+  background: linear-gradient(168deg, #c3c7cf, #d9dce3 50%, #eef0f4);
+}
+.hero--rainy {
+  background: linear-gradient(168deg, #8593ad, #aab6c9 50%, #cfd6e2);
+}
+.hero__weather-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.hero--sunny .hero__weather-canvas {
+  z-index: 0;
+}
+.hero--cloudy .hero__weather-canvas {
+  z-index: 0;
+}
+.hero--rainy .hero__weather-canvas {
+  z-index: 2;
 }
 .hero__status {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  z-index: 2;
+  z-index: 4;
 }
 .hero__temp {
   font-size: 38px;
@@ -619,16 +684,69 @@ function goWardrobe() {
   font-weight: 600;
   color: var(--text-gray);
 }
+.hero__close,
+.hero__expand {
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  display: grid;
+  place-items: center;
+  color: var(--text-dark);
+  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 10px 30px -18px rgba(32, 39, 82, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.hero__close {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0);
+  border: 0;
+}
+.hero__expand {
+  position: absolute;
+  z-index: 4;
+  top: 35%;
+  right: 20px;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+}
+.hero__close:active,
+.hero__expand:active {
+  transform: scale(0.92);
+}
 .hero__art {
   position: absolute;
+  width: 100%;
+  height: 100%;
+  // inset: 0;
   top: 0;
   left: 0;
+  right: 0;
   flex: 1;
+  z-index: 1;
   min-height: 0;
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: center;
+  border-radius: var(--radius-hero);
+  overflow: hidden;
 }
+.hero__art--fullscreen {
+  min-height: 0;
+  display: flex;
+  align-items: start;
+  justify-content: center;
+  border-radius: var(--radius-hero);
+  overflow: hidden;
+  flex-shrink: 1;
+  z-index: 0;
+  filter: drop-shadow(var(--shadow-hero-fullscreen));
+}
+// .hero--fullscreen .hero__art {
+//   inset: calc(var(--safe-top) + 70px) 12px calc(var(--safe-bottom) + 172px);
+// }
 .hero__art-icon {
   position: absolute;
   top: 50%;
@@ -651,14 +769,13 @@ function goWardrobe() {
   filter: drop-shadow(0 8px 18px rgba(80, 90, 140, 0.25));
 }
 .hero__real {
-  max-height: 100%;
-  max-width: 100%;
-  // width: 100%;
+  width: 100%;
   // height: 100%;
-  // max-height: none;
-  // max-width: none;
   object-fit: contain;
   filter: drop-shadow(0 10px 24px rgba(80, 90, 140, 0.3));
+}
+.hero--fullscreen .hero__real {
+  filter: drop-shadow(0 18px 34px rgba(52, 61, 112, 0.24));
 }
 .hero__trying {
   position: absolute;
@@ -684,16 +801,42 @@ function goWardrobe() {
 }
 .hero__card {
   position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: 20px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
   z-index: 3;
-
-  background: rgba(255, 255, 255, 0);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   border-radius: var(--radius-md);
-  padding: 14px 16px;
+  padding: 12px 10px;
+}
+.hero__card--fullscreen {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border-radius: var(--radius-md);
+  padding: 12px 10px;
+  // border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-card-fullscreen);
+  filter: drop-shadow(var(--shadow-card-fullscreen));
+}
+// .hero--fullscreen .hero__card {
+//   right: auto;
+//   bottom: calc(12px + var(--safe-bottom));
+//   left: 50%;
+//   width: min(calc(100% - 32px), 520px);
+//   padding: 17px 18px;
+//   border: 1px solid rgba(255, 255, 255, 0.52);
+//   background: rgba(255, 255, 255, 0.74);
+//   box-shadow: 0 18px 48px -26px rgba(24, 31, 74, 0.72);
+//   backdrop-filter: blur(24px) saturate(1.12);
+//   -webkit-backdrop-filter: blur(24px) saturate(1.12);
+//   transform: translateX(-50%);
+// }
+.hero--fullscreen .hero__card-title {
+  font-size: 21px;
 }
 .hero__card-top {
   display: flex;
@@ -724,9 +867,9 @@ function goWardrobe() {
   flex-shrink: 0;
   width: 36px;
   height: 36px;
-  border: none;
+  border: 1px solid var(--button-primary-border);
   border-radius: 50%;
-  background: var(--primary);
+  background: var(--gradient-button-primary);
   color: #fff;
   display: flex;
   align-items: center;
@@ -806,11 +949,13 @@ function goWardrobe() {
   }
 }
 .action--soft {
-  background: var(--primary-soft);
+  border: 1px solid var(--button-secondary-border);
+  background: var(--gradient-button-secondary);
   color: var(--primary);
 }
 .action--solid {
-  background: var(--primary);
+  border: 1px solid var(--button-primary-border);
+  background: var(--gradient-button-primary);
   color: #fff;
   box-shadow: var(--shadow-cta);
 }
@@ -823,5 +968,24 @@ function goWardrobe() {
   font-weight: 500;
   opacity: 0.75;
   margin-top: 1px;
+}
+
+@media (max-height: 640px) and (orientation: landscape) {
+  .hero--fullscreen .hero__art {
+    inset: calc(var(--safe-top) + 54px) 130px calc(var(--safe-bottom) + 20px) 18px;
+  }
+  .hero--fullscreen .hero__card {
+    right: 18px;
+    bottom: calc(12px + var(--safe-bottom));
+    left: auto;
+    width: min(38vw, 420px);
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero--animating {
+    will-change: auto;
+  }
 }
 </style>
