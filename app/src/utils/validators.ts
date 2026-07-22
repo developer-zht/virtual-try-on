@@ -1,9 +1,6 @@
-// 1:1 参考 —— 对照你 try-on-2d 的 src/utils/validators.ts
 // 纯函数：合法返回 null，不合法返回 FieldError。code 给开发者/测试/i18n，message 给用户。
-export interface FieldError {
-  code: string;
-  message: string;
-}
+
+import type { FieldError } from './types/validators';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

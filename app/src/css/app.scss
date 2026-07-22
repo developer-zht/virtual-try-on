@@ -22,6 +22,7 @@
   --button-secondary-border: rgba(81, 86, 143, 0.13);
   --button-disabled-bg: rgba(231, 232, 238, 0.9);
   --surface-navigation: rgba(248, 248, 251, 0.82);
+  --control-selected-border: rgba(81, 86, 143, 0.68);
 
   /* 语义色 */
   // 危险 / 删除等破坏性操作
@@ -79,6 +80,8 @@
   --primary-soft: rgba(83, 89, 137, 0.1);
   --gradient-button-primary: linear-gradient(135deg, #666b9c 0%, #505681 100%);
   --gradient-feature-strong: linear-gradient(145deg, #686d9d 0%, #505681 62%, #71677d 100%);
+
+  --control-selected-border: rgba(83, 89, 137, 0.72);
 
   --shadow-cta: 0 10px 24px -14px rgba(45, 50, 98, 0.56);
   --shadow-hero: 0 14px 40px -14px rgba(40, 46, 90, 0.45);
