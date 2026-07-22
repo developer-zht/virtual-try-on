@@ -19,6 +19,8 @@
     <UploadToast />
     <NotifyHost />
     <ConfirmHost />
+    <!-- 全局多选决策弹窗必须位于路由页面之外。原因：页面离开守卫暂停时，Host 仍需保持挂载并返回带类型的用户选择。 -->
+    <DecisionDialogHost />
   </div>
 </template>
 
