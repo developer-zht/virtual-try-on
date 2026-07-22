@@ -491,9 +491,9 @@ async function confirmModel() {
   justify-content: center;
   gap: 8px;
   height: 48px;
-  border: none;
+  border: 1px solid var(--button-primary-border);
   border-radius: var(--radius-md);
-  background: var(--primary);
+  background: var(--gradient-button-primary);
   color: #fff;
   font-size: 15px;
   font-weight: 700;
@@ -503,7 +503,8 @@ async function confirmModel() {
     transform: scale(0.98);
   }
   &:disabled {
-    background: #e4e4e8;
+    border-color: transparent;
+    background: var(--button-disabled-bg);
     color: var(--text-light);
     box-shadow: none;
     cursor: default;
@@ -690,7 +691,8 @@ async function confirmModel() {
   color: var(--text-gray);
 }
 .sheet__confirm {
-  background: var(--primary);
+  border: 1px solid var(--button-primary-border);
+  background: var(--gradient-button-primary);
   color: #fff;
   box-shadow: var(--shadow-cta);
   &:disabled {

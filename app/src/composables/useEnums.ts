@@ -23,8 +23,11 @@ export function useEnums() {
       });
     await inflight;
   }
+
   const get = (type: string): EnumItem[] => types.value[type] ?? [];
+
   const label = (type: string, value: string | null): string =>
     value ? (get(type).find((o) => o.value === value)?.label_zh ?? value) : '';
+
   return { types, loaded, ensureLoaded, get, label };
 }

@@ -6,6 +6,7 @@ import type { Task } from './types/tasks';
 export function getTask(id: string): Promise<Task> {
   return request<Task>({ url: API.tasks.byId(id), method: 'GET' });
 }
+
 export async function pollTask(
   id: string,
   maxWaitMs = 60_000,
