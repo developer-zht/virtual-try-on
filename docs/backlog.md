@@ -6,7 +6,14 @@
 
 ## A. 写 SRS 时要纳入/拍板的决策
 
-- ☐☐ **【最高优先级·SRS 前必须拍板】渲染技术栈:TS+WebGL2 vs Swift+RealityKit**
+- 🔒 **【已拍板 2026-07】技术路线 = Web 先行,再移植原生**
+  - **第一阶段:TS + WebGL2** 做出可用的完整产品(完整 UI + 全面功能)。
+  - **第二阶段:移植 Swift + RealityKit**——届时产品形态与 UX 已定型,方向明确,才是学 Apple 技术栈的好时机(不必一边摸索产品一边摸索新框架)。
+  - **影响**:资产导出格式 **USDZ → glTF/GLB**(Blender glTF 导出器同样支持 shape key → morph target,导出时勾 **Shape Keys**);MakeHuman→Blender 管线**无需改动**。
+  - **影响**:iOS 18 的最低版本约束在 Web 阶段**不适用**(WebGL2 自 iOS 15;iOS 26 起另有 WebGPU);移植原生阶段再恢复 iOS 18。
+  - **注意**:Web 阶段若上架 App Store,需**原生壳 + WKWebView + 真原生功能**以规避 4.2「最低功能」被拒风险。
+
+- ✅ ~~【已解决】渲染技术栈二选一~~(见上,已决定 Web 先行)。保留技术结论备查:两条路均可行;Spike 验证项在 Web 端可对等实现(morphTargetInfluences / 同权重驱动身体+衣服 / 换 texture);**Spike 成果不作废**(验证的是几何事实,与渲染器无关);渲染器只能选一个(WebGL 与 RealityKit 不能混合),但选 Web **不等于**放弃 iOS 原生能力(原生壳+bridge 仍可用 SwiftData/StoreKit 等)。Web 优势:与 2D 共栈、**Canvas 2D 做 Texture Composer 极顺手**、跨平台、迭代快。
   - **背景**:2D 产品(StyleTwin)是 TS+WebGL2;作者有自研 WebGL 引擎(GAMES202/FFT海洋/PRT/SSR/Cook-Torrance),Web 图形是其主场。
   - **技术结论**:两条路**都可行**。Spike 验证项在 Web 端均可对等实现(morphTargetInfluences 驱动身材、同权重驱动身体+衣服、换 texture);**资产管线 100% 可复用,仅导出格式 USDZ→glTF/GLB**(morph target 是 glTF 标准特性)。Spike 成果不因换栈而作废(它验证的是几何事实)。
   - **二选一的边界**:渲染器只能选一个(WebGL 与 RealityKit 是两套独立渲染栈,不能混合)。但选 Web **不等于**放弃 iOS 原生能力——标准做法是**原生壳 + WKWebView + JS↔Swift bridge**,SwiftData/StoreKit/相册/分享/推送照常可用。
@@ -31,7 +38,16 @@
 
 ## C. 待评估 / 调研
 - ☐ **RealityKit 观感实验**:给 MakeHuman 身体套哑光皮肤材质 + 柔光,看"零售模特感"能到什么程度,再决定值不值得为"好脸"投入嫁接头。
-- ☐ **"好脸"路线 B 评估**:MakeHuman 身体 + 嫁接一个好看的静态头(MetaHuman 现已可合法用于其它引擎,是候选头源)。评估对缝/肤色匹配工作量。
+- ☐ **"好脸"路线 B 评估(推荐的脸方案)**:**MakeHuman 身体(承重墙:参数化 morph + conforming 衣服 + 固定 UV)+ MetaHuman 的头(好看的脸)**。脸恰好**不需要随身材 morph 变化**,故可作为静态头嫁接。许可上现已允许。成本 = 一次性手工(导头 + 对缝 + 肤色匹配),每个性别一次。评估该工作量。
+
+### 为什么 MetaHuman/UE 素材不做"身体+衣服"(2026-07 查证,与许可无关)
+> ⚠️ 更正:早期说法"MetaHuman 许可锁死在 Unreal 生态"**是错的**——2025-06 起可合法用于其它引擎/DCC,年收入 <100 万美元免费。**该反对理由已作废。** 现行理由如下:
+1. **导出会丢 blendshape**:截至 UE5.7,常规 FBX 导出 MetaHuman 只得到**静态网格,无 rig 无 blendshape**;保住形变需特定插件/迂回流程。而 blendshape 是本产品命根子。
+2. **它的美来自 UE 独有渲染**:皮肤着色器、strand 发丝(groom)、精细 LOD。导成 glTF 进 WebGL **这些全丢**,只剩一个很重但不再好看的网格。**转 WebGL 后此条更致命。**
+3. **衣服不是随身材 morph 的 conforming 系统**,而是蒙皮到骨架(跟骨骼动),没有"变胖时布料撑大"的现成机制。
+4. **身材变化不是运行时 morph 通道**,是每角色生成时烤死;要靠"两态做差"自造,且需先验证身材变体间拓扑一致。
+5. **需装 UE + 学整套 UE 导出管线**,与 TS/WebGL 路线正交,引入无关工具链。
+> 结论:MetaHuman 提供的是**高质量个体角色**,本产品需要的是**参数化系统**(与 Meshy 同一类结构性错配,只是更精致)。→ 身体/衣服走 MakeHuman;MetaHuman 仅作**头的捐赠者**候选。
 - ☐ **MPFB2 自动化评估**:批量烤 morph 是否可用 MakeHuman 的 Blender 插件/脚本半自动化(量大时)。
 - ☐ **生产工具终选(逐条核实许可)**:MakeHuman(CC0)vs CC4(Enterprise 陷阱)vs **MetaHuman(2025-06 起解锁,UE EULA:<100万美元免费,不能训练AI模型,资产偏重需减面)**。MVP 用 MakeHuman,后续按需复核。
 
