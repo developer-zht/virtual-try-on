@@ -5,7 +5,17 @@
 > 状态:☐ 待办 / ✅ 已完成 / 🔒 已决定(写进 SRS)
 
 ## A. 写 SRS 时要纳入/拍板的决策
-- 🔒 **最低 iOS 版本 = iOS 18**(blendshape 运行时 API 门槛)。
+
+- ☐☐ **【最高优先级·SRS 前必须拍板】渲染技术栈:TS+WebGL2 vs Swift+RealityKit**
+  - **背景**:2D 产品(StyleTwin)是 TS+WebGL2;作者有自研 WebGL 引擎(GAMES202/FFT海洋/PRT/SSR/Cook-Torrance),Web 图形是其主场。
+  - **技术结论**:两条路**都可行**。Spike 验证项在 Web 端均可对等实现(morphTargetInfluences 驱动身材、同权重驱动身体+衣服、换 texture);**资产管线 100% 可复用,仅导出格式 USDZ→glTF/GLB**(morph target 是 glTF 标准特性)。Spike 成果不因换栈而作废(它验证的是几何事实)。
+  - **二选一的边界**:渲染器只能选一个(WebGL 与 RealityKit 是两套独立渲染栈,不能混合)。但选 Web **不等于**放弃 iOS 原生能力——标准做法是**原生壳 + WKWebView + JS↔Swift bridge**,SwiftData/StoreKit/相册/分享/推送照常可用。
+  - **选 Web 的优势**:与 2D 共栈;**Texture Composer 用 Canvas 2D 做图层/文字/mask 合成极顺手**(大优势);**解除 iOS 18 限制**(该限制仅来自 BlendShapeWeightsComponent;WebGL2 自 iOS 15,iOS 26 起另有 WebGPU);跨平台(Web/Android);迭代快(热重载,不需 Mac/签名)。
+  - **选 Web 的代价**:WKWebView 性能开销(但本产品是静态可旋转单角色,负载极轻,够用)、内存上限需留意大纹理、**App Store 4.2「最低功能」风险(纯套壳可能被拒 → 需真原生壳+原生功能规避)**、UI 原生质感略逊。
+  - **真正的张力**:作者曾明确表示**"目的是学习 RealityKit 和 Metal"**。→ 若首要目的是**做产品**,推荐 **TS+WebGL2**;若首要目的是**学 Apple 技术栈**,留在 **RealityKit**。
+  - **待作者拍板后再写 SRS**(此决策影响 SRS 每一章:架构/资产格式/存储/最低系统/里程碑)。
+
+- 🔒 **最低 iOS 版本 = iOS 18**(blendshape 运行时 API 门槛)。⚠️ 仅在选 RealityKit 时成立;若改 Web 栈则此约束解除(可放宽至 iOS 15+)。
 - 🔒 **展示姿势 = A-pose**(手臂下张约 30~45°,介于 T-pose 与手臂垂体侧之间;自然又利于 skinning/morph 不穿模)。资产规范要写死。
 - 🔒 **资产架构 = 分开法**:1 身体 + N 衣服(各贴合同一身体、带同名 morph 通道),运行时组合、可换装。合并法仅用于 spike。
 - 🔒 **身材通道(终态约 8~10)**:k_weight/muscle/height/shoulder/hip/chest/waist/legLength/armLength。
