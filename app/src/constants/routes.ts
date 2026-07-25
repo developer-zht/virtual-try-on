@@ -13,6 +13,7 @@ export const ROUTES = {
   preference: 'preference',
   profile: 'profile',
   bodyData: 'body-data',
+  preferenceSettings: 'preference-settings',
   login: 'login', // http.ts 401 跳转
 } as const;
 

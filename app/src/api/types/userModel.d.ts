@@ -1,6 +1,6 @@
 export interface UserModelRequest {
-  gender: string; // 必填
-  body_type: string; // 必填（与 profile body_type_en 共用）
+  gender?: string;
+  body_type?: string;
   height_cm?: number;
   skin_tone?: string;
   age_range?: string;

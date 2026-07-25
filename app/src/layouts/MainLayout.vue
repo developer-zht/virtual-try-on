@@ -32,6 +32,7 @@ import AuthSheet from '@/components/AuthSheet.vue';
 import UploadToast from '@/components/UploadToast.vue';
 import NotifyHost from '@/components/NotifyHost.vue';
 import ConfirmHost from '@/components/ConfirmHost.vue';
+import DecisionDialogHost from '@/components/DecisionDialogHost.vue';
 
 const route = useRoute();
 const auth = useAuthStore();
