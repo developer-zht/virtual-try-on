@@ -25,18 +25,29 @@ export function profileFromApi(profile: Profile): ProfileState {
     legLength: body.leg_length_cm,
     footLength: body.sizes.shoes_foot_length_mm,
     styles: preferences.style_tags_en ?? [],
-    color: preferences.color_preferences_en?.[0] ?? null,
+    colors: [...(preferences.color_preferences_en ?? [])],
     genModel: null,
     vlModel: null,
   };
 }
 
+// function sameList(left: readonly string[], right: readonly string[]): boolean {
+//   return left.length === right.length && left.every((value, index) => value === right[index]);
+// }
+
 function sameList(left: readonly string[], right: readonly string[]): boolean {
-  return left.length === right.length && left.every((value, index) => value === right[index]);
+  const leftValues = new Set(left);
+  const rightValues = new Set(right);
+
+  return (
+    leftValues.size === rightValues.size && [...leftValues].every((value) => rightValues.has(value))
+  );
 }
 
-// CODEX-PHASE-5：通过当前状态与读取快照生成最小 patch，并让可选字段保留 null 清空语义。
+// 通过当前状态与读取快照生成最小 patch，并让可选字段保留 null 清空语义。
 // 原因：接口要求“省略=不更新”；只按当前状态全量组装会覆盖并发产生的未修改服务端数据。
+// 通过当前状态与读取快照生成最小 patch，并让可选字段保留 null 或空数组的清空语义。
+// 接口要求“省略=不更新”；全量组装会覆盖并发产生的未修改服务端数据。
 export function profileToPatch(current: ProfileState, initial: ProfileState): ProfilePatch {
   const patch: ProfilePatch = {};
 
@@ -66,8 +77,8 @@ export function profileToPatch(current: ProfileState, initial: ProfileState): Pr
   if (!sameList(current.styles, initial.styles)) {
     patch.style_tags_en = current.styles.slice(0, 3);
   }
-  if (current.color !== initial.color) {
-    patch.color_preferences_en = current.color === null ? null : [current.color];
+  if (!sameList(current.colors, initial.colors)) {
+    patch.color_preferences_en = current.colors.slice(0, 5);
   }
 
   return patch;

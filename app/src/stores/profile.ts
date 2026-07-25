@@ -13,7 +13,7 @@ import { validateHeight, validateWeight } from '@/utils/validators';
 import { profileFromApi, profileToPatch } from './profileMapping';
 import type { ProfileOptions, ProfileState } from './types/profile';
 
-// 空状态覆盖 ProfileState 的全部字段，新外观字段统一以 null 表示尚未读取或未填写。
+// 空状态覆盖 ProfileState 的全部字段；多选偏好用空数组表示尚未选择。
 // 原因：类型增加字段后，每个 ProfileState 构造点都必须提供完整且一致的默认值。
 function createEmptyProfile(): ProfileState {
   return {
@@ -33,7 +33,7 @@ function createEmptyProfile(): ProfileState {
     legLength: null,
     footLength: null,
     styles: [],
-    color: null,
+    colors: [],
     genModel: null,
     vlModel: null,
   };
@@ -43,6 +43,7 @@ function cloneProfile(profile: ProfileState): ProfileState {
   return {
     ...profile,
     styles: [...profile.styles],
+    colors: [...profile.colors],
   };
 }
 

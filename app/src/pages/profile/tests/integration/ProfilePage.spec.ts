@@ -1,9 +1,7 @@
 /**
- * CODEX-PHASE-5
  * 测试类型：集成测试。
- * 测试对象/范围：ProfilePage 对登录态、Profile 读取、metadata 和统一身体资料展示状态的接线。
- * 隔离内容：不挂载 Vue、不启动 MSW、不连接真实 Backend；只检查 SFC 集成边界，纯状态规则由单元测试覆盖。
- * 修改原因：确保“我的”页不再用旧的 height/weight/bodyType 布尔表达式误判专属模特资料完成度。
+ * 测试对象/范围：ProfilePage 对登录态、Profile 读取、身体资料状态和专属模特操作的页面接线。
+ * 隔离内容：不挂载 Vue、不启动 MSW、不连接真实 Backend；只检查 SFC 集成边界，纯状态规则和异步任务流程由单元测试覆盖。
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
@@ -41,5 +39,25 @@ describe('ProfilePage 数据加载', () => {
       'await Promise.all([enums.ensureLoaded(), profileStore.fetchProfile()])',
     );
     expect(pageSource).toContain('if (auth.loggedIn) void loadProfilePage()');
+  });
+});
+
+describe('ProfilePage 专属模特动作', () => {
+  it('身体数据未就绪时进入 BodyDataPage，不创建模型', () => {
+    expect(pageSource).toContain('isBodyDataReadyForModel');
+    expect(pageSource).toMatch(/if \(!modelDataReady\.value\)[\s\S]*goBodyData\(\)/);
+  });
+
+  it('已有模型时确认后才重新生成', () => {
+    expect(pageSource).toContain("title: '重新生成专属模特？'");
+    expect(pageSource).toContain("okText: '重新生成'");
+    expect(pageSource).toMatch(/if \(modelReady\.value\)[\s\S]*await notify\.confirm/);
+    expect(pageSource).toContain('await profileModel.generate()');
+  });
+
+  it('生成中展示进度并禁用动作按钮', () => {
+    expect(pageSource).toContain(':disabled="profileModel.generating"');
+    expect(pageSource).toContain('profileModel.progress');
+    expect(pageSource).toContain('{{ modelActionText }}');
   });
 });

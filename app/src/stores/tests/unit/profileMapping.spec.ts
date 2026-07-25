@@ -2,7 +2,6 @@
  * 测试类型：单元测试。
  * 测试对象/范围：Profile API 嵌套响应与 Profile Store 扁平状态之间的纯字段映射。
  * 隔离内容：不创建 Pinia、不启动 MSW、不发送网络请求、不渲染 Vue 页面。
- * 修改原因：先用完整 v1.8.1 响应锁住读取回显，防止新增外观字段在 Store 中丢失。
  */
 import { describe, expect, it } from 'vitest';
 import { profileFromApi, profileToPatch } from '../../profileMapping';
@@ -26,7 +25,7 @@ function completeState(overrides: Partial<ProfileState> = {}): ProfileState {
     legLength: 82,
     footLength: 235,
     styles: ['minimalist'],
-    color: 'Black',
+    colors: ['Black'],
     genModel: null,
     vlModel: null,
     ...overrides,
@@ -68,8 +67,8 @@ describe('profileFromApi', () => {
       preferences: {
         style_tags: ['简约'],
         style_tags_en: ['minimalist'],
-        color_preferences: ['黑'],
-        color_preferences_en: ['Black'],
+        color_preferences: ['黑', '白', '蓝'],
+        color_preferences_en: ['Black', 'White', 'Blue'],
       },
       completed: true,
       updated_at: '2026-07-20T08:00:00Z',
@@ -92,16 +91,29 @@ describe('profileFromApi', () => {
       legLength: 82,
       footLength: 235,
       styles: ['minimalist'],
-      color: 'Black',
+      colors: ['Black', 'White', 'Blue'],
       genModel: null,
       vlModel: null,
     });
   });
 });
 
-// CODEX-PHASE-5：保存映射只比较可持久化字段，并把 camelCase 变化翻译成扁平 snake_case patch。
-// 原因：PUT 是三态部分更新，不能每次保存都覆盖未修改的服务端数据。
 describe('profileToPatch', () => {
+  it.each([
+    {
+      preference: '风格',
+      initial: { styles: ['minimalist', 'classic'] },
+      current: { styles: ['classic', 'minimalist'] },
+    },
+    {
+      preference: '颜色',
+      initial: { colors: ['Black', 'Red'] },
+      current: { colors: ['Red', 'Black'] },
+    },
+  ])('只有$preference顺序变化时不生成 PUT patch', ({ initial, current }) => {
+    expect(profileToPatch(completeState(current), completeState(initial))).toEqual({});
+  });
+
   it('只发送相对初始快照发生变化的字段', () => {
     const initial = completeState();
     const current = completeState({
@@ -127,7 +139,29 @@ describe('profileToPatch', () => {
     });
   });
 
-  it('用 null 清空可选字段，并用空数组清空风格偏好', () => {
+  it('把全部颜色偏好发送给 Profile API', () => {
+    const initial = completeState();
+    const current = completeState({
+      colors: ['Black', 'White', 'Blue'],
+    });
+
+    expect(profileToPatch(current, initial)).toEqual({
+      color_preferences_en: ['Black', 'White', 'Blue'],
+    });
+  });
+
+  it('颜色偏好超过五个时只发送前五个', () => {
+    const initial = completeState();
+    const current = completeState({
+      colors: ['Black', 'White', 'Blue', 'Gray', 'Red', 'Green'],
+    });
+
+    expect(profileToPatch(current, initial)).toEqual({
+      color_preferences_en: ['Black', 'White', 'Blue', 'Gray', 'Red'],
+    });
+  });
+
+  it('用 null 清空可选字段，并用空数组清空风格和颜色偏好', () => {
     const initial = completeState();
     const current = completeState({
       bodyType: null,
@@ -135,7 +169,7 @@ describe('profileToPatch', () => {
       waist: null,
       footLength: null,
       styles: [],
-      color: null,
+      colors: [],
     });
 
     expect(profileToPatch(current, initial)).toEqual({
@@ -144,7 +178,7 @@ describe('profileToPatch', () => {
       waist_cm: null,
       size_shoes_foot_length_mm: null,
       style_tags_en: [],
-      color_preferences_en: null,
+      color_preferences_en: [],
     });
   });
 

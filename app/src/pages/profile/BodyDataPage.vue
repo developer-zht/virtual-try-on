@@ -212,7 +212,7 @@ import { useEnums } from '@/composables/useEnums';
 import { useDecisionDialogStore } from '@/stores/decisionDialog';
 import { useNotifyStore } from '@/stores/notify';
 import { useProfileStore } from '@/stores/profile';
-import type { ProfileState } from '@/stores/types/profile';
+import type { ProfileState } from '../../stores/types/profile';
 import {
   createBodyDataDraft,
   isBodyDataDirty,
@@ -386,6 +386,7 @@ async function saveDraft(): Promise<boolean> {
     legLength: profileNumber(normalized.legLength),
     footLength: profileNumber(normalized.footLength),
     styles: [...profileStore.profile.styles],
+    colors: [...profileStore.profile.colors],
   };
   saving.value = true;
 

@@ -1,6 +1,6 @@
 /**
- * 让 Profile Store 的扁平状态覆盖完整身体数据与 v1.8.1 外观字段。
- * 原因：页面只消费 camelCase 状态，不应直接依赖 API 的嵌套 snake_case 结构。
+ * Profile Store 的扁平状态覆盖完整身体数据与外观偏好字段。
+ * 页面只消费 camelCase 状态，不直接依赖 API 的嵌套 snake_case 结构。
  */
 import type { EnumItem } from '@/api/types/metadata';
 
@@ -21,7 +21,7 @@ export interface ProfileState {
   legLength: number | null;
   footLength: number | null;
   styles: string[];
-  color: string | null;
+  colors: string[];
   genModel: string | null;
   vlModel: string | null;
 }

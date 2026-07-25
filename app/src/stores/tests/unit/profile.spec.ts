@@ -58,8 +58,8 @@ const profileResponse: Profile = {
   preferences: {
     style_tags: ['简约'],
     style_tags_en: ['minimalist'],
-    color_preferences: ['黑'],
-    color_preferences_en: ['Black'],
+    color_preferences: ['黑', '白', '蓝'],
+    color_preferences_en: ['Black', 'White', 'Blue'],
   },
   completed: true,
   updated_at: '2026-07-20T08:00:00Z',
@@ -73,7 +73,7 @@ beforeEach(() => {
 });
 
 describe('Profile Store 初始状态', () => {
-  it('为新增外观字段提供明确的 null 初始值', () => {
+  it('为单值外观字段提供 null，并为多选颜色提供空数组', () => {
     const store = useProfileStore();
 
     expect(store.profile).toMatchObject({
@@ -81,6 +81,7 @@ describe('Profile Store 初始状态', () => {
       ageRange: null,
       hairStyle: null,
       hairColor: null,
+      colors: [],
     });
   });
 });
@@ -108,6 +109,7 @@ describe('fetchProfile', () => {
       calf: 34,
       legLength: 82,
       footLength: 235,
+      colors: ['Black', 'White', 'Blue'],
     });
   });
 });

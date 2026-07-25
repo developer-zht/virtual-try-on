@@ -11,18 +11,34 @@
 
     <template v-else>
       <section class="identity-card">
-        <button class="avatar" aria-label="添加或修改头像" @click="onAvatarClick">
-          <img v-if="auth.user?.avatar_url" :src="auth.user.avatar_url" alt="用户头像" />
-          <AppIcon v-else name="user" :size="30" />
-          <span class="avatar__add" aria-hidden="true"></span>
-        </button>
+        <div class="model">
+          <div v-if="auth.user?.avatar_url" class="model-avatar">
+            <img :src="auth.user.avatar_url" alt="用户头像" />
+          </div>
+          <button v-else class="model-avatar" aria-label="添加或修改头像" @click="onAvatarClick">
+            <div class="model-avatar-empty">
+              <AppIcon name="user" :size="30" />
+              <span class="model-avatar__add" aria-hidden="true"></span>
+            </div>
+          </button>
+          <button
+            type="button"
+            class="model-action"
+            :disabled="profileModel.generating"
+            @click="onModelAction"
+          >
+            {{ modelActionText }}
+          </button>
+        </div>
 
         <div class="identity-card__copy">
           <h2>{{ displayName }}</h2>
           <p v-if="showEmail">{{ auth.user?.email }}</p>
           <div class="model-state" :class="{ 'model-state--ready': modelReady }">
-            <span class="model-state__dot"></span>
-            {{ modelReady ? '专属模特已准备' : '等待创建专属模特' }}
+            <div class="model-state_text">
+              <span class="model-state__dot"></span>
+              <span>{{ modelStateText }}</span>
+            </div>
           </div>
         </div>
       </section>
@@ -88,7 +104,8 @@ import { useTheme } from '@/composables/useTheme';
 import { useAuthStore } from '@/stores/auth';
 import { useNotifyStore } from '@/stores/notify';
 import { useProfileStore } from '@/stores/profile';
-import { createBodyDataDraft } from '@/utils/profile/bodyData';
+import { useProfileModelStore } from '@/stores/profileModel';
+import { createBodyDataDraft, isBodyDataReadyForModel } from '@/utils/profile/bodyData';
 import {
   bodyDataEnumCatalogFromTypes,
   bodyDataPresentationState,
@@ -99,6 +116,7 @@ import {
 const router = useRouter();
 const auth = useAuthStore();
 const profileStore = useProfileStore();
+const profileModel = useProfileModelStore();
 const notify = useNotifyStore();
 const enums = useEnums();
 const theme = useTheme();
@@ -107,12 +125,25 @@ const displayName = computed(() => profileDisplayName(auth.user));
 const showEmail = computed(() => Boolean(auth.user?.nickname?.trim() && auth.user?.email?.trim()));
 const modelReady = computed(() => Boolean(auth.user?.avatar_url));
 const enumCatalog = computed(() => bodyDataEnumCatalogFromTypes(enums.types.value));
-
-// CODEX-PHASE-5：“我的”与身体数据页使用同一份草稿、枚举和领域规则计算状态。
-// 原因：只检查身高、体重和体型会漏掉性别、肤色以及非法输入，错误显示为已完成。
-const bodyState = computed(() =>
-  bodyDataPresentationState(createBodyDataDraft(profileStore.profile), enumCatalog.value),
-);
+const bodyDraft = computed(() => createBodyDataDraft(profileStore.profile));
+const bodyState = computed(() => bodyDataPresentationState(bodyDraft.value, enumCatalog.value));
+const modelDataReady = computed(() => isBodyDataReadyForModel(bodyDraft.value, enumCatalog.value));
+const modelStateText = computed(() => {
+  if (!modelDataReady.value) return '等待完善身体数据';
+  if (profileModel.generating) {
+    return `${modelReady.value ? '正在重新生成' : '正在创建'} ${profileModel.progress}%`;
+  }
+  if (profileModel.status === 'failed') {
+    return modelReady.value ? '重新生成失败，旧图保留' : '创建失败，可重试';
+  }
+  return modelReady.value ? '专属模特已准备' : '等待创建专属模特';
+});
+const modelActionText = computed(() => {
+  if (!modelDataReady.value) return '完善身体数据';
+  if (profileModel.generating) return modelReady.value ? '重新生成中' : '创建中';
+  if (modelReady.value) return '重新生成';
+  return profileModel.status === 'failed' ? '重新创建' : '创建专属模特';
+});
 const bodyStatusText = computed(() => {
   if (profileStore.loading) return '读取中';
   const labels = {
@@ -144,6 +175,29 @@ function goBodyData() {
 
 function goPreference() {
   void router.push({ name: ROUTES.preference });
+}
+
+async function onModelAction(): Promise<void> {
+  if (!modelDataReady.value) {
+    notify.info('请先完善身体数据');
+    goBodyData();
+    return;
+  }
+  if (profileModel.generating) return;
+
+  if (modelReady.value) {
+    const confirmed = await notify.confirm({
+      title: '重新生成专属模特？',
+      message: '生成成功后会替换当前专属模特。生成期间仍会保留旧图片。',
+      okText: '重新生成',
+      cancelText: '取消',
+    });
+    if (!confirmed) return;
+  }
+
+  const generated = await profileModel.generate();
+  if (generated) notify.success('专属模特已生成');
+  else notify.error(profileModel.error || '专属模特生成失败，请稍后重试');
 }
 
 function onAvatarClick() {
@@ -205,14 +259,20 @@ function onAvatarClick() {
 .identity-card {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 23px;
   padding: 22px;
   border: 1px solid rgba(74, 79, 176, 0.08);
   border-radius: var(--radius-lg);
   background: linear-gradient(138deg, #eceefb 0%, #fff 58%, #faf5ea 100%);
   box-shadow: var(--shadow-card);
 }
-.avatar {
+
+.model {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.model-avatar {
   position: relative;
   flex: 0 0 auto;
   width: 72px;
@@ -226,19 +286,19 @@ function onAvatarClick() {
   color: var(--primary);
   box-shadow: 0 10px 28px -16px rgba(35, 42, 92, 0.65);
 }
-.avatar img {
+.model-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.avatar__add {
+.model-avatar__add {
   position: absolute;
   inset: 0;
   background: rgba(17, 20, 34, 0.22);
   transition: background 0.18s ease;
 }
-.avatar__add::before,
-.avatar__add::after {
+.model-avatar__add::before,
+.model-avatar__add::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -249,15 +309,31 @@ function onAvatarClick() {
   background: #fff;
   transform: translate(-50%, -50%);
 }
-.avatar__add::after {
+.model-avatar__add::after {
   transform: translate(-50%, -50%) rotate(90deg);
 }
-.avatar:hover .avatar__add,
-.avatar:focus-visible .avatar__add {
+.model-avatar:hover .model-avatar__add,
+.model-avatar:focus-visible .model-avatar__add {
   background: rgba(17, 20, 34, 0.32);
 }
+.model-action {
+  min-height: 34px;
+  // margin-top: 10px;
+  padding: 3px 3px;
+  border: 1px solid var(--button-secondary-border);
+  border-radius: 11px;
+  background: var(--gradient-button-secondary);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.model-action:disabled {
+  opacity: 0.55;
+}
+
 .identity-card__copy {
   min-width: 0;
+  width: 100%;
 }
 .identity-card__copy h2 {
   overflow: hidden;
@@ -277,8 +353,14 @@ function onAvatarClick() {
   color: var(--text-gray);
 }
 .model-state {
-  width: fit-content;
+  // width: fit-content;
+  width: 100%;
   margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.model-state_text {
   display: flex;
   align-items: center;
   gap: 7px;
