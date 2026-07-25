@@ -478,9 +478,9 @@ async function regenerateOutfit() {
 // ==================== 导航 ====================
 
 // 导航我们不关心结果，最干净的写法是用 void 明确标记
-function goProfile() {
-  void router.push({ name: ROUTES.profile }); // void：告诉 eslint「我故意不 await」
-}
+// function goProfile() {
+//   void router.push({ name: ROUTES.profile }); // void：告诉 eslint「我故意不 await」
+// }
 
 function goBodyData() {
   void router.push({ name: ROUTES.bodyData });
