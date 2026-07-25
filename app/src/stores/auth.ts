@@ -6,9 +6,9 @@ import { getMe } from '@/api/auth'; // 新增的 getMe 在 api/auth.ts
 import type { LoginRaw } from '@/api/types/login';
 import { STORAGE_KEYS } from '@/constants/storage';
 import { validateEmail, validatePassword } from '@/utils/validators';
-import { _runAsync } from './_runAsync';
-import type { LoginPayload } from './types/auth';
-import { useNotifyStore } from './notify';
+import { _runAsync } from '@/stores/_runAsync';
+import type { LoginPayload } from '@/stores/types/auth';
+import { useNotifyStore } from '@/stores/notify';
 
 type SessionUser = LoginRaw['user'];
 
@@ -70,6 +70,14 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  function acceptAvatarUrl(url: string): void {
+    if (!user.value) return;
+    user.value = {
+      ...user.value,
+      avatar_url: url,
+    };
+  }
+
   return {
     token,
     user,
@@ -83,5 +91,6 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     restore,
+    acceptAvatarUrl,
   };
 });
