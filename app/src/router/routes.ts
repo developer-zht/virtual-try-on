@@ -22,7 +22,7 @@ const routes: RouteRecordRaw[] = [
         path: 'home',
         name: ROUTES.home,
         meta: { tab: true, title: '首页' },
-        component: () => import('@/pages/NewHomePage.vue'),
+        component: () => import('@/pages/home/HomePage.vue'),
       },
       // ----- 二级页面 自由搭配 Workshop -----
       {
@@ -45,7 +45,7 @@ const routes: RouteRecordRaw[] = [
         path: 'preference',
         name: ROUTES.preference,
         meta: { tab: true, title: '偏好' },
-        component: () => import('@/pages/PreferencePage.vue'),
+        component: () => import('@/pages/preference/PreferencePage.vue'),
       },
 
       // ==================== Tab 我的 Profile ====================
@@ -61,6 +61,13 @@ const routes: RouteRecordRaw[] = [
         name: ROUTES.bodyData,
         meta: { overlay: true, title: '身体数据' },
         component: () => import('@/pages/profile/BodyDataPage.vue'),
+      },
+      // ----- 二级页面 偏好设定 Preference-Settings -----
+      {
+        path: 'preference-settings',
+        name: ROUTES.preferenceSettings,
+        meta: { overlay: true, title: '偏好设定' },
+        component: () => import('@/pages/profile/PreferenceSettingsPage.vue'),
       },
     ],
   },
