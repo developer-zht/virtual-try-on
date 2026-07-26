@@ -1,7 +1,13 @@
 # 3D 捏人 + AI 纹理换装 App — 文档索引
 
-> ⚠️ **归属提醒**：本系列文档评估的是一个**全新、独立**产品（3D 静态换装），与本仓库主线产品 **StyleTwin（2D 纸娃娃）无业务关系**。
-> 目前暂存于本仓库 `docs/` 仅为方便协作；正式立项后建议**迁出到独立仓库**（见下「仓库策略」）。
+> 🆕 **2026-07 现状更新（读这里）**：SRS **已产出**，且技术路线已拍板 **Web 先行**、并入现有仓库做 **pnpm monorepo 两版本**（不再另立独立仓库）。当前权威文档统一收于分支 **`claude/docs-hub`** 的 `docs/`：
+> - `docs/SRS-3D-tryon-web.md` —— **第一阶段·Web** SRS（覆盖有后端/无后端两版本、一档纹理、透视相机、glTF、monorepo）
+> - `docs/ARCH-CHANGE-monorepo-3d.md` —— 架构变更说明（加 3D 线 + monorepo 化）
+> - `docs/SRS-3D-tryon-native.md` —— **第二阶段·原生**（RealityKit）SRS ＋ `docs/code-kickoff-ios.md`/`code-kickoff-aikit.md`（原产于分支 `claude/3d-tryon-srs-svsasl`）
+> 下方「阅读顺序 / 进度 / 仓库策略」为**早期评估阶段的历史记录**，保留备查，以上更新为准。
+>
+> ⚠️ **归属提醒**：本系列文档评估的是一个**全新、独立**产品（3D 静态换装），与本仓库早期 2D 主线 **StyleTwin（2D 纸娃娃）无业务关系**。
+> ~~正式立项后建议迁出到独立仓库~~ → 已改为**并入本仓库、以 monorepo 承载**（见上更新）。
 
 ## 阅读顺序
 1. **[可行性结论](./feasibility-3D-tryon.md)** — go/no-go、build-vs-buy 推荐、最小资产清单、风险、最低 iOS 版本。
@@ -16,7 +22,8 @@
 ## 进度
 - ✅ 可行性分析（GO）
 - ✅ Spike 真机验证：blendshape 驱动身体、身体+衣服不穿模、运行时换 base color，A–E 全过
-- ⬜ SRS（下一步）
+- ✅ SRS（已产出：Web 第一阶段 `docs/SRS-3D-tryon-web.md`；原生第二阶段 `docs/SRS-3D-tryon-native.md`）
+- ✅ 架构 / 技术路线（Web 先行 + monorepo 两版本，见 `docs/ARCH-CHANGE-monorepo-3d.md`）
 - ⬜ 正式开发（含产品 UI：折叠面板 / 360°旋转 / 分开法资产管线 / 多身材通道）
 
 ## 一句话结论

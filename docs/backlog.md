@@ -3,6 +3,11 @@
 > ⚠️ 对话是临时的、仓库是永久的。任何要跨对话记住的事都写在这里。
 > 新对话请**先读这份**(SRS 开场白已把它列入必读),避免遗漏。
 > 状态:☐ 待办 / ✅ 已完成 / 🔒 已决定(写进 SRS)
+>
+> 📌 **成果汇聚约定**：所有**确定的权威文档**(SRS / 架构说明 / 决策)最终统一收于分支 **`claude/docs-hub`** 的 `docs/`,作为**单一权威来源**;其它 `claude/*` 工作分支产出经确认后汇入此处。当前 hub 权威文档:
+> - `docs/SRS-3D-tryon-web.md`(第一阶段·Web,覆盖两版本) / `docs/ARCH-CHANGE-monorepo-3d.md`(架构变更)
+> - `docs/SRS-3D-tryon-native.md`(第二阶段·原生) / `docs/code-kickoff-ios.md`、`docs/code-kickoff-aikit.md`(原产于分支 `claude/3d-tryon-srs-svsasl`)
+> - 引用同分支文档用相对路径;引用其它分支必须写明分支名。代码相邻文档(如 `try-on-2d` 的 2D AI 内核)不搬入 hub。
 
 ## A. 写 SRS 时要纳入/拍板的决策
 
