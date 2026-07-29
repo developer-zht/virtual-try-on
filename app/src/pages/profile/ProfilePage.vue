@@ -64,13 +64,13 @@
           <AppIcon name="chevron-left" :size="17" class="settings-row__chevron" />
         </button>
 
-        <button class="settings-row" @click="goPreference">
+        <button class="settings-row" @click="goPreferenceSettings">
           <span class="settings-row__icon">
             <AppIcon name="heart" :size="21" />
           </span>
           <span class="settings-row__copy">
-            <strong>穿搭偏好与收藏</strong>
-            <small>管理风格、颜色和收藏记录</small>
+            <strong>偏好设定（风格 / 颜色 / 场合）</strong>
+            <small>管理长期推荐偏好</small>
           </span>
           <AppIcon name="chevron-left" :size="17" class="settings-row__chevron" />
         </button>
@@ -173,8 +173,8 @@ function goBodyData() {
   void router.push({ name: ROUTES.bodyData });
 }
 
-function goPreference() {
-  void router.push({ name: ROUTES.preference });
+function goPreferenceSettings() {
+  void router.push({ name: ROUTES.preferenceSettings });
 }
 
 async function onModelAction(): Promise<void> {

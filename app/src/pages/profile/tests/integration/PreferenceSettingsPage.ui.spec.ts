@@ -61,8 +61,10 @@ describe('PreferenceSettingsPage UI 提案', () => {
     expect(routerSource).toContain("meta: { overlay: true, title: '偏好设定' }");
     expect(profilePageSource).toContain('@click="goPreferenceSettings"');
     expect(profilePageSource).toContain('name: ROUTES.preferenceSettings');
-    expect(profilePageSource).toContain('<strong>偏好设定</strong>');
-    expect(profilePageSource).toContain('<small>管理长期风格与颜色偏好</small>');
+    expect(profilePageSource).toContain('<strong>偏好设定（风格 / 颜色 / 场合）</strong>');
+    expect(profilePageSource).toContain('<small>管理长期推荐偏好</small>');
+    expect(profilePageSource).not.toContain('@click="goPreference"');
+    expect(profilePageSource).not.toContain('name: ROUTES.preference });');
   });
 });
 
@@ -71,8 +73,8 @@ describe('PreferenceSettingsPage 保存接线', () => {
     expect(pageSource).toContain('const saving = ref(false)');
     expect(pageSource).toContain('const isDirty = computed');
     expect(pageSource).toContain('const canSave = computed');
-    expect(pageSource).toContain(':disabled="!canSave"');
-    expect(pageSource).toContain("{{ saving ? '保存中' : '保存' }}");
+    expect(pageSource).toContain(':disabled="headerActionDisabled"');
+    expect(pageSource).toContain("return saving.value ? '保存中' : '保存'");
   });
 
   it('从本地草稿构造完整候选 Profile，并等待 Store 原子保存', () => {
@@ -114,10 +116,47 @@ describe('PreferenceSettingsPage 未保存离页确认', () => {
 
   it('继续编辑或保存失败时阻止离开，放弃修改时恢复初始快照', () => {
     expect(pageSource).toMatch(
-      /async function requestBack\(\)[\s\S]*if \(choice === 'stay'\) return;[\s\S]*if \(choice === 'save' && !\(await saveDraft\(\)\)\) return;[\s\S]*if \(choice === 'discard'\) resetDraft\(initialSnapshot\.value\);[\s\S]*router\.back\(\)/,
+      /async function requestBack\(\)[\s\S]*switch \(choice\) \{[\s\S]*case 'stay':[\s\S]*return;[\s\S]*case 'save':[\s\S]*if \(!\(await saveDraft\(\)\)\) return;[\s\S]*break;[\s\S]*case 'discard':[\s\S]*resetDraft\(initialSnapshot\.value\);[\s\S]*break;[\s\S]*\}[\s\S]*router\.back\(\)/,
     );
     expect(pageSource).toMatch(
-      /onBeforeRouteLeave\(async \(\) => \{[\s\S]*if \(choice === 'stay'\) return false;[\s\S]*if \(choice === 'save'\) return await saveDraft\(\);[\s\S]*resetDraft\(initialSnapshot\.value\);[\s\S]*return true;/,
+      /onBeforeRouteLeave\(async \(\) => \{[\s\S]*switch \(choice\) \{[\s\S]*case 'stay':[\s\S]*return false;[\s\S]*case 'save':[\s\S]*return await saveDraft\(\);[\s\S]*case 'discard':[\s\S]*resetDraft\(initialSnapshot\.value\);[\s\S]*return true;/,
     );
+  });
+});
+
+describe('PreferenceSettingsPage 关键数据加载闸门', () => {
+  it('Profile 或 metadata 读取失败时不得创建草稿或进入可编辑 ready 状态', () => {
+    expect(pageSource).toContain("type PageLoadState = 'loading' | 'failed' | 'ready'");
+    expect(pageSource).toContain("const pageLoadState = ref<PageLoadState>('loading')");
+    expect(pageSource).toContain('<template v-if="pageLoadState === \'ready\'">');
+    expect(pageSource).toMatch(
+      /await Promise\.all\(\[enums\.ensureLoaded\(\), profileStore\.fetchProfile\(\)\]\);[\s\S]*if \(profileStore\.error \|\| !enums\.loaded\.value\) \{[\s\S]*pageLoadState\.value = 'failed';[\s\S]*return false;[\s\S]*\}[\s\S]*resetDraft\(createPreferenceDraft\(profileStore\.profile\)\);[\s\S]*pageLoadState\.value = 'ready';/,
+    );
+  });
+
+  it('分别展示 loading、failed、ready，并允许从 failed 重新加载', () => {
+    expect(pageSource).toContain('v-if="pageLoadState === \'loading\'"');
+    expect(pageSource).toContain('v-else-if="pageLoadState === \'failed\'"');
+    expect(pageSource).toContain('正在读取最新偏好…');
+    expect(pageSource).toContain('偏好读取失败');
+    expect(pageSource).toContain(':disabled="headerActionDisabled"');
+    expect(pageSource).toContain('@click="onHeaderAction"');
+    expect(pageSource).toContain('const headerActionText = computed');
+    expect(pageSource).toContain("if (pageLoadState.value === 'loading') return '加载中'");
+    expect(pageSource).toContain("if (pageLoadState.value === 'failed') return '重新加载'");
+    expect(pageSource).toContain('const headerActionDisabled = computed');
+    expect(pageSource).toMatch(
+      /async function onHeaderAction\(\)[\s\S]*if \(pageLoadState\.value === 'failed'\) \{[\s\S]*await loadAndFocus\(\);[\s\S]*return;[\s\S]*\}[\s\S]*if \(pageLoadState\.value === 'ready'\) await saveDraft\(\);/,
+    );
+  });
+
+  it('收藏统计作为非关键请求独立加载，失败不阻止风格和颜色进入 ready', () => {
+    expect(pageSource).not.toContain(
+      'Promise.all([enums.ensureLoaded(), profileStore.fetchProfile(), savedOutfits.fetchSaved()])',
+    );
+    expect(pageSource).toMatch(
+      /async function loadOccasionSummary\(\)[\s\S]*try \{[\s\S]*await savedOutfits\.fetchSaved\(\);[\s\S]*\} catch \{[\s\S]*\}/,
+    );
+    expect(pageSource).toMatch(/void loadOccasionSummary\(\);[\s\S]*await loadAndFocus\(\);/);
   });
 });

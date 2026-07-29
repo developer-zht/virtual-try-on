@@ -2,8 +2,13 @@
   <div class="preference-settings">
     <PageHeader title="偏好设定" back @back="requestBack">
       <template #action>
-        <button class="save-button" type="button" :disabled="!canSave" @click="saveDraft">
-          {{ saving ? '保存中' : '保存' }}
+        <button
+          class="save-button"
+          type="button"
+          :disabled="headerActionDisabled"
+          @click="onHeaderAction"
+        >
+          {{ headerActionText }}
         </button>
       </template>
     </PageHeader>
@@ -15,86 +20,98 @@
       <p>这些是长期推荐偏好。修改后会影响后续推荐，不会改变已经收藏的穿搭。</p>
     </section>
 
-    <section id="settings-styles" class="settings-section">
-      <div class="settings-section__head">
-        <span class="settings-section__copy">
-          <strong>喜欢风格</strong>
-          <small>最多选择 3 个</small>
-        </span>
-        <span class="settings-section__count">{{ styleDraft.length }} / 3</span>
-      </div>
-
-      <div class="option-list" aria-label="喜欢风格选项">
-        <button
-          v-for="option in styleOptions"
-          :key="option.value"
-          class="option-chip"
-          :class="{ 'option-chip--selected': styleDraft.includes(option.value) }"
-          type="button"
-          :disabled="!pageReady || saving"
-          :aria-pressed="styleDraft.includes(option.value)"
-          @click="toggleSelection(styleDraft, option.value, 3, '风格')"
-        >
-          {{ option.label_zh }}
-        </button>
-      </div>
+    <section v-if="pageLoadState === 'loading'" class="load-state" role="status" aria-live="polite">
+      <h2>正在读取最新偏好…</h2>
+      <p>正在同步你的 Profile 和可选标签。</p>
     </section>
 
-    <section id="settings-colors" class="settings-section">
-      <div class="settings-section__head">
-        <span class="settings-section__copy">
-          <strong>喜欢颜色</strong>
-          <small>最多选择 5 个，也可以全部取消</small>
-        </span>
-        <span class="settings-section__count">{{ colorDraft.length }} / 5</span>
-      </div>
-
-      <div class="option-list" aria-label="喜欢颜色选项">
-        <button
-          v-for="option in colorOptions"
-          :key="option.value"
-          class="option-chip option-chip--color"
-          :class="{ 'option-chip--selected': colorDraft.includes(option.value) }"
-          type="button"
-          :disabled="!pageReady || saving"
-          :aria-pressed="colorDraft.includes(option.value)"
-          @click="toggleSelection(colorDraft, option.value, 5, '颜色')"
-        >
-          <span
-            class="color-swatch"
-            :style="{ background: colorHex(option.value) }"
-            aria-hidden="true"
-          ></span>
-          {{ option.label_zh }}
-        </button>
-      </div>
+    <section v-else-if="pageLoadState === 'failed'" class="load-state load-state--failed">
+      <h2>偏好读取失败</h2>
+      <p>在成功重新加载前不会显示或修改偏好草稿，请点击右上角“重新加载”。</p>
     </section>
 
-    <section
-      id="settings-occasions"
-      class="settings-section settings-section--readonly"
-      aria-labelledby="occasions-title"
-    >
-      <div class="settings-section__head">
-        <span class="settings-section__copy">
-          <strong id="occasions-title">常用场合</strong>
-          <small>根据收藏自动统计</small>
-        </span>
-        <span class="readonly-badge">只读</span>
-      </div>
+    <template v-if="pageLoadState === 'ready'">
+      <section id="settings-styles" class="settings-section">
+        <div class="settings-section__head">
+          <span class="settings-section__copy">
+            <strong>喜欢风格</strong>
+            <small>最多选择 3 个</small>
+          </span>
+          <span class="settings-section__count">{{ styleDraft.length }} / 3</span>
+        </div>
 
-      <div v-if="allOccasions.length > 0" class="occasion-list">
-        <span v-for="occasion in allOccasions" :key="occasion.value" class="occasion-chip">
-          {{ occasion.label }}
-          <small>{{ occasion.count }} 套</small>
-        </span>
-      </div>
-      <p v-else class="occasion-empty">收藏穿搭后，这里会自动汇总你的常用场合。</p>
+        <div class="option-list" aria-label="喜欢风格选项">
+          <button
+            v-for="option in styleOptions"
+            :key="option.value"
+            class="option-chip"
+            :class="{ 'option-chip--selected': styleDraft.includes(option.value) }"
+            type="button"
+            :disabled="saving"
+            :aria-pressed="styleDraft.includes(option.value)"
+            @click="toggleSelection(styleDraft, option.value, 3, '风格')"
+          >
+            {{ option.label_zh }}
+          </button>
+        </div>
+      </section>
 
-      <p class="readonly-note">
-        当前 Profile 接口没有可编辑的常用场合字段，所以这里用于查看收藏统计，不提供选择操作。
-      </p>
-    </section>
+      <section id="settings-colors" class="settings-section">
+        <div class="settings-section__head">
+          <span class="settings-section__copy">
+            <strong>喜欢颜色</strong>
+            <small>最多选择 5 个，也可以全部取消</small>
+          </span>
+          <span class="settings-section__count">{{ colorDraft.length }} / 5</span>
+        </div>
+
+        <div class="option-list" aria-label="喜欢颜色选项">
+          <button
+            v-for="option in colorOptions"
+            :key="option.value"
+            class="option-chip option-chip--color"
+            :class="{ 'option-chip--selected': colorDraft.includes(option.value) }"
+            type="button"
+            :disabled="saving"
+            :aria-pressed="colorDraft.includes(option.value)"
+            @click="toggleSelection(colorDraft, option.value, 5, '颜色')"
+          >
+            <span
+              class="color-swatch"
+              :style="{ background: colorHex(option.value) }"
+              aria-hidden="true"
+            ></span>
+            {{ option.label_zh }}
+          </button>
+        </div>
+      </section>
+
+      <section
+        id="settings-occasions"
+        class="settings-section settings-section--readonly"
+        aria-labelledby="occasions-title"
+      >
+        <div class="settings-section__head">
+          <span class="settings-section__copy">
+            <strong id="occasions-title">常用场合</strong>
+            <small>根据收藏自动统计</small>
+          </span>
+          <span class="readonly-badge">只读</span>
+        </div>
+
+        <div v-if="allOccasions.length > 0" class="occasion-list">
+          <span v-for="occasion in allOccasions" :key="occasion.value" class="occasion-chip">
+            {{ occasion.label }}
+            <small>{{ occasion.count }} 套</small>
+          </span>
+        </div>
+        <p v-else class="occasion-empty">收藏穿搭后，这里会自动汇总你的常用场合。</p>
+
+        <p class="readonly-note">
+          当前 Profile 接口没有可编辑的常用场合字段，所以这里用于查看收藏统计，不提供选择操作。
+        </p>
+      </section>
+    </template>
   </div>
 </template>
 
@@ -118,6 +135,7 @@ import {
 
 type PreferenceSection = 'styles' | 'colors' | 'occasions';
 type LeaveChoice = 'stay' | 'discard' | 'save';
+type PageLoadState = 'loading' | 'failed' | 'ready';
 
 interface OccasionSummary {
   value: string;
@@ -137,15 +155,24 @@ const savedOutfits = useSavedOutfitsStore();
 const styleDraft = ref<string[]>([]);
 const colorDraft = ref<string[]>([]);
 const initialSnapshot = ref<PreferenceDraft>({ styles: [], colors: [] });
-const pageReady = ref(false);
+const pageLoadState = ref<PageLoadState>('loading');
 const saving = ref(false);
 
 const styleOptions = computed(() => enums.get('style_tag'));
 const colorOptions = computed(() => enums.get('color'));
 const isDirty = computed(() => isPreferenceDraftDirty(currentDraft(), initialSnapshot.value));
-const canSave = computed(() => pageReady.value && isDirty.value && !saving.value);
+const canSave = computed(() => pageLoadState.value === 'ready' && isDirty.value && !saving.value);
+const headerActionText = computed(() => {
+  if (pageLoadState.value === 'loading') return '加载中';
+  if (pageLoadState.value === 'failed') return '重新加载';
+  return saving.value ? '保存中' : '保存';
+});
+const headerActionDisabled = computed(() => {
+  if (pageLoadState.value === 'loading') return true;
+  if (pageLoadState.value === 'failed') return false;
+  return !canSave.value;
+});
 
-// 无法与后端颜色标签同步，而且后端并不会返回颜色所对应的 hex 值
 const COLOR_HEX: Record<string, string> = {
   black: '#30323a',
   white: '#ffffff',
@@ -207,13 +234,41 @@ async function focusSection(value: unknown): Promise<void> {
   if (!isPreferenceSection(value)) return;
   await nextTick();
   const target = document.getElementById(`settings-${value}`);
-  target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  target?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-async function loadUiDraft(): Promise<void> {
-  await Promise.all([enums.ensureLoaded(), profileStore.fetchProfile(), savedOutfits.fetchSaved()]);
+async function loadUiDraft(): Promise<boolean> {
+  pageLoadState.value = 'loading';
+
+  try {
+    await Promise.all([enums.ensureLoaded(), profileStore.fetchProfile()]);
+  } catch {
+    pageLoadState.value = 'failed';
+    notify.error('偏好读取失败，请稍后重试');
+    return false;
+  }
+
+  if (profileStore.error || !enums.loaded.value) {
+    pageLoadState.value = 'failed';
+    if (!profileStore.error) notify.error('偏好选项读取失败，请稍后重试');
+    return false;
+  }
+
   resetDraft(createPreferenceDraft(profileStore.profile));
-  pageReady.value = true;
+  pageLoadState.value = 'ready';
+  return true;
+}
+
+async function loadAndFocus(): Promise<void> {
+  if (await loadUiDraft()) void focusSection(route.query.section);
+}
+
+async function loadOccasionSummary(): Promise<void> {
+  try {
+    await savedOutfits.fetchSaved();
+  } catch {
+    // 常用场合只是只读收藏统计；未知异常也不能阻止风格和颜色进入可编辑状态。
+  }
 }
 
 onMounted(async () => {
@@ -223,8 +278,8 @@ onMounted(async () => {
     return;
   }
 
-  await loadUiDraft();
-  void focusSection(route.query.section);
+  void loadOccasionSummary();
+  await loadAndFocus();
 });
 
 function currentDraft(): PreferenceDraft {
@@ -264,6 +319,15 @@ async function saveDraft(): Promise<boolean> {
   }
 }
 
+async function onHeaderAction() {
+  if (pageLoadState.value === 'failed') {
+    await loadAndFocus();
+    return;
+  }
+
+  if (pageLoadState.value === 'ready') await saveDraft();
+}
+
 function askLeave(): Promise<LeaveChoice> {
   return decisionDialog.choose<LeaveChoice>({
     title: '有未保存的更改',
@@ -283,26 +347,43 @@ function askLeave(): Promise<LeaveChoice> {
 }
 
 async function requestBack(): Promise<void> {
-  if (!pageReady.value || !isDirty.value) {
+  if (pageLoadState.value !== 'ready' || !isDirty.value) {
     router.back();
     return;
   }
 
   const choice = await askLeave();
-  if (choice === 'stay') return;
-  if (choice === 'save' && !(await saveDraft())) return;
-  if (choice === 'discard') resetDraft(initialSnapshot.value);
+  switch (choice) {
+    case 'stay':
+      return;
+
+    case 'save':
+      if (!(await saveDraft())) return;
+      break;
+
+    case 'discard':
+      resetDraft(initialSnapshot.value);
+      break;
+  }
+
   router.back();
 }
 
 onBeforeRouteLeave(async () => {
-  if (!pageReady.value || !isDirty.value) return true;
+  if (pageLoadState.value !== 'ready' || !isDirty.value) return true;
 
   const choice = await askLeave();
-  if (choice === 'stay') return false;
-  if (choice === 'save') return await saveDraft();
-  resetDraft(initialSnapshot.value);
-  return true;
+  switch (choice) {
+    case 'stay':
+      return false;
+
+    case 'save':
+      return await saveDraft();
+
+    case 'discard':
+      resetDraft(initialSnapshot.value);
+      return true;
+  }
 });
 </script>
 
@@ -344,6 +425,36 @@ onBeforeRouteLeave(async () => {
   font-size: 13px;
   line-height: 1.6;
   color: var(--text-gray);
+}
+
+.load-state {
+  min-height: 160px;
+  padding: 28px 20px;
+  border: 1px solid rgba(74, 79, 176, 0.07);
+  border-radius: var(--radius-lg);
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  text-align: center;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+}
+
+.load-state h2 {
+  font-size: 17px;
+  color: var(--text-dark);
+}
+
+.load-state p {
+  max-width: 290px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-gray);
+}
+
+.load-state--failed {
+  border-color: rgba(240, 68, 56, 0.13);
+  background: linear-gradient(145deg, var(--bg-card), rgba(240, 68, 56, 0.04));
 }
 
 .settings-section {
